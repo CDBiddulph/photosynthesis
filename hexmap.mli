@@ -16,4 +16,4 @@ val place_tree : map -> coord -> map
 
 val dist : map -> coord -> coord -> int
 
-val neighbor : map -> dir -> coord -> Cell.t option
+val neighbor : map -> dir -> coord -> Cell.cell option
