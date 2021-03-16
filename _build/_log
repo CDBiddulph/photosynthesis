@@ -1,0 +1,42 @@
+### Starting build.
+# Target: board.mli.depends, tags: { extension:mli, file:board.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules board.mli > board.mli.depends # cached
+# Target: cell.mli.depends, tags: { extension:mli, file:cell.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules cell.mli > cell.mli.depends # cached
+# Target: hexMap.mli.depends, tags: { extension:mli, file:hexMap.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules hexMap.mli > hexMap.mli.depends # cached
+# Target: hexMap.cmi, tags: { byte, compile, extension:mli, file:hexMap.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o hexMap.cmi hexMap.mli # cached
+# Target: plant.mli.depends, tags: { extension:mli, file:plant.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules plant.mli > plant.mli.depends # cached
+# Target: player.mli.depends, tags: { extension:mli, file:player.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules player.mli > player.mli.depends # cached
+# Target: player.cmi, tags: { byte, compile, extension:mli, file:player.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o player.cmi player.mli # cached
+# Target: plant.cmi, tags: { byte, compile, extension:mli, file:plant.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o plant.cmi plant.mli # cached
+# Target: cell.cmi, tags: { byte, compile, extension:mli, file:cell.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o cell.cmi cell.mli # cached
+# Target: board.cmi, tags: { byte, compile, extension:mli, file:board.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o board.cmi board.mli # cached
+# Target: board.ml.depends, tags: { extension:ml, file:board.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules board.ml > board.ml.depends # cached
+# Target: board.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:board.cmo, file:board.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o board.cmo board.ml # cached
+# Target: cell.ml.depends, tags: { extension:ml, file:cell.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules cell.ml > cell.ml.depends # cached
+# Target: cell.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:cell.cmo, file:cell.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o cell.cmo cell.ml # cached
+# Target: hexMap.ml.depends, tags: { extension:ml, file:hexMap.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules hexMap.ml > hexMap.ml.depends
+# Target: hexMap.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:hexMap.cmo, file:hexMap.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o hexMap.cmo hexMap.ml
+# Target: plant.ml.depends, tags: { extension:ml, file:plant.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules plant.ml > plant.ml.depends
+# Target: plant.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:plant.cmo, file:plant.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o plant.cmo plant.ml
+# Target: player.ml.depends, tags: { extension:ml, file:player.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules player.ml > player.ml.depends
+# Target: player.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:player.cmo, file:player.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -o player.cmo player.ml
+# Compilation successful.
