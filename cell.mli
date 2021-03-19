@@ -13,3 +13,5 @@ val soil_type : t -> soil_type
 (** [plant cell] (is the [Option] of [Plant.t] in [cell] if [cell]
     contains a plant. ) *)
 val plant : t -> Plant.t option
+
+val to_string : t -> string
