@@ -1,5 +1,7 @@
+(** The abstract type representing a plant. *)
 type t
 
+(**  *)
 type plant_type =
   | Seed
   | Small
