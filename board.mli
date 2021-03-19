@@ -4,7 +4,7 @@ type t
 (** Raised when an invalid plant placement is attempted. *)
 exception InvalidPlacement
 
-(** [is_place_plant_legal board cell plant] determines if placing
+(** [is_place_plant_legal board cell plant] returns [true] iff placing
     [plant] in [cell] on [board] is a legal move. *)
 val is_place_plant_legal : t -> Cell.t -> Plant.t -> bool
 
