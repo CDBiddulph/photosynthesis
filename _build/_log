@@ -19,14 +19,10 @@ ocamlfind ocamlc -c -g -o main.cmo main.ml # cached
 ocamlfind ocamldep -modules gui.ml > gui.ml.depends
 # Target: gui.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:gui.cmo, file:gui.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -o gui.cmo gui.ml
-+ ocamlfind ocamlc -c -g -o gui.cmo gui.ml
-File "gui.ml", line 147, characters 17-55:
-147 |     merge_layers (List.map (fun l -> snd l) gui.layers)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This expression has type grid list
-       but an expression was expected of type ('a * char list list) list list
-       Type grid = char list list is not compatible with type
-         ('a * char list list) list 
-       Type char list is not compatible with type 'a * char list list 
-Command exited with code 2.
-# Compilation unsuccessful.
+# Target: hexUtil.ml.depends, tags: { debug, extension:ml, file:hexUtil.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -modules hexUtil.ml > hexUtil.ml.depends # cached
+# Target: hexUtil.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:hexUtil.cmo, file:hexUtil.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -o hexUtil.cmo hexUtil.ml # cached
+# Target: main.byte, tags: { byte, debug, dont_link_with, extension:byte, file:main.byte, link, ocaml, program, quiet, traverse }
+ocamlfind ocamlc -linkpkg -g hexUtil.cmo gui.cmo main.cmo -o main.byte
+# Compilation successful.

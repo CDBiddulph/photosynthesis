@@ -109,13 +109,7 @@ let past_n n lst =
 
 let merge_two_layers under over =
   let merge_two_rows u_row o_row =
-    List.map2
-      (fun u o ->
-        if o = '\x00' then u
-        else (
-          print_char u;
-          o ))
-      u_row o_row
+    List.map2 (fun u o -> if o = '\x00' then u else o) u_row o_row
   in
   List.map2 merge_two_rows under over
 
@@ -127,18 +121,21 @@ let merge_layers layer_order layers =
   let rec merge_layers_helper layer_order layers acc =
     match layer_order with
     | [] -> acc
-    | h :: t -> merge_two_layers acc (List.assoc layers h)
+    | h :: t -> merge_two_layers acc (List.assoc h layers)
   in
   match layer_order with
   | [] -> []
-  | [ h ] -> List.assoc layers h
-  | h :: t -> merge_layers_helper t layers (List.assoc layers h)
+  | [ h ] -> List.assoc h layers
+  | h :: t -> merge_layers_helper t layers (List.assoc h layers)
 
-(* let     print_row row;
+let render gui =
+  let print_grid g =
+    let print_row row = List.iter print_char row in
+    List.iter
+      (fun row ->
+        print_row row;
         print_newline ())
       g
-  in *)
-  let render_grid =
-    merge_layers (List.map (fun l -> snd l) gui.layers)
   in
+  let render_grid = merge_layers gui.layer_order gui.layers in
   print_grid render_grid
