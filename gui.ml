@@ -1,5 +1,7 @@
+type char_grid = char option list list
+
 type raster = {
-  grid : char option list list;
+  grid : char_grid;
   width : int;
   height : int;
 }
@@ -36,10 +38,12 @@ let map_offset f big_lst small_lst offset =
   in
   map_offset_helper f big_lst small_lst offset []
 
-let draw graphic x y layer =
+let draw gui graphic_name x y layer =
+  let graphic = List.assoc graphic_name gui.graphics in
   let row_draw grid_r graphic_r =
     map_offset
-      (fun grid_char graphic_char -> graphic_char)
+      (fun grid_char graphic_char ->
+        match graphic_char with None -> grid_char | c -> c)
       grid_r graphic_r x
   in
   { graphic with grid = map_offset row_draw layer.grid graphic.grid y }
@@ -53,14 +57,14 @@ let update_layer layer_name f gui =
   }
 
 let update_cells gui =
-  gui |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 0)
-
-(* |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 1 1) *)
-
-(* |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 10 5)
-   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 28)
-   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 28)
-   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 0) *)
+  gui
+  |> update_layer "hexes" (draw gui "hex" 0 0)
+  |> update_layer "hexes2" (draw gui "hex" 1 1)
+  |> update_layer "hexes" (draw gui "empty" 10 5)
+  |> update_layer "hexes2" (draw gui "horiz" 90 29)
+  |> update_layer "hexes" (draw gui "vert" 99 0)
+  |> update_layer "hexes" (draw gui "hex" 91 25)
+  |> update_layer "background" (draw gui "hex" 50 5)
 
 let update_sun gui dir = gui
 
@@ -79,6 +83,20 @@ let blank_raster w h = fill_raster None w h
 
 (** [null_raster] is a raster with an empty grid and 0 width and height. *)
 let null_raster = blank_raster 0 0
+
+(** [raster_of_grid grid] is a raster with [grid = grid],
+    [height = List.length grid] and [width] equal to the length of the
+    longest list in [grid]. *)
+let raster_of_grid grid =
+  let h = List.length grid in
+  let w =
+    List.fold_left
+      (fun curr_len x ->
+        let x_len = List.length x in
+        if x_len > curr_len then x_len else curr_len)
+      0 grid
+  in
+  { grid; height = h; width = w }
 
 (** [load_graphics none_c names] is an associative list mapping the
     [string] graphic names in [names] to the corresponding graphics,
@@ -109,8 +127,7 @@ let load_graphics none_c names =
                 ( match l_acc with
                 | None -> Some [ c_opt ]
                 | Some a -> Some (c_opt :: a) )
-        with (* Close the *)
-        | End_of_file -> (
+        with End_of_file -> (
           match l_acc with None -> None | Some a -> Some (List.rev a) )
       in
       match load_line ic None with
@@ -120,7 +137,7 @@ let load_graphics none_c names =
     let input_channel = open_in ("graphics/" ^ name ^ ".txt") in
     let result = load_graphic_helper input_channel [] in
     close_in input_channel;
-    (name, { grid = result; width = 9; height = 5 })
+    (name, raster_of_grid result)
   in
   List.map load_graphic names
 
@@ -138,12 +155,10 @@ let init_gui =
         [
           ("background", fill_raster (Some '#') w h);
           ("hexes", blank_raster w h);
+          ("hexes2", blank_raster w h);
         ];
-      layer_order = [ "background"; "hexes" ];
-      graphics =
-        load_graphics ' ' [ "hex" ]
-        (* [ ("hex", [ [ Some '/'; Some '\\' ]; [ Some '\\'; Some '/' ]
-           ]); ]; *);
+      layer_order = [ "background"; "hexes"; "hexes2" ];
+      graphics = load_graphics ' ' [ "hex"; "empty"; "vert"; "horiz" ];
     }
   in
   update_cells gui
@@ -166,15 +181,13 @@ let merge_two_layers under over =
   in
   { under with grid = List.map2 merge_two_rows under.grid over.grid }
 
-(* let merge_layers layers = let rec merge_layers_helper layers acc =
-   match layers with [] -> acc | h :: t -> merge_two_layers acc h in
-   match layers with | [] -> [] | [ h ] -> h | h :: t ->
-   merge_layers_helper t h *)
 let merge_layers layer_order layers =
   let rec merge_layers_helper layer_order layers acc =
     match layer_order with
     | [] -> acc
-    | h :: t -> merge_two_layers acc (List.assoc h layers)
+    | h :: t ->
+        merge_layers_helper t layers
+          (merge_two_layers acc (List.assoc h layers))
   in
   match layer_order with
   | [] -> null_raster
@@ -185,8 +198,8 @@ let render gui =
   let print_grid g =
     let print_row row =
       List.iter
-        (fun co ->
-          print_char (match co with None -> ' ' | Some c -> c))
+        (fun c_opt ->
+          print_char (match c_opt with None -> ' ' | Some c -> c))
         row
     in
     List.iter
