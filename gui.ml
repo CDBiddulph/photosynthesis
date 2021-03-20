@@ -12,7 +12,7 @@ let map_offset f big_lst small_lst offset =
   assert (offset >= 0);
   let rec map_offset_helper f big_lst small_lst offset acc =
     match small_lst with
-    | [] -> acc @ big_lst
+    | [] -> List.rev acc @ big_lst
     | sl_h :: sl_t -> (
         match offset with
         | 0 -> (
@@ -21,15 +21,14 @@ let map_offset f big_lst small_lst offset =
                 failwith
                   "offset + length small_lst exceeds length big_lst"
             | bl_h :: bl_t ->
-                map_offset_helper f bl_t sl_t 0 (acc @ [ f bl_h sl_h ])
-            )
+                map_offset_helper f bl_t sl_t 0 (f bl_h sl_h :: acc) )
         | o -> (
             (* print_int o; print_newline (); *)
             match big_lst with
             | [] -> failwith "offset exceeds length big_lst"
             | bl_h :: bl_t ->
-                map_offset_helper f bl_t small_lst (o - 1)
-                  (acc @ [ bl_h ]) ) )
+                map_offset_helper f bl_t small_lst (o - 1) (bl_h :: acc)
+            ) )
   in
   map_offset_helper f big_lst small_lst offset []
 
@@ -53,7 +52,7 @@ let update_cells gui =
   gui
   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 0)
   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 1 1)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 10 10)
+  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 10 5)
   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 28)
   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 28)
   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 0)
