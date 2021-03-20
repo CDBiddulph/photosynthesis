@@ -4,54 +4,25 @@ ocamlfind ocamldep -modules main.mli > main.mli.depends # cached
 # Target: main.cmi, tags: { byte, compile, debug, extension:mli, file:main.mli, interf, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -o main.cmi main.mli # cached
 # Target: main.ml.depends, tags: { debug, extension:ml, file:main.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules main.ml > main.ml.depends # cached
-# Target: cell.mli.depends, tags: { debug, extension:mli, file:cell.mli, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules cell.mli > cell.mli.depends # cached
-# Target: plant.mli.depends, tags: { debug, extension:mli, file:plant.mli, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules plant.mli > plant.mli.depends # cached
-# Target: player.mli.depends, tags: { debug, extension:mli, file:player.mli, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules player.mli > player.mli.depends # cached
-# Target: player.cmi, tags: { byte, compile, debug, extension:mli, file:player.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o player.cmi player.mli # cached
-# Target: plant.cmi, tags: { byte, compile, debug, extension:mli, file:plant.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o plant.cmi plant.mli # cached
-# Target: cell.cmi, tags: { byte, compile, debug, extension:mli, file:cell.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o cell.cmi cell.mli # cached
+ocamlfind ocamldep -modules main.ml > main.ml.depends
 # Target: gui.mli.depends, tags: { debug, extension:mli, file:gui.mli, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules gui.mli > gui.mli.depends
+ocamlfind ocamldep -modules gui.mli > gui.mli.depends # cached
 # Target: hexUtil.mli.depends, tags: { debug, extension:mli, file:hexUtil.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -modules hexUtil.mli > hexUtil.mli.depends # cached
 # Target: hexUtil.cmi, tags: { byte, compile, debug, extension:mli, file:hexUtil.mli, interf, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -o hexUtil.cmi hexUtil.mli # cached
 # Target: gui.cmi, tags: { byte, compile, debug, extension:mli, file:gui.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o gui.cmi gui.mli
+ocamlfind ocamlc -c -g -o gui.cmi gui.mli # cached
 # Target: main.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -o main.cmo main.ml
-+ ocamlfind ocamlc -c -g -o main.cmo main.ml
-File "main.ml", line 8, characters 6-9:
-8 |   let gui = init_gui [ init_cell 1 (Some (init_plant 1 Plant.Seed)) ] in
-          ^^^
-Warning 26: unused variable gui.
-# Target: cell.ml.depends, tags: { debug, extension:ml, file:cell.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules cell.ml > cell.ml.depends # cached
-# Target: cell.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:cell.cmo, file:cell.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o cell.cmo cell.ml # cached
 # Target: gui.ml.depends, tags: { debug, extension:ml, file:gui.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -modules gui.ml > gui.ml.depends # cached
-# Target: plant.ml.depends, tags: { debug, extension:ml, file:plant.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules plant.ml > plant.ml.depends # cached
-# Target: plant.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:plant.cmo, file:plant.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o plant.cmo plant.ml # cached
 # Target: gui.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:gui.cmo, file:gui.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o gui.cmo gui.ml
-# Target: player.ml.depends, tags: { debug, extension:ml, file:player.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules player.ml > player.ml.depends # cached
-# Target: player.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:player.cmo, file:player.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o player.cmo player.ml # cached
+ocamlfind ocamlc -c -g -o gui.cmo gui.ml # cached
 # Target: hexUtil.ml.depends, tags: { debug, extension:ml, file:hexUtil.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -modules hexUtil.ml > hexUtil.ml.depends
+ocamlfind ocamldep -modules hexUtil.ml > hexUtil.ml.depends # cached
 # Target: hexUtil.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:hexUtil.cmo, file:hexUtil.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -o hexUtil.cmo hexUtil.ml
+ocamlfind ocamlc -c -g -o hexUtil.cmo hexUtil.ml # cached
 # Target: main.byte, tags: { byte, debug, dont_link_with, extension:byte, file:main.byte, link, ocaml, program, quiet, traverse }
-ocamlfind ocamlc -linkpkg -g player.cmo plant.cmo cell.cmo hexUtil.cmo gui.cmo main.cmo -o main.byte
+ocamlfind ocamlc -linkpkg -g hexUtil.cmo gui.cmo main.cmo -o main.byte
 # Compilation successful.

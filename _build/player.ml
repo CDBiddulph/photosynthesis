@@ -1,7 +1,10 @@
-type t = unit
-
 type player_id = int
 
-let player_id = failwith "Unimplemented"
+type t = {
+  id : player_id;
+  light_points : int;
+}
 
-let light_points = failwith "Unimplemented"
+let player_id player = player.id
+
+let light_points player = player.light_points
