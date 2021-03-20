@@ -17,7 +17,7 @@ val update_cells : t -> Cell.t list -> t
 
 (** [update_sun gui dir] updates the GUI so that the rays of the sun
     will appear to point in direction [dir].*)
-val update_sun : t -> HexMap.dir -> t
+val update_sun : t -> HexUtil.dir -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

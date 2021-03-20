@@ -1,1 +1,1 @@
-hexMap.mli: Cell HexCoord
+hexMap.mli: Cell HexCoord HexUtil
