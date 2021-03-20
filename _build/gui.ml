@@ -1,11 +1,11 @@
-type grid = char list list
+type grid = char option list list
 
 type t = {
   width : int;
   height : int;
   layers : (string * grid) list;
   layer_order : string list;
-  graphics : (string * char list list) list;
+  graphics : (string * grid) list;
 }
 
 let map_offset f big_lst small_lst offset =
@@ -36,8 +36,7 @@ let map_offset f big_lst small_lst offset =
 let draw graphic x y grid =
   let row_draw grid_r graphic_r =
     map_offset
-      (fun grid_c graphic_c ->
-        if graphic_c = ' ' then '\x00' else graphic_c)
+      (fun grid_char graphic_char -> graphic_char)
       grid_r graphic_r x
   in
   map_offset row_draw grid graphic y
@@ -67,7 +66,7 @@ let rec fill_layer c w h =
   in
   match h with 0 -> [] | n -> fill_row c w :: fill_layer c w (h - 1)
 
-let empty_layer gui = fill_layer '\x00' gui.width gui.height
+let empty_layer gui = fill_layer None gui.width gui.height
 
 (** [init_gui ()] is a GUI with the layers of grids necessary to run the
     game. Postcondition: Each grid in [(init_gui ()).layers] has the
@@ -81,7 +80,10 @@ let init_gui =
       height = h;
       layers = [];
       layer_order = [ "background"; "hexes" ];
-      graphics = [ ("hex", [ [ '/'; '\\' ]; [ '\\'; '/' ] ]) ];
+      graphics =
+        [
+          ("hex", [ [ Some '/'; Some '\\' ]; [ Some '\\'; Some '/' ] ]);
+        ];
     }
   in
   let gui' =
@@ -89,7 +91,8 @@ let init_gui =
       gui with
       layers =
         [
-          ("background", fill_layer '#' w h); ("hexes", empty_layer gui);
+          ("background", fill_layer (Some '#') w h);
+          ("hexes", empty_layer gui);
         ];
     }
   in
@@ -109,7 +112,7 @@ let past_n n lst =
 
 let merge_two_layers under over =
   let merge_two_rows u_row o_row =
-    List.map2 (fun u o -> if o = '\x00' then u else o) u_row o_row
+    List.map2 (fun u o -> match o with None -> u | o -> o) u_row o_row
   in
   List.map2 merge_two_rows under over
 
@@ -130,7 +133,12 @@ let merge_layers layer_order layers =
 
 let render gui =
   let print_grid g =
-    let print_row row = List.iter print_char row in
+    let print_row row =
+      List.iter
+        (fun co ->
+          print_char (match co with None -> ' ' | Some c -> c))
+        row
+    in
     List.iter
       (fun row ->
         print_row row;
