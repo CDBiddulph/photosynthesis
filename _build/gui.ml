@@ -49,13 +49,14 @@ let update_layer layer_name f gui =
   }
 
 let update_cells gui =
-  gui
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 0)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 1 1)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 10 5)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 28)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 28)
-  |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 0)
+  gui |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 0)
+
+(* |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 1 1) *)
+
+(* |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 10 5)
+   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 28)
+   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 0 28)
+   |> update_layer "hexes" (draw (List.assoc "hex" gui.graphics) 98 0) *)
 
 let update_sun gui dir = gui
 
@@ -66,6 +67,50 @@ let rec fill_layer c w h =
   match h with 0 -> [] | n -> fill_row c w :: fill_layer c w (h - 1)
 
 let empty_layer gui = fill_layer None gui.width gui.height
+
+(** [load_graphics none_c names] is an associative list mapping the
+    [string] graphic names in [names] to the corresponding graphics,
+    where each graphic is in the form of a [grid]. Each line
+    ([char option list]) in the [grid] will contain elements up to, but
+    not including the next ['\n']. The character [none_c] will be
+    represented as [None], while all other characters [c] will be
+    represented as [Some c]. It is possible that for the graphics to be
+    represented by non-rectangular lists. *)
+let load_graphics none_c names =
+  let load_graphic name =
+    let rec load_graphic_helper ic g_acc =
+      (* [load_line ic l_acc] is None when [ic] is at EOF. Otherwise, it
+         is [Some line], where [line] is a char option list. [line] will
+         contain char options up to, but not including the next ['\n'].
+         The character [' '] will be represented as [None], while all
+         other characters [c] will be represented as [Some c]. *)
+      let rec load_line ic l_acc =
+        try
+          match input_char ic with
+          | '\n' -> (
+              match l_acc with
+              | None -> Some []
+              | Some a -> Some (List.rev a) )
+          | c ->
+              let c_opt = if c = none_c then None else Some c in
+              load_line ic
+                ( match l_acc with
+                | None -> Some [ c_opt ]
+                | Some a -> Some (c_opt :: a) )
+        with (* Close the *)
+        | End_of_file -> (
+          match l_acc with None -> None | Some a -> Some (List.rev a) )
+      in
+      match load_line ic None with
+      | None -> List.rev g_acc
+      | Some line -> load_graphic_helper ic (line :: g_acc)
+    in
+    let input_channel = open_in ("graphics/" ^ name ^ ".txt") in
+    let result = (name, load_graphic_helper input_channel []) in
+    close_in input_channel;
+    result
+  in
+  List.map load_graphic names
 
 (** [init_gui ()] is a GUI with the layers of grids necessary to run the
     game. Postcondition: Each grid in [(init_gui ()).layers] has the
@@ -80,9 +125,9 @@ let init_gui =
       layers = [];
       layer_order = [ "background"; "hexes" ];
       graphics =
-        [
-          ("hex", [ [ Some '/'; Some '\\' ]; [ Some '\\'; Some '/' ] ]);
-        ];
+        load_graphics ' ' [ "hex" ]
+        (* [ ("hex", [ [ Some '/'; Some '\\' ]; [ Some '\\'; Some '/' ]
+           ]); ]; *);
     }
   in
   let gui' =
