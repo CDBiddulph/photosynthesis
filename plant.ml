@@ -6,7 +6,7 @@ type plant_stage =
   | Medium
   | Large
 
-let init_plant = failwith "Unimplemented"
+let init_plant p_id stage = failwith "Unimplemented"
 
 let player_id = failwith "Unimplemented"
 

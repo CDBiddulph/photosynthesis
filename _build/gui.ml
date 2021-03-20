@@ -1,3 +1,5 @@
+open HexUtil
+
 type char_grid = char option list list
 
 type raster = {
@@ -56,15 +58,14 @@ let update_layer layer_name f gui =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
 
-let update_cells gui =
-  gui
-  |> update_layer "hexes" (draw gui "hex" 0 0)
-  |> update_layer "hexes2" (draw gui "hex" 1 1)
-  |> update_layer "hexes" (draw gui "empty" 10 5)
-  |> update_layer "hexes2" (draw gui "horiz" 90 29)
-  |> update_layer "hexes" (draw gui "vert" 99 0)
-  |> update_layer "hexes" (draw gui "hex" 91 25)
-  |> update_layer "background" (draw gui "hex" 50 5)
+let update_cells gui cells = gui
+
+(* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
+   "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
+   "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 90 29) |>
+   update_layer "hexes" (draw gui "vert" 99 0) |> update_layer "hexes"
+   (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
+   50 5) *)
 
 let update_sun gui dir = gui
 
@@ -141,27 +142,35 @@ let load_graphics none_c names =
   in
   List.map load_graphic names
 
-(** [init_gui ()] is a GUI with the layers of grids necessary to run the
-    game. Postcondition: Each grid in [(init_gui ()).layers] has the
-    same dimensions. *)
-let init_gui =
+let xy_of_hex_coord coord = (coord.diag, coord.col)
+
+(** [draw_hex gui cell] returns [gui] with a hex drawn in its "hexes"
+    layer with the position corresponding to the coords of [cell]. *)
+let draw_hex gui cell =
+  let x, y = xy_of_hex_coord cell in
+  update_layer "hexes" (draw gui "hex" x y) gui
+
+(** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
+    layer with the positions corresponding to the coords of each cell in
+    [cells]. *)
+let draw_hexes gui cells = List.fold_left draw_hex gui cells
+
+(** [init_gui cells] is a GUI with the layers of rasters necessary to
+    run the game. Postcondition: Each raster in
+    [(init_gui cells).layers] has the same dimensions. *)
+let init_gui cells =
   let w = 100 in
   let h = 30 in
   let gui =
     {
       width = w;
       height = h;
-      layers =
-        [
-          ("background", fill_raster (Some '#') w h);
-          ("hexes", blank_raster w h);
-          ("hexes2", blank_raster w h);
-        ];
-      layer_order = [ "background"; "hexes"; "hexes2" ];
+      layers = [ ("hexes", blank_raster w h) ];
+      layer_order = [ "hexes" ];
       graphics = load_graphics ' ' [ "hex"; "empty"; "vert"; "horiz" ];
     }
   in
-  update_cells gui
+  update_cells (draw_hexes gui cells) cells
 
 (** (Deprecated) [past_n lst n] is the list containing the contents of
     [lst] including and after index [n]. Returns [\[\]] if
