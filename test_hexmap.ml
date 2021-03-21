@@ -13,7 +13,12 @@ let block_test
 
 let i_map = HexMap.init_map
 
-let does_block_tests = [ block_test "horizontal block true" ]
+let c00 : HexUtil.coord = { col = 0; diag = 0 }
+
+let c01 : HexUtil.coord = { col = 1; diag = 1 }
+
+let does_block_tests =
+  [ block_test "horizontal block true" i_map 0 c00 c01 true ]
 
 let suite =
   "test suite for HexMap" >::: List.flatten [ does_block_tests ]

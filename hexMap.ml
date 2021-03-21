@@ -8,8 +8,6 @@
     [Cell.t array array], and the diagonals are the second.*)
 type t = Cell.t option array array
 
-type dir = int
-
 let init_map : t =
   let open Cell in
   [|
@@ -69,15 +67,16 @@ let init_map : t =
     |];
   |]
 
-let cell_at map coord =
+let cell_at map coord : Cell.t =
   let open HexUtil in
   map.(coord.col).(coord.diag)
 
-let set_cell map cell coord =
+let set_cell map cell coord : t =
   let open HexUtil in
-  map.(coord.col).(coord.diag) <- cell
+  map.(coord.col).(coord.diag) <- cell;
+  map
 
-let does_block map (d : HexUtil.dir) c1 c2 =
+let does_block (map : t) (d : HexUtil.dir) c1 c2 =
   let open HexUtil in
   match d with
   | 0 -> c1.col = c2.col && c1.diag = c2.diag - 1
@@ -88,17 +87,17 @@ let does_block map (d : HexUtil.dir) c1 c2 =
   | 5 -> c1.col - 1 = c2.col && c1.diag = c2.diag
   | _ -> failwith "Invalid direction"
 
-let dist map c1 c2 =
+let dist (map : t) c1 c2 =
   let open HexUtil in
   Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
 
-let valid_coord map c =
+let valid_coord (map : t) c =
   let open HexUtil in
   c.col >= 0 && c.diag >= 0
   && c.col < Array.length map
   && c.diag < Array.length map.(c.col)
 
-let neighbor map c (d : HexUtil.dir) =
+let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in
   let new_coord =
     match d with
