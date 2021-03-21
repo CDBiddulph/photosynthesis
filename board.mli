@@ -17,4 +17,4 @@ val place_plant : t -> Cell.t -> Plant.t -> t
 
 val end_turn : t -> t
 
-val sun_dir : t -> HexMap.dir
+val sun_dir : t -> HexUtil.dir
