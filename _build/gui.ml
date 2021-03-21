@@ -214,7 +214,9 @@ let render gui =
     let print_row row =
       List.iter
         (fun c_opt ->
-          print_char (match c_opt with None -> ' ' | Some c -> c))
+          ANSITerminal.print_string [ ANSITerminal.red ]
+            (String.make 1
+               (match c_opt with None -> ' ' | Some c -> c)))
         row
     in
     List.iter
