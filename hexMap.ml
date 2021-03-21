@@ -6,65 +6,65 @@
     indicate closeness to the "top" and "left" side of of the board.
     "Columns" of [HexUtil.coord] are the first index in the
     [Cell.t array array], and the diagonals are the second.*)
-type t = Cell.t array array
+type t = Cell.t option array array
 
 let init_map : t =
   let open Cell in
   [|
     [|
-      init_cell 1 None;
-      init_cell 1 None;
-      init_cell 1 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 2 None;
-      init_cell 2 None;
-      init_cell 2 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 2 None);
+      Some (init_cell 2 None);
+      Some (init_cell 2 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 2 None;
-      init_cell 3 None;
-      init_cell 3 None;
-      init_cell 2 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 2 None);
+      Some (init_cell 3 None);
+      Some (init_cell 3 None);
+      Some (init_cell 2 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 2 None;
-      init_cell 3 None;
-      init_cell 4 None;
-      init_cell 3 None;
-      init_cell 2 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 2 None);
+      Some (init_cell 3 None);
+      Some (init_cell 4 None);
+      Some (init_cell 3 None);
+      Some (init_cell 2 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 2 None;
-      init_cell 3 None;
-      init_cell 3 None;
-      init_cell 2 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 2 None);
+      Some (init_cell 3 None);
+      Some (init_cell 3 None);
+      Some (init_cell 2 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 2 None;
-      init_cell 2 None;
-      init_cell 2 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 2 None);
+      Some (init_cell 2 None);
+      Some (init_cell 2 None);
+      Some (init_cell 1 None);
     |];
     [|
-      init_cell 1 None;
-      init_cell 1 None;
-      init_cell 1 None;
-      init_cell 1 None;
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
+      Some (init_cell 1 None);
     |];
   |]
 
-let cell_at (map : t) coord : Cell.t =
+let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
   map.(coord.col).(coord.diag)
 

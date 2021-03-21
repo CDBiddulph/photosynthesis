@@ -6,7 +6,7 @@ val init_map : t
 
 (** [cell_at map coord] is the cell at [coord] of [map]. Requires: [c]
     is a valid coordinate in [map]. *)
-val cell_at : t -> HexUtil.coord -> Cell.t
+val cell_at : t -> HexUtil.coord -> Cell.t option
 
 (** [set_cell map cell coord] is [map] where the cell at [coord] is set
     to [cell]. Requires: [coord] is a valid coordinate in [map]. *)
