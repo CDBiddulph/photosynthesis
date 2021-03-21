@@ -10,7 +10,7 @@ type soil = int
 val init_cell : soil -> Plant.t option -> t
 
 (** [coord cell] is the hex coordinate location of [cell]. *)
-val coord : t -> HexCoord.t
+val coord : t -> HexUtil.coord
 
 (** [soil cell] is the soil type of [cell]. *)
 val soil : t -> soil
