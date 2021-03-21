@@ -58,14 +58,15 @@ let update_layer layer_name f gui =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
 
-let update_cells gui cells = gui
-
-(* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
-   "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
-   "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 90 29) |>
-   update_layer "hexes" (draw gui "vert" 99 0) |> update_layer "hexes"
-   (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
-   50 5) *)
+let update_cells gui cells =
+  gui
+  |> update_layer "hexes" (draw gui "hex" 0 0)
+  |> update_layer "hexes2" (draw gui "hex" 1 1)
+  |> update_layer "hexes" (draw gui "empty" 10 5)
+  |> update_layer "hexes2" (draw gui "horiz" 90 29)
+  |> update_layer "hexes" (draw gui "vert" 99 0)
+  |> update_layer "hexes" (draw gui "hex" 91 25)
+  |> update_layer "background" (draw gui "hex" 50 5)
 
 let update_sun gui dir = gui
 
@@ -165,8 +166,13 @@ let init_gui cells =
     {
       width = w;
       height = h;
-      layers = [ ("hexes", blank_raster w h) ];
-      layer_order = [ "hexes" ];
+      layers =
+        [
+          ("background", fill_raster (Some '.') w h);
+          ("hexes", blank_raster w h);
+          ("hexes2", blank_raster w h);
+        ];
+      layer_order = [ "background"; "hexes"; "hexes2" ];
       graphics = load_graphics ' ' [ "hex"; "empty"; "vert"; "horiz" ];
     }
   in
