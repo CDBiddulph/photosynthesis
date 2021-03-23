@@ -1,13 +1,17 @@
-type t = unit
+open Plant
 
 type soil = int
 
-let init_cell = failwith "Unimplemented"
+type t = {
+  soil : soil;
+  plant : Plant.t;
+  location : HexUtil.coord;
+}
 
-let coord = failwith "Unimplemented"
+let init_cell s p l = { soil = s; plant = p; location = l }
 
-let soil = failwith "Unimplemented"
+let coord c = c.location
 
-let plant = failwith "Unimplemented"
+let soil c = c.soil
 
-let string_of_cell = failwith "Unimplemented"
+let plant c = c.plant

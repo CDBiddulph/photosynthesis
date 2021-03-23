@@ -7,7 +7,7 @@ type soil = int
 (** [init_cell soil plant] is a cell with soil type [soil]. If
     [plant = Some p], it will have plant [p]; if [plant = None], it will
     have no plant. *)
-val init_cell : soil -> Plant.t option -> t
+val init_cell : soil -> Plant.t option -> HexUtil.coord -> t
 
 (** [coord cell] is the hex coordinate location of [cell]. *)
 val coord : t -> HexUtil.coord
