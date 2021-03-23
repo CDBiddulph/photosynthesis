@@ -8,6 +8,7 @@
     [Cell.t array array], and the diagonals are the second.*)
 type t = Cell.t option array array
 
+(* TODO: switch to big board pointy up *)
 let init_map : t =
   let open Cell in
   [|
@@ -16,6 +17,9 @@ let init_map : t =
       Some (init_cell 1 None);
       Some (init_cell 1 None);
       Some (init_cell 1 None);
+      None;
+      None;
+      None;
     |];
     [|
       Some (init_cell 1 None);
@@ -23,6 +27,8 @@ let init_map : t =
       Some (init_cell 2 None);
       Some (init_cell 2 None);
       Some (init_cell 1 None);
+      None;
+      None;
     |];
     [|
       Some (init_cell 1 None);
@@ -31,6 +37,7 @@ let init_map : t =
       Some (init_cell 3 None);
       Some (init_cell 2 None);
       Some (init_cell 1 None);
+      None;
     |];
     [|
       Some (init_cell 1 None);
@@ -42,6 +49,7 @@ let init_map : t =
       Some (init_cell 1 None);
     |];
     [|
+      None;
       Some (init_cell 1 None);
       Some (init_cell 2 None);
       Some (init_cell 3 None);
@@ -50,6 +58,8 @@ let init_map : t =
       Some (init_cell 1 None);
     |];
     [|
+      None;
+      None;
       Some (init_cell 1 None);
       Some (init_cell 2 None);
       Some (init_cell 2 None);
@@ -57,6 +67,9 @@ let init_map : t =
       Some (init_cell 1 None);
     |];
     [|
+      None;
+      None;
+      None;
       Some (init_cell 1 None);
       Some (init_cell 1 None);
       Some (init_cell 1 None);
@@ -77,12 +90,12 @@ let does_block (map : t) (d : HexUtil.dir) c1 c2 =
   let open HexUtil in
   print_endline "here";
   match d with
-  | 0 -> c1.col = c2.col && c1.diag = c2.diag - 1
-  | 1 -> c1.col + 1 = c2.col && c1.diag = c2.diag - 1
-  | 2 -> c1.col + 1 = c2.col && c1.diag = c2.diag
-  | 3 -> c1.col = c2.col && c1.diag = c2.diag - 1
-  | 4 -> c1.col - 1 = c2.col && c1.diag = c2.diag - 1
-  | 5 -> c1.col - 1 = c2.col && c1.diag = c2.diag
+  | 0 -> c1.col + 1 = c2.col && c1.diag = c2.diag
+  | 1 -> c1.col = c2.col && c1.diag = c2.diag + 1
+  | 2 -> c1.col - 1 = c2.col && c1.diag = c2.diag + 1
+  | 3 -> c1.col - 1 = c2.col && c1.diag = c2.diag
+  | 4 -> c1.col = c2.col && c1.diag = c2.diag - 1
+  | 5 -> c1.col + 1 = c2.col && c1.diag = c2.diag - 1
   | _ -> failwith "Invalid direction"
 
 let dist (map : t) c1 c2 =
@@ -91,20 +104,20 @@ let dist (map : t) c1 c2 =
 
 let valid_coord (map : t) c =
   let open HexUtil in
-  c.col >= 0 && c.diag >= 0
-  && c.col < Array.length map
-  && c.diag < Array.length map.(c.col)
+  let row_low = if c.col < 4 then 0 else c.col - 4 in
+  let row_high = if c.col > 3 then Array.length map else 3 - c.col in
+  c.col < Array.length map && c.diag <= row_high && c.diag >= row_low
 
 let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in
   let new_coord =
     match d with
-    | 0 -> { c with diag = c.diag + 1 }
-    | 1 -> { col = c.col + 1; diag = c.diag + 1 }
-    | 2 -> { c with col = c.col + 1 }
-    | 3 -> { c with diag = c.diag - 1 }
-    | 4 -> { col = c.col - 1; diag = c.diag + 1 }
-    | 5 -> { c with col = c.col - 1 }
+    | 0 -> { c with col = c.col + 1 }
+    | 1 -> { c with diag = c.diag - 1 }
+    | 2 -> { col = c.col - 1; diag = c.diag - 1 }
+    | 3 -> { c with col = c.col - 1 }
+    | 4 -> { c with diag = c.diag + 1 }
+    | 5 -> { col = c.col + 1; diag = c.diag + 1 }
     | _ -> failwith "Invalid direction"
   in
   if valid_coord map new_coord then Some new_coord else None

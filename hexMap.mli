@@ -29,3 +29,6 @@ val dist : t -> HexUtil.coord -> HexUtil.coord -> int
     direction [d] from [c], then the result is [None]. Requires: [c] is
     a valid coordinate in [map]. *)
 val neighbor : t -> HexUtil.coord -> HexUtil.dir -> HexUtil.coord option
+
+(** [flatten map] TODO *)
+val flatten : t -> Cell.t
