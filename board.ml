@@ -56,20 +56,38 @@ let place_plant (board : t) cell plant =
     [Plant.t] in [c2] based on size and distance. *)
 let shadows map c1 c2 =
   let open Cell in
-  let c1_plnt = plant c1 in
-  let c2_plnt = plant c2 in
-  c2_plnt = Seed
-  ||
-  match c1_plnt with
-  | Seed -> false
-  | Small ->
-      c2_plnt = Small && HexMap.dist map (coord c1) (coord c2) = 1
-  | Medium ->
-      (c2_plnt = Medium || c2_plnt = Small)
-      && HexMap.dist map (coord c1) (coord c2) <= 2
-  | Large ->
-      (c2_plnt = Large || c2_plnt = Medium || c2_plnt = Small)
-      && HexMap.dist map (coord c1) (coord c2) <= 3
+  let open Plant in
+  let c1_cell_opt = HexMap.cell_at map c1 in
+  let c2_cell_opt = HexMap.cell_at map c2 in
+  match c1_cell_opt with
+  | None -> false
+  | Some cell_1 -> (
+      match c2_cell_opt with
+      | None -> false
+      | Some cell_2 -> (
+          let c1_plnt_opt = plant cell_1 in
+          let c2_plnt_opt = plant cell_2 in
+          match c2_plnt_opt with
+          | None -> false
+          | Some c2_plt -> (
+              let c2_plnt = plant_stage c2_plt in
+              c2_plnt = Seed
+              ||
+              match c1_plnt_opt with
+              | None -> true
+              | Some c1_plt -> (
+                  let c1_plnt = plant_stage c1_plt in
+                  match c1_plnt with
+                  | Seed -> false
+                  | Small ->
+                      c2_plnt = Small && HexMap.dist map c1 c2 = 1
+                  | Medium ->
+                      (c2_plnt = Medium || c2_plnt = Small)
+                      && HexMap.dist map c1 c2 <= 2
+                  | Large ->
+                      (c2_plnt = Large || c2_plnt = Medium
+                     || c2_plnt = Small)
+                      && HexMap.dist map c1 c2 <= 3))))
 
 (** [lp_map plant] maps [Plant.plant_stage]s to light point amounts. *)
 let lp_map (plant : Plant.plant_stage) : int =
@@ -82,39 +100,48 @@ let lp_map (plant : Plant.plant_stage) : int =
 let player_lp_helper (board : t) player player_cells : t =
   let update_board = ref board in
   for i = 0 to List.length player_cells - 1 do
-    let cell = List.nth player_cells i in
+    let cell_coord = List.nth player_cells i in
     let shadowed =
-      let fst_neigh = HexMap.neighbor board.map cell board.sun_dir in
-      match fst_neigh with
+      let fst_neigh_opt =
+        HexMap.neighbor board.map cell_coord board.sun_dir
+      in
+      match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
           let snd_neigh =
-            HexMap.neighbor board.map fst_neigh board.sun_dir
+            HexMap.neighbor board.map fst_coord board.sun_dir
           in
           match snd_neigh with
-          | None -> shadows board.map fst_neigh cell
+          | None -> shadows board.map fst_coord cell_coord
           | Some snd_coord -> (
               let thd_neigh =
-                HexMap.neighbor board.map snd_neigh board.sun_dir
+                HexMap.neighbor board.map snd_coord board.sun_dir
               in
               match thd_neigh with
               | None ->
-                  shadows board.map fst_neigh cell
-                  || shadows board.map snd_neigh cell
-              | Some shadows ->
-                  board.map fst_neigh cell
-                  || shadows board.map snd_neigh cell
-                  || shadows board.map thd_neigh cell))
+                  shadows board.map fst_coord cell_coord
+                  || shadows board.map snd_coord cell_coord
+              | Some thd_coord ->
+                  shadows board.map fst_coord cell_coord
+                  || shadows board.map snd_coord cell_coord
+                  || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      let lp = lp_map (Cell.plant cell) in
-      let new_plst =
-        List.map
-          (fun ply ->
-            if Player.player_id ply = player then add_lp lp else ply)
-          board.players
-      in
-      update_board := { !update_board with players = new_plst }
+      let (Some cell) = HexMap.cell_at board.map cell_coord in
+      let plnt = Cell.plant cell in
+      match plnt with
+      | None -> ()
+      | Some lp_plnt ->
+          let lp = lp_map (Plant.plant_stage lp_plnt) in
+          let new_plst =
+            List.map
+              (fun ply ->
+                if Player.player_id ply = player then
+                  Player.add_lp ply lp
+                else ply)
+              board.players
+          in
+          update_board := { !update_board with players = new_plst }
     else ()
   done;
   !update_board
@@ -128,15 +155,20 @@ let lp_helper (board : t) : t =
   for i = 0 to List.length board.players - 1 do
     let player = List.nth board.players i in
     let player_cells =
-      List.filter
-        (fun c ->
-          match Cell.plant c with
-          | None -> false
-          | Some plant ->
-              Plant.player_id plant = Player.player_id player)
-        (HexMap.flatten board.map)
+      List.map
+        (fun c -> Cell.coord c)
+        (List.filter
+           (fun c ->
+             match Cell.plant c with
+             | None -> false
+             | Some plant ->
+                 Plant.player_id plant = Player.player_id player)
+           (HexMap.flatten board.map))
     in
-    update_board := player_lp_helper !update_board player player_cells
+    update_board :=
+      player_lp_helper !update_board
+        (Player.player_id player)
+        player_cells
   done;
   !update_board
 
