@@ -126,10 +126,10 @@ let neighbor (map : t) c (d : HexUtil.dir) =
 let flatten map =
   let flat = ref [] in
   for col = 0 to Array.length map - 1 do
-    let row_low = if col < 4 then 0 else col - 4 in
-    let row_high = if col > 3 then Array.length map else 3 - col in
-    for row = row_low to row_high do
-      flat := map.(col).(row) :: !flat
+    let diag_low = if col < 4 then 0 else col - 4 in
+    let diag_high = if col > 2 then Array.length map else 3 + col in
+    for diag = diag_low to diag_high - 1 do
+      flat := map.(col).(diag) :: !flat
     done
   done;
   !flat
