@@ -1,14 +1,11 @@
 (** A 2-dimensional [Cell.t array] to represent a hexagonal board with
-    minimum width 4 and height 7. The "horizontal" diagonal is within
-    the same 1-dimensional array, with direction 0 being in increasing
-    index (i.e. map.(0).(1) is in direction 0 of map.(0).(0)). Lower
-    indices (for purposes of representation and easier understanding)
-    indicate closeness to the "top" and "left" side of of the board.
-    "Columns" of [HexUtil.coord] are the first index in the
-    [Cell.t array array], and the diagonals are the second.*)
+    minimum width 4 and height 7. Lower indices (for purposes of
+    representation and easier understanding) indicate closeness to the
+    "top" and "left" side of of the board. "Columns" of [HexUtil.coord]
+    are the first index in the [Cell.t array array], and the diagonals
+    are the second.*)
 type t = Cell.t option array array
 
-(* TODO: switch to big board pointy up *)
 let init_map : t =
   let open Cell in
   [|
@@ -77,10 +74,14 @@ let init_map : t =
     |];
   |]
 
+(** Requires: [coord] is a valid coordinate in the map (i.e. does not
+    refer to a [None] cell) *)
 let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
   map.(coord.col).(coord.diag)
 
+(** Requires: [coord] is a valid coordinate in the map (i.e. does not
+    refer to a [None] cell) *)
 let set_cell (map : t) cell coord : t =
   let open HexUtil in
   map.(coord.col).(coord.diag) <- cell;
@@ -121,3 +122,14 @@ let neighbor (map : t) c (d : HexUtil.dir) =
     | _ -> failwith "Invalid direction"
   in
   if valid_coord map new_coord then Some new_coord else None
+
+let flatten map =
+  let flat = ref [] in
+  for col = 0 to Array.length map - 1 do
+    let row_low = if col < 4 then 0 else col - 4 in
+    let row_high = if col > 3 then Array.length map else 3 - col in
+    for row = row_low to row_high do
+      flat := map.(col).(row) :: !flat
+    done
+  done;
+  !flat

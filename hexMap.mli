@@ -31,4 +31,4 @@ val dist : t -> HexUtil.coord -> HexUtil.coord -> int
 val neighbor : t -> HexUtil.coord -> HexUtil.dir -> HexUtil.coord option
 
 (** [flatten map] TODO *)
-val flatten : t -> Cell.t
+val flatten : t -> Cell.t list
