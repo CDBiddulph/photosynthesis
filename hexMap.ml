@@ -122,23 +122,15 @@ let neighbor (map : t) c (d : HexUtil.dir) =
   in
   if valid_coord map new_coord then Some new_coord else None
 
-<<<<<<< HEAD
 let flatten (map : t) =
-=======
-let flatten map =
->>>>>>> 8391c6146181afc5c81f2eee8360b7497503af75
   let flat = ref [] in
   for col = 0 to Array.length map - 1 do
     let diag_low = if col < 4 then 0 else col - 4 in
     let diag_high = if col > 2 then Array.length map else 3 + col in
     for diag = diag_low to diag_high - 1 do
-<<<<<<< HEAD
       match map.(col).(diag) with
       | Some c -> flat := c :: !flat
       | _ -> ()
-=======
-      flat := map.(col).(diag) :: !flat
->>>>>>> 8391c6146181afc5c81f2eee8360b7497503af75
     done
   done;
   !flat
