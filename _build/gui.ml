@@ -146,19 +146,44 @@ let raster_of_grid grid =
   in
   { grid; height = h; width = w }
 
+(** [map2_grid f grid1 grid2] is a list of lists [result] with the
+    dimensions of [grid1] and [grid2], where
+    [result.(i).(j) = f grid1.(i).(j) grid2.(i).(j)]. Requires: the
+    dimensions of grid1 are the same as the dimensions of grid2. *)
+let map2_grid f grid1 grid2 =
+  List.map2 (fun row1 row2 -> List.map2 f row1 row2) grid1 grid2
+
+(** [map_grid f grid] is a list of lists [result] with the dimensions of
+    [grid1], where [result.(i).(j) = f grid1.(i).(j)]. *)
+let map_grid f grid = List.map (fun row -> List.map f row) grid
+
 let combine_to_color_char_grid char_grid color_grid =
-  let combine_to_color_char_row char_row color_row =
-    let combine_to_color_char chara_opt color_opt =
-      match (chara_opt, color_opt) with
-      | None, None -> None
-      | None, Some _ -> None
-      | Some _, None -> None
-      | Some chara, Some color ->
-          Some { chara; color = ANSITerminal.Red }
-    in
-    List.map2 combine_to_color_char char_row color_row
+  let combine_to_color_char chara_opt color_opt =
+    match (chara_opt, color_opt) with
+    | None, None -> None
+    | None, Some _ -> None
+    | Some _, None -> None
+    | Some chara, Some color -> Some { chara; color }
   in
-  List.map2 combine_to_color_char_row char_grid color_grid
+  map2_grid combine_to_color_char char_grid color_grid
+
+let txt_opt_to_color_opt c_opt =
+  match c_opt with
+  | None -> None
+  | Some c ->
+      Some
+        ANSITerminal.(
+          match c with
+          | 'r' -> Red
+          | 'g' -> Green
+          | 'y' -> Yellow
+          | 'b' -> Blue
+          | 'm' -> Magenta
+          | 'c' -> Cyan
+          | 'w' -> White
+          | 'd' -> Default
+          | other ->
+              failwith ("invalid color code " ^ String.make 1 other))
 
 let load_graphics none_c names =
   let load_graphic name =
@@ -168,7 +193,9 @@ let load_graphics none_c names =
     let color_grid =
       load_char_grid none_c ("graphics/" ^ name ^ ".color")
     in
-    combine_to_color_char_grid txt_grid color_grid |> raster_of_grid
+    combine_to_color_char_grid txt_grid
+      (map_grid txt_opt_to_color_opt color_grid)
+    |> raster_of_grid
   in
   List.map (fun n -> (n, load_graphic n)) names
 
@@ -205,7 +232,8 @@ let init_gui cells =
           ("hexes2", blank_raster w h);
         ];
       layer_order = [ "background"; "hexes"; "hexes2" ];
-      graphics = load_graphics ' ' [ "hex"; "empty"; "vert"; "horiz" ];
+      graphics =
+        load_graphics ' ' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
     }
   in
   update_cells (draw_hexes gui cells) cells
@@ -223,10 +251,12 @@ let past_n n lst =
       | h :: t -> t )
 
 let merge_two_layers under over =
-  let merge_two_rows u_row o_row =
-    List.map2 (fun u o -> match o with None -> u | o -> o) u_row o_row
+  let new_grid =
+    map2_grid
+      (fun u o -> match o with None -> u | o -> o)
+      under.grid over.grid
   in
-  { under with grid = List.map2 merge_two_rows under.grid over.grid }
+  { under with grid = new_grid }
 
 let merge_layers layer_order layers =
   let rec merge_layers_helper layer_order layers acc =
