@@ -6,7 +6,7 @@ val init_map : t
 
 (** [cell_at map coord] is the cell at [coord] of [map]. Requires: [c]
     is a valid coordinate in [map]. *)
-val cell_at : t -> HexUtil.coord -> Cell.t
+val cell_at : t -> HexUtil.coord -> Cell.t option
 
 (** [set_cell map cell coord] is [map] where the cell at [coord] is set
     to [cell]. Requires: [coord] is a valid coordinate in [map]. *)
@@ -24,8 +24,15 @@ val does_block :
     returns 0. Requires: [c1] and [c2] are valid coordinates in [map]. *)
 val dist : t -> HexUtil.coord -> HexUtil.coord -> int
 
+(** [valid_coord map c] is if the given coordinate is a valid [Cell] in
+    [map]. *)
+val valid_coord : t -> HexUtil.coord -> bool
+
 (** [neighbor map c d] is the coordinate of the closest neighboring cell
     to [c] in direction [d], if it exists. If there are no neighbors in
     direction [d] from [c], then the result is [None]. Requires: [c] is
     a valid coordinate in [map]. *)
 val neighbor : t -> HexUtil.coord -> HexUtil.dir -> HexUtil.coord option
+
+(** [flatten map] is the list of all valid [Cell]s in the [map]. *)
+val flatten : t -> Cell.t list
