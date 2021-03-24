@@ -51,28 +51,26 @@ let map_offset f big_lst small_lst offset =
   in
   map_offset_helper f big_lst small_lst offset []
 
-let draw gui graphic_name offset layer =
+let draw gui graphic_name top_left layer =
   let graphic = List.assoc graphic_name gui.graphics in
   let row_draw grid_r graphic_r =
     map_offset
       (fun grid_char graphic_char ->
         match graphic_char with None -> grid_char | c -> c)
-      grid_r graphic_r offset.x
+      grid_r graphic_r top_left.x
   in
   {
     graphic with
-    grid = map_offset row_draw layer.grid graphic.grid offset.y;
+    grid = map_offset row_draw layer.grid graphic.grid top_left.y;
   }
 
-let update_layer layer_name f gui =
+let apply_to_layer layer_name f gui =
   let new_layer = f (List.assoc layer_name gui.layers) in
   {
     gui with
     layers =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
-
-let update_cells gui cells = gui
 
 (* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
    "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
@@ -170,7 +168,7 @@ let combine_to_color_char_grid char_grid color_grid =
     match (chara_opt, color_opt) with
     | None, None -> None
     | None, Some _ -> None
-    | Some _, None -> None
+    | Some chara, None -> Some { chara; color = ANSITerminal.Default }
     | Some chara, Some color -> Some { chara; color }
   in
   map2_grid combine_to_color_char char_grid color_grid
@@ -212,16 +210,23 @@ let point2d_of_hex_coord gui coord =
   let y = (coord.diag * 6) - (coord.col * 3) in
   { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
 
-(** [draw_hex gui cell] returns [gui] with a hex drawn in its "hexes"
-    layer with the position corresponding to the coords of [cell]. *)
-let draw_hex gui cell =
-  let point = point2d_of_hex_coord gui (Cell.coord cell) in
-  update_layer "hexes" (draw gui "hex" point) gui
+(** [draw_in_cell gui cell graphic_name] returns [gui] with a hex drawn
+    in its "hexes" layer with the position corresponding to the coords
+    of [cell]. *)
+let draw_in_cell gui graphic_name layer cell =
+  let top_left = point2d_of_hex_coord gui (Cell.coord cell) in
+  draw gui graphic_name top_left layer
 
 (** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
     layer with the positions corresponding to the coords of each cell in
     [cells]. *)
-let draw_hexes gui cells = List.fold_left draw_hex gui cells
+let draw_hexes gui cells layer =
+  List.fold_left (draw_in_cell gui "hex") layer cells
+
+(* TODO: update_cells should add trees or soil labels to cells *)
+let update_cells cells gui = gui
+
+(* draw_in_cell gui "small_x_tree" *)
 
 (** [init_gui cells] is a GUI with the layers of rasters necessary to
     run the game. Postcondition: Each raster in
@@ -229,26 +234,28 @@ let draw_hexes gui cells = List.fold_left draw_hex gui cells
 let init_gui cells =
   let w = 76 in
   let h = 41 in
+  let background =
+    fill_raster (Some { chara = '.'; color = ANSITerminal.Magenta }) w h
+  in
   let gui =
     {
       width = w;
       height = h;
       layers =
         [
-          ( "background",
-            fill_raster
-              (Some { chara = '.'; color = ANSITerminal.Magenta })
-              w h );
+          ("background", background);
           ("hexes", blank_raster w h);
           ("hexes2", blank_raster w h);
         ];
       layer_order = [ "background"; "hexes"; "hexes2" ];
       graphics =
-        load_graphics ' ' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
+        load_graphics '`' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
       hex_offset = { x = 0; y = 9 };
     }
   in
-  update_cells (draw_hexes gui cells) cells
+  gui
+  |> apply_to_layer "hexes" (draw_hexes gui cells)
+  |> update_cells cells
 
 (** (Deprecated) [past_n lst n] is the list containing the contents of
     [lst] including and after index [n]. Returns [\[\]] if
