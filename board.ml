@@ -20,6 +20,8 @@ let place_plant board cell plant =
   else raise InvalidPlacement
 
 let end_turn board =
+  (* partial implementation; does not account for sun movements or
+     number of turns yet *)
   let rec current_player_ind = function
     | [] -> 0
     | hd :: tl ->
