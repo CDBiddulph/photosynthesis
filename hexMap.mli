@@ -24,6 +24,9 @@ val does_block :
     returns 0. Requires: [c1] and [c2] are valid coordinates in [map]. *)
 val dist : t -> HexUtil.coord -> HexUtil.coord -> int
 
+(* [valid_coord map c] TODO *)
+val valid_coord : t -> HexUtil.coord -> bool
+
 (** [neighbor map c d] is the coordinate of the closest neighboring cell
     to [c] in direction [d], if it exists. If there are no neighbors in
     direction [d] from [c], then the result is [None]. Requires: [c] is
