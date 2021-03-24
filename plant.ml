@@ -1,5 +1,3 @@
-(* type player_id = string *)
-
 type plant_stage =
   | Seed
   | Small

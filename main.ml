@@ -1,11 +1,23 @@
 (* open ANSITerminal *)
 open Gui
 
+let basic_hex = Cell.init_cell 1 (Some (Plant.init_plant 1 Plant.Seed))
+
 let main () =
-  (* ANSITerminal.print_string [ ANSITerminal.red ] "\n\nHello World"; *)
   let gui =
     init_gui
-    (* [ init_cell 1 (Some (init_plant 1 Plant.Seed)) ] *)
+      [
+        basic_hex { diag = 0; col = 0 };
+        basic_hex { diag = 1; col = 0 };
+        basic_hex { diag = 0; col = 1 };
+        basic_hex { diag = 1; col = 1 };
+        basic_hex { diag = 0; col = 3 };
+        basic_hex { diag = 3; col = 0 };
+        basic_hex { diag = 3; col = 3 };
+        basic_hex { diag = 6; col = 3 };
+        basic_hex { diag = 6; col = 6 };
+        basic_hex { diag = 3; col = 6 };
+      ]
   in
   render gui
 

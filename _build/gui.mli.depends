@@ -1,1 +1,1 @@
-gui.mli: HexUtil
+gui.mli: Cell HexUtil
