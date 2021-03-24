@@ -74,6 +74,12 @@ let init_map : t =
     |];
   |]
 
+let valid_coord (map : t) c =
+  let open HexUtil in
+  let row_low = if c.col < 4 then 0 else c.col - 4 in
+  let row_high = if c.col > 3 then Array.length map else 3 - c.col in
+  c.col < Array.length map && c.diag <= row_high && c.diag >= row_low
+
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
 let cell_at (map : t) coord : Cell.t option =
@@ -83,9 +89,11 @@ let cell_at (map : t) coord : Cell.t option =
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
 let set_cell (map : t) cell coord : t =
-  let open HexUtil in
-  map.(coord.col).(coord.diag) <- Some cell;
-  map
+  if valid_coord map coord then (
+    let open HexUtil in
+    map.(coord.col).(coord.diag) <- Some cell;
+    map)
+  else failwith "Invalid location"
 
 let does_block (map : t) (d : HexUtil.dir) c1 c2 =
   let open HexUtil in
@@ -101,12 +109,6 @@ let does_block (map : t) (d : HexUtil.dir) c1 c2 =
 let dist (map : t) c1 c2 =
   let open HexUtil in
   Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
-
-let valid_coord (map : t) c =
-  let open HexUtil in
-  let row_low = if c.col < 4 then 0 else c.col - 4 in
-  let row_high = if c.col > 3 then Array.length map else 3 - c.col in
-  c.col < Array.length map && c.diag <= row_high && c.diag >= row_low
 
 let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in

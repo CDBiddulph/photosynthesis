@@ -25,6 +25,9 @@ val is_place_plant_legal : t -> Cell.t -> Plant.t -> bool
     is not a legal move. *)
 val place_plant : t -> Cell.t -> Plant.t -> t
 
+(** [flat_board board] is the list of all valid [Cell]s in [board]. *)
+val flat_board : t -> Cell.t list
+
 val end_turn : t -> t
 
 val sun_dir : t -> HexUtil.dir
