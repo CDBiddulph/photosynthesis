@@ -68,7 +68,7 @@ let update_cells gui cells =
   |> update_layer "hexes" (draw gui "hex" 0 0)
   |> update_layer "hexes2" (draw gui "hex" 1 1)
   |> update_layer "hexes" (draw gui "empty" 10 5)
-  |> update_layer "hexes2" (draw gui "horiz" 90 29)
+  |> update_layer "hexes2" (draw gui "horiz" 80 29)
   |> update_layer "hexes" (draw gui "vert" 99 0)
   |> update_layer "hexes" (draw gui "hex" 91 25)
   |> update_layer "background" (draw gui "hex" 50 5)
