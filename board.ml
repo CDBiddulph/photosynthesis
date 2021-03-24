@@ -8,6 +8,20 @@ type t = {
 
 exception InvalidPlacement
 
+let init_game players map sun =
+  let first_player =
+    match players with
+    | [] -> failwith "Invalid player list"
+    | hd :: tl -> hd
+  in
+  {
+    players;
+    map;
+    sun_dir = sun;
+    current_turn = Player.player_id first_player;
+    current_stage = 0;
+  }
+
 let is_place_plant_legal board cell plant =
   HexMap.valid_coord board (Cell.coord cell) && Cell.plant cell = None
 
