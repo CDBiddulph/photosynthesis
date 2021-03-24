@@ -8,12 +8,12 @@ type t
     the ground up. A hexagon will be created in every place
     corresponding to a Some value in [cells]. Then, [update_cells cells]
     will be called. *)
-val init_gui : (*Cell.t list ->*) t
+val init_gui : Cell.t list -> t
 
 (** [update_board gui cells] updates the GUI with all of the data in the
     cells, while leaving any cells that are not in cells. Precondition:
     hexagons of board match the hexagons formed in init *)
-val update_cells : t -> (*Cell.t list ->*) t
+val update_cells : t -> Cell.t list -> t
 
 (** [update_sun gui dir] updates the GUI so that the rays of the sun
     will appear to point in direction [dir].*)

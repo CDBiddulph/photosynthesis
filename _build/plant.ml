@@ -1,15 +1,16 @@
-type t = unit
-
 type plant_stage =
   | Seed
   | Small
   | Medium
   | Large
 
-let init_plant = failwith "Unimplemented"
+type t = {
+  id : Player.player_id;
+  stage : plant_stage;
+}
 
-let player_id = failwith "Unimplemented"
+let init_plant p_id plnt_st = { id = p_id; stage = plnt_st }
 
-let plant_stage = failwith "Unimplemented"
+let player_id p = p.id
 
-let string_of_plant = failwith "Unimplemented"
+let plant_stage p = p.stage
