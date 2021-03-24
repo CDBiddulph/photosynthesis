@@ -1,9 +1,14 @@
 open HexUtil
 
-type char_grid = char option list list
+type color_char = {
+  color : ANSITerminal.color;
+  chara : char;
+}
+
+type color_char_grid = color_char option list list
 
 type raster = {
-  grid : char_grid;
+  grid : color_char_grid;
   width : int;
   height : int;
 }
@@ -86,6 +91,47 @@ let blank_raster w h = fill_raster None w h
 (** [null_raster] is a raster with an empty grid and 0 width and height. *)
 let null_raster = blank_raster 0 0
 
+(** [load_graphics none_c names] is an associative list mapping the
+    [string] graphic names in [names] to the corresponding graphics,
+    where each graphic is in the form of a [grid]. Each line
+    ([char option list]) in the [grid] will contain elements up to, but
+    not including the next ['\n']. The character [none_c] will be
+    represented as [None], while all other characters [c] will be
+    represented as [Some c]. It is possible that for the graphics to be
+    represented by non-rectangular lists. *)
+
+let load_char_grid none_c filename =
+  let rec load_char_grid_helper ic g_acc =
+    (* [load_line ic l_acc] is None when [ic] is at EOF. Otherwise, it
+       is [Some line], where [line] is a char option list. [line] will
+       contain char options up to, but not including the next ['\n'].
+       The character [' '] will be represented as [None], while all
+       other characters [c] will be represented as [Some c]. *)
+    let rec load_line ic l_acc =
+      try
+        match input_char ic with
+        | '\n' -> (
+            match l_acc with
+            | None -> Some []
+            | Some a -> Some (List.rev a) )
+        | c ->
+            let c_opt = if c = none_c then None else Some c in
+            load_line ic
+              ( match l_acc with
+              | None -> Some [ c_opt ]
+              | Some a -> Some (c_opt :: a) )
+      with End_of_file -> (
+        match l_acc with None -> None | Some a -> Some (List.rev a) )
+    in
+    match load_line ic None with
+    | None -> List.rev g_acc
+    | Some line -> load_char_grid_helper ic (line :: g_acc)
+  in
+  let input_channel = open_in filename in
+  let result = load_char_grid_helper input_channel [] in
+  close_in input_channel;
+  result
+
 (** [raster_of_grid grid] is a raster with [grid = grid],
     [height = List.length grid] and [width] equal to the length of the
     longest list in [grid]. *)
@@ -100,48 +146,31 @@ let raster_of_grid grid =
   in
   { grid; height = h; width = w }
 
-(** [load_graphics none_c names] is an associative list mapping the
-    [string] graphic names in [names] to the corresponding graphics,
-    where each graphic is in the form of a [grid]. Each line
-    ([char option list]) in the [grid] will contain elements up to, but
-    not including the next ['\n']. The character [none_c] will be
-    represented as [None], while all other characters [c] will be
-    represented as [Some c]. It is possible that for the graphics to be
-    represented by non-rectangular lists. *)
+let combine_to_color_char_grid char_grid color_grid =
+  let combine_to_color_char_row char_row color_row =
+    let combine_to_color_char chara_opt color_opt =
+      match (chara_opt, color_opt) with
+      | None, None -> None
+      | None, Some _ -> None
+      | Some _, None -> None
+      | Some chara, Some color ->
+          Some { chara; color = ANSITerminal.Red }
+    in
+    List.map2 combine_to_color_char char_row color_row
+  in
+  List.map2 combine_to_color_char_row char_grid color_grid
+
 let load_graphics none_c names =
   let load_graphic name =
-    let rec load_graphic_helper ic g_acc =
-      (* [load_line ic l_acc] is None when [ic] is at EOF. Otherwise, it
-         is [Some line], where [line] is a char option list. [line] will
-         contain char options up to, but not including the next ['\n'].
-         The character [' '] will be represented as [None], while all
-         other characters [c] will be represented as [Some c]. *)
-      let rec load_line ic l_acc =
-        try
-          match input_char ic with
-          | '\n' -> (
-              match l_acc with
-              | None -> Some []
-              | Some a -> Some (List.rev a) )
-          | c ->
-              let c_opt = if c = none_c then None else Some c in
-              load_line ic
-                ( match l_acc with
-                | None -> Some [ c_opt ]
-                | Some a -> Some (c_opt :: a) )
-        with End_of_file -> (
-          match l_acc with None -> None | Some a -> Some (List.rev a) )
-      in
-      match load_line ic None with
-      | None -> List.rev g_acc
-      | Some line -> load_graphic_helper ic (line :: g_acc)
+    let txt_grid =
+      load_char_grid none_c ("graphics/" ^ name ^ ".txt")
     in
-    let input_channel = open_in ("graphics/" ^ name ^ ".txt") in
-    let result = load_graphic_helper input_channel [] in
-    close_in input_channel;
-    (name, raster_of_grid result)
+    let color_grid =
+      load_char_grid none_c ("graphics/" ^ name ^ ".color")
+    in
+    combine_to_color_char_grid txt_grid color_grid |> raster_of_grid
   in
-  List.map load_graphic names
+  List.map (fun n -> (n, load_graphic n)) names
 
 let xy_of_hex_coord coord = (coord.diag, coord.col)
 
@@ -168,7 +197,10 @@ let init_gui cells =
       height = h;
       layers =
         [
-          ("background", fill_raster (Some '.') w h);
+          ( "background",
+            fill_raster
+              (Some { chara = '.'; color = ANSITerminal.Magenta })
+              w h );
           ("hexes", blank_raster w h);
           ("hexes2", blank_raster w h);
         ];
@@ -213,10 +245,13 @@ let render gui =
   let print_grid g =
     let print_row row =
       List.iter
-        (fun c_opt ->
-          ANSITerminal.print_string [ ANSITerminal.red ]
-            (String.make 1
-               (match c_opt with None -> ' ' | Some c -> c)))
+        (fun c_char_opt ->
+          match c_char_opt with
+          | None -> print_char ' '
+          | Some c_char ->
+              ANSITerminal.print_string
+                [ Foreground c_char.color ]
+                (String.make 1 c_char.chara))
         row
     in
     List.iter
