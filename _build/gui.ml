@@ -1,5 +1,10 @@
 open HexUtil
 
+type point2d = {
+  x : int;
+  y : int;
+}
+
 type color_char = {
   color : ANSITerminal.color;
   chara : char;
@@ -19,6 +24,7 @@ type t = {
   layers : (string * raster) list;
   layer_order : string list;
   graphics : (string * raster) list;
+  hex_offset : point2d;
 }
 
 let map_offset f big_lst small_lst offset =
@@ -45,15 +51,18 @@ let map_offset f big_lst small_lst offset =
   in
   map_offset_helper f big_lst small_lst offset []
 
-let draw gui graphic_name x y layer =
+let draw gui graphic_name offset layer =
   let graphic = List.assoc graphic_name gui.graphics in
   let row_draw grid_r graphic_r =
     map_offset
       (fun grid_char graphic_char ->
         match graphic_char with None -> grid_char | c -> c)
-      grid_r graphic_r x
+      grid_r graphic_r offset.x
   in
-  { graphic with grid = map_offset row_draw layer.grid graphic.grid y }
+  {
+    graphic with
+    grid = map_offset row_draw layer.grid graphic.grid offset.y;
+  }
 
 let update_layer layer_name f gui =
   let new_layer = f (List.assoc layer_name gui.layers) in
@@ -63,15 +72,14 @@ let update_layer layer_name f gui =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
 
-let update_cells gui cells =
-  gui
-  |> update_layer "hexes" (draw gui "hex" 0 0)
-  |> update_layer "hexes2" (draw gui "hex" 1 1)
-  |> update_layer "hexes" (draw gui "empty" 10 5)
-  |> update_layer "hexes2" (draw gui "horiz" 80 29)
-  |> update_layer "hexes" (draw gui "vert" 99 0)
-  |> update_layer "hexes" (draw gui "hex" 91 25)
-  |> update_layer "background" (draw gui "hex" 50 5)
+let update_cells gui cells = gui
+
+(* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
+   "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
+   "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 80 29) |>
+   update_layer "hexes" (draw gui "vert" 99 0) |> update_layer "hexes"
+   (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
+   50 5) *)
 
 let update_sun gui dir = gui
 
@@ -199,13 +207,16 @@ let load_graphics none_c names =
   in
   List.map (fun n -> (n, load_graphic n)) names
 
-let xy_of_hex_coord coord = (coord.diag, coord.col)
+let point2d_of_hex_coord gui coord =
+  let x = coord.col * 11 in
+  let y = (coord.diag * 6) - (coord.col * 3) in
+  { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
 
 (** [draw_hex gui cell] returns [gui] with a hex drawn in its "hexes"
     layer with the position corresponding to the coords of [cell]. *)
 let draw_hex gui cell =
-  let x, y = xy_of_hex_coord cell in
-  update_layer "hexes" (draw gui "hex" x y) gui
+  let point = point2d_of_hex_coord gui (Cell.coord cell) in
+  update_layer "hexes" (draw gui "hex" point) gui
 
 (** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
     layer with the positions corresponding to the coords of each cell in
@@ -216,8 +227,8 @@ let draw_hexes gui cells = List.fold_left draw_hex gui cells
     run the game. Postcondition: Each raster in
     [(init_gui cells).layers] has the same dimensions. *)
 let init_gui cells =
-  let w = 100 in
-  let h = 30 in
+  let w = 76 in
+  let h = 41 in
   let gui =
     {
       width = w;
@@ -234,6 +245,7 @@ let init_gui cells =
       layer_order = [ "background"; "hexes"; "hexes2" ];
       graphics =
         load_graphics ' ' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
+      hex_offset = { x = 0; y = 9 };
     }
   in
   update_cells (draw_hexes gui cells) cells
@@ -291,4 +303,5 @@ let render gui =
       g
   in
   let render_raster = merge_layers gui.layer_order gui.layers in
+  ignore (Sys.command "clear");
   print_grid render_raster.grid
