@@ -1,13 +1,5 @@
 open HexUtil
 
-<<<<<<< HEAD
-type point2d = {
-  x : int;
-  y : int;
-}
-
-=======
->>>>>>> Currently adding functionality with colors. Appears to compile, but still need to interpret color from .color file.
 type color_char = {
   color : ANSITerminal.color;
   chara : char;
@@ -27,7 +19,6 @@ type t = {
   layers : (string * raster) list;
   layer_order : string list;
   graphics : (string * raster) list;
-  hex_offset : point2d;
 }
 
 let map_offset f big_lst small_lst offset =
@@ -54,18 +45,15 @@ let map_offset f big_lst small_lst offset =
   in
   map_offset_helper f big_lst small_lst offset []
 
-let draw gui graphic_name offset layer =
+let draw gui graphic_name x y layer =
   let graphic = List.assoc graphic_name gui.graphics in
   let row_draw grid_r graphic_r =
     map_offset
       (fun grid_char graphic_char ->
         match graphic_char with None -> grid_char | c -> c)
-      grid_r graphic_r offset.x
+      grid_r graphic_r x
   in
-  {
-    graphic with
-    grid = map_offset row_draw layer.grid graphic.grid offset.y;
-  }
+  { graphic with grid = map_offset row_draw layer.grid graphic.grid y }
 
 let update_layer layer_name f gui =
   let new_layer = f (List.assoc layer_name gui.layers) in
@@ -75,14 +63,15 @@ let update_layer layer_name f gui =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
 
-let update_cells gui cells = gui
-
-(* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
-   "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
-   "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 80 29) |>
-   update_layer "hexes" (draw gui "vert" 99 0) |> update_layer "hexes"
-   (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
-   50 5) *)
+let update_cells gui cells =
+  gui
+  |> update_layer "hexes" (draw gui "hex" 0 0)
+  |> update_layer "hexes2" (draw gui "hex" 1 1)
+  |> update_layer "hexes" (draw gui "empty" 10 5)
+  |> update_layer "hexes2" (draw gui "horiz" 90 29)
+  |> update_layer "hexes" (draw gui "vert" 99 0)
+  |> update_layer "hexes" (draw gui "hex" 91 25)
+  |> update_layer "background" (draw gui "hex" 50 5)
 
 let update_sun gui dir = gui
 
@@ -157,46 +146,6 @@ let raster_of_grid grid =
   in
   { grid; height = h; width = w }
 
-<<<<<<< HEAD
-(** [map2_grid f grid1 grid2] is a list of lists [result] with the
-    dimensions of [grid1] and [grid2], where
-    [result.(i).(j) = f grid1.(i).(j) grid2.(i).(j)]. Requires: the
-    dimensions of grid1 are the same as the dimensions of grid2. *)
-let map2_grid f grid1 grid2 =
-  List.map2 (fun row1 row2 -> List.map2 f row1 row2) grid1 grid2
-
-(** [map_grid f grid] is a list of lists [result] with the dimensions of
-    [grid1], where [result.(i).(j) = f grid1.(i).(j)]. *)
-let map_grid f grid = List.map (fun row -> List.map f row) grid
-
-let combine_to_color_char_grid char_grid color_grid =
-  let combine_to_color_char chara_opt color_opt =
-    match (chara_opt, color_opt) with
-    | None, None -> None
-    | None, Some _ -> None
-    | Some _, None -> None
-    | Some chara, Some color -> Some { chara; color }
-  in
-  map2_grid combine_to_color_char char_grid color_grid
-
-let txt_opt_to_color_opt c_opt =
-  match c_opt with
-  | None -> None
-  | Some c ->
-      Some
-        ANSITerminal.(
-          match c with
-          | 'r' -> Red
-          | 'g' -> Green
-          | 'y' -> Yellow
-          | 'b' -> Blue
-          | 'm' -> Magenta
-          | 'c' -> Cyan
-          | 'w' -> White
-          | 'd' -> Default
-          | other ->
-              failwith ("invalid color code " ^ String.make 1 other))
-=======
 let combine_to_color_char_grid char_grid color_grid =
   let combine_to_color_char_row char_row color_row =
     let combine_to_color_char chara_opt color_opt =
@@ -210,7 +159,6 @@ let combine_to_color_char_grid char_grid color_grid =
     List.map2 combine_to_color_char char_row color_row
   in
   List.map2 combine_to_color_char_row char_grid color_grid
->>>>>>> Currently adding functionality with colors. Appears to compile, but still need to interpret color from .color file.
 
 let load_graphics none_c names =
   let load_graphic name =
@@ -220,26 +168,17 @@ let load_graphics none_c names =
     let color_grid =
       load_char_grid none_c ("graphics/" ^ name ^ ".color")
     in
-<<<<<<< HEAD
-    combine_to_color_char_grid txt_grid
-      (map_grid txt_opt_to_color_opt color_grid)
-    |> raster_of_grid
-=======
     combine_to_color_char_grid txt_grid color_grid |> raster_of_grid
->>>>>>> Currently adding functionality with colors. Appears to compile, but still need to interpret color from .color file.
   in
   List.map (fun n -> (n, load_graphic n)) names
 
-let point2d_of_hex_coord gui coord =
-  let x = coord.col * 11 in
-  let y = (coord.diag * 6) - (coord.col * 3) in
-  { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
+let xy_of_hex_coord coord = (coord.diag, coord.col)
 
 (** [draw_hex gui cell] returns [gui] with a hex drawn in its "hexes"
     layer with the position corresponding to the coords of [cell]. *)
 let draw_hex gui cell =
-  let point = point2d_of_hex_coord gui (Cell.coord cell) in
-  update_layer "hexes" (draw gui "hex" point) gui
+  let x, y = xy_of_hex_coord cell in
+  update_layer "hexes" (draw gui "hex" x y) gui
 
 (** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
     layer with the positions corresponding to the coords of each cell in
@@ -250,8 +189,8 @@ let draw_hexes gui cells = List.fold_left draw_hex gui cells
     run the game. Postcondition: Each raster in
     [(init_gui cells).layers] has the same dimensions. *)
 let init_gui cells =
-  let w = 76 in
-  let h = 41 in
+  let w = 100 in
+  let h = 30 in
   let gui =
     {
       width = w;
@@ -266,9 +205,7 @@ let init_gui cells =
           ("hexes2", blank_raster w h);
         ];
       layer_order = [ "background"; "hexes"; "hexes2" ];
-      graphics =
-        load_graphics ' ' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
-      hex_offset = { x = 0; y = 9 };
+      graphics = load_graphics ' ' [ "hex"; "empty"; "vert"; "horiz" ];
     }
   in
   update_cells (draw_hexes gui cells) cells
@@ -286,12 +223,10 @@ let past_n n lst =
       | h :: t -> t )
 
 let merge_two_layers under over =
-  let new_grid =
-    map2_grid
-      (fun u o -> match o with None -> u | o -> o)
-      under.grid over.grid
+  let merge_two_rows u_row o_row =
+    List.map2 (fun u o -> match o with None -> u | o -> o) u_row o_row
   in
-  { under with grid = new_grid }
+  { under with grid = List.map2 merge_two_rows under.grid over.grid }
 
 let merge_layers layer_order layers =
   let rec merge_layers_helper layer_order layers acc =
@@ -326,5 +261,4 @@ let render gui =
       g
   in
   let render_raster = merge_layers gui.layer_order gui.layers in
-  ignore (Sys.command "clear");
   print_grid render_raster.grid
