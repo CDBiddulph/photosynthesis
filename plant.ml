@@ -1,4 +1,4 @@
-type player_id = string
+(* type player_id = string *)
 
 type plant_stage =
   | Seed
@@ -7,7 +7,7 @@ type plant_stage =
   | Large
 
 type t = {
-  id : player_id;
+  id : Player.player_id;
   stage : plant_stage;
 }
 

@@ -17,7 +17,3 @@ val player_id : t -> Player.player_id
 
 (** [plant_stage plant] is the [plant_stage] of [plant]. *)
 val plant_stage : t -> plant_stage
-
-(** [string_of_plant plant] is the string representation of [plant].
-    TODO: flesh out this definition. *)
-val string_of_plant : t -> string
