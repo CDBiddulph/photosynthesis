@@ -295,18 +295,6 @@ let init_gui cells =
   |> apply_to_layer "hexes" (draw_hexes gui (List.map Cell.coord cells))
   |> update_cells cells
 
-(** (Deprecated) [past_n lst n] is the list containing the contents of
-    [lst] including and after index [n]. Returns [\[\]] if
-    [n = length lst]. Requires [0 <= n <= length lst]. *)
-let past_n n lst =
-  assert (n >= 0);
-  match n with
-  | 0 -> lst
-  | n -> (
-      match lst with
-      | [] -> failwith "n exceeds length of lst"
-      | h :: t -> t )
-
 let merge_two_layers under over =
   let new_grid =
     map2_grid
