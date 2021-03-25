@@ -228,14 +228,14 @@ let draw_soil gui coord soil layer =
     [cells]. *)
 let draw_plant gui coord plant layer =
   let char_name =
-    "plant_"
+    "plants/"
     ^ Plant.(
         (plant |> plant_stage |> Plant.string_of_plant_stage)
         ^ "_"
         ^ String.make 1 (Plant.render_char plant))
   in
   let color_name =
-    "plant_" ^ string_of_color (Plant.render_color plant)
+    "plants/tree_" ^ string_of_color (Plant.render_color plant)
   in
   draw_in_coord gui char_name color_name layer coord
 
@@ -283,10 +283,27 @@ let init_gui cells =
       layer_order = List.map fst layers;
       char_graphics =
         load_char_grids '`'
-          [ "hex"; "dot"; "empty"; "vert"; "horiz"; "plant_small_x" ];
+          [
+            "hex";
+            "miscellaneous/dot";
+            "miscellaneous/empty";
+            "miscellaneous/vert";
+            "miscellaneous/horiz";
+            "plants/small_x";
+          ];
       color_graphics =
         load_color_grids '`'
-          [ "hex"; "dot"; "empty"; "vert"; "horiz"; "plant_blue" ];
+          [
+            "hex";
+            "miscellaneous/dot";
+            "miscellaneous/empty";
+            "miscellaneous/vert";
+            "miscellaneous/horiz";
+            "plants/tree_cyan";
+            "plants/tree_green";
+            "plants/tree_red";
+            "plants/tree_yellow";
+          ];
       hex_offset = { x = 0; y = 9 };
     }
   in
