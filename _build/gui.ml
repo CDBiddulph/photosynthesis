@@ -213,6 +213,7 @@ let draw_in_coord gui graphic layer coord =
     graphic with [char_name] from [gui.char_graphics] and [color_name]
     from [gui.color_graphics]. *)
 let get_graphic gui char_name color_name =
+  print_endline color_name;
   {
     char_grid = List.assoc char_name gui.char_graphics;
     color_grid = List.assoc color_name gui.color_graphics;
@@ -230,8 +231,8 @@ let draw_hexes gui coords layer =
     for [soil] drawn on it in the position corresponding to [coord] with
     an offset of [gui.hex_offset]. *)
 let draw_soil gui coord soil layer =
-  let name = "soil" ^ string_of_int soil in
-  draw_in_coord gui (get_graphic gui name name) layer coord
+  let char_name = "soil/" ^ string_of_int soil in
+  draw_in_coord gui (get_graphic gui char_name "soil/") layer coord
 
 (** [replace_case_sens find_char replace_char input_char_opt] is [None]
     if [input_char_opt = None]. If [input_char_opt = Some input_char],
