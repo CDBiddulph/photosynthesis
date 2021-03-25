@@ -5,13 +5,13 @@ let basic_cell1 =
   Cell.init_cell 1 (Some (Plant.init_plant 1 'x' Cyan Plant.Small))
 
 let basic_cell2 =
-  Cell.init_cell 2 (Some (Plant.init_plant 2 'x' Red Plant.Medium))
+  Cell.init_cell 2 (Some (Plant.init_plant 2 'c' Red Plant.Medium))
 
 let basic_cell3 =
-  Cell.init_cell 3 (Some (Plant.init_plant 3 'x' Green Plant.Large))
+  Cell.init_cell 3 (Some (Plant.init_plant 3 's' Green Plant.Large))
 
 let basic_cell4 =
-  Cell.init_cell 4 (Some (Plant.init_plant 4 'x' Yellow Plant.Small))
+  Cell.init_cell 4 (Some (Plant.init_plant 4 'o' Yellow Plant.Small))
 
 let main () =
   let gui =

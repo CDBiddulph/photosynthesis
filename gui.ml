@@ -94,9 +94,7 @@ let string_of_color color =
     | Black -> "black"
     | Default -> "default")
 
-let draw gui char_name color_name layer top_left =
-  let char_graphic = List.assoc char_name gui.char_graphics in
-  let color_graphic = List.assoc color_name gui.color_graphics in
+let draw graphic layer top_left =
   let row_draw layer_r graphic_r =
     map_offset
       (fun layer_char graphic_char ->
@@ -105,9 +103,9 @@ let draw gui char_name color_name layer top_left =
   in
   {
     char_grid =
-      map_offset row_draw layer.char_grid char_graphic top_left.y;
+      map_offset row_draw layer.char_grid graphic.char_grid top_left.y;
     color_grid =
-      map_offset row_draw layer.color_grid color_graphic top_left.y;
+      map_offset row_draw layer.color_grid graphic.color_grid top_left.y;
   }
 
 let apply_to_layer layer_name f gui =
@@ -206,39 +204,73 @@ let point2d_of_hex_coord gui coord =
 (** [draw_in_coord gui graphic_name layer coord] returns [layer] with
     the graphic with name [graphic_name] of [gui] drawn in the position
     corresponding to [coord] with an offset of [gui.hex_offset]. *)
-let draw_in_coord gui char_name color_name layer coord =
+let draw_in_coord gui graphic layer coord =
   let top_left = point2d_of_hex_coord gui coord in
-  draw gui char_name color_name layer top_left
+  draw graphic layer top_left
+
+(** [get_graphic gui char_name color_name] is the combined char-color
+    graphic with [char_name] from [gui.char_graphics] and [color_name]
+    from [gui.color_graphics]. *)
+let get_graphic gui char_name color_name =
+  {
+    char_grid = List.assoc char_name gui.char_graphics;
+    color_grid = List.assoc color_name gui.color_graphics;
+  }
 
 (** [draw_hexes gui coords layer] returns [layer] with hexes drawn on it
     in the positions corresponding to [coords] with an offset of
     [gui.hex_offset]. *)
 let draw_hexes gui coords layer =
-  List.fold_left (draw_in_coord gui "hex" "hex") layer coords
+  List.fold_left
+    (draw_in_coord gui (get_graphic gui "hex" "hex"))
+    layer coords
 
 (** [draw_soil gui coord soil layer] returns [layer] with a soil marker
     for [soil] drawn on it in the position corresponding to [coord] with
     an offset of [gui.hex_offset]. *)
 let draw_soil gui coord soil layer =
   let name = "soil" ^ string_of_int soil in
-  draw_in_coord gui name name layer coord
+  draw_in_coord gui (get_graphic gui name name) layer coord
 
-(** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
-    layer with the positions corresponding to the coords of each cell in
-    [cells]. *)
+(** [replace_case_sens find_char replace_char input_char_opt] is [None]
+    if [input_char_opt = None]. If [input_char_opt = Some input_char],
+    returns [Some output_char], where [output_char] is [replace_char] if
+    [input_char = find_char], the uppercase of [replace_char] if
+    [input_char] equals the uppercase of [find_char], and [input_char]
+    otherwise. Requires: [find_char] and [replace_char] are lowercase.*)
+let replace_case_sens find_char replace_char input_char_opt =
+  match input_char_opt with
+  | None -> None
+  | Some input_char ->
+      if input_char = find_char then Some replace_char
+      else if input_char = Char.uppercase_ascii find_char then
+        Some (Char.uppercase_ascii replace_char)
+      else Some input_char
+
+(** [draw_plants gui coord plant layer] returns [layer] with [plant]
+    drawn in the position corresponding to [coord] according to the
+    hex_offset and graphics in [gui]. *)
 let draw_plant gui coord plant layer =
   let char_name =
-    "plants/"
-    ^ Plant.(
-        (plant |> plant_stage |> Plant.string_of_plant_stage)
-        ^ "_"
-        ^ String.make 1 (Plant.render_char plant))
+    "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
   in
   let color_name =
     "plants/tree_" ^ string_of_color (Plant.render_color plant)
   in
-  draw_in_coord gui char_name color_name layer coord
+  let graphic = get_graphic gui char_name color_name in
+  let new_char_grid =
+    map_grid
+      (replace_case_sens 'x' (Plant.render_char plant))
+      graphic.char_grid
+  in
+  draw_in_coord gui
+    { graphic with char_grid = new_char_grid }
+    layer coord
 
+(** [draw_cells gui cells layer] returns [layer] with the contents of
+    [cells] (either soil or a plant, depending on whether the cell has a
+    plant or not) in the corresponding positions, with the graphics and
+    offset in [gui] *)
 let draw_cells gui cells layer =
   let draw_cell gui layer cell =
     match Cell.plant cell with
@@ -289,10 +321,14 @@ let init_gui cells =
             "miscellaneous/empty";
             "miscellaneous/vert";
             "miscellaneous/horiz";
-            "plants/seed_x";
-            "plants/small_x";
-            "plants/medium_x";
-            "plants/large_x";
+            "plants/seed";
+            "plants/small";
+            "plants/medium";
+            "plants/large";
+            "soil/1";
+            "soil/2";
+            "soil/3";
+            "soil/4";
           ];
       color_graphics =
         load_color_grids '`'
@@ -306,6 +342,7 @@ let init_gui cells =
             "plants/tree_green";
             "plants/tree_red";
             "plants/tree_yellow";
+            "soil/";
           ];
       hex_offset = { x = 0; y = 9 };
     }
