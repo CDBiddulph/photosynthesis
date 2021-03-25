@@ -1,7 +1,8 @@
-(* open ANSITerminal *)
+open ANSITerminal
 open Gui
 
-let basic_hex = Cell.init_cell 1 (Some (Plant.init_plant 1 Plant.Seed))
+let basic_hex =
+  Cell.init_cell 1 (Some (Plant.init_plant 1 'x' Red Plant.Small))
 
 let main () =
   let gui =

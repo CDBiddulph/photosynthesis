@@ -210,21 +210,54 @@ let point2d_of_hex_coord gui coord =
   let y = (coord.diag * 6) - (coord.col * 3) in
   { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
 
-(** [draw_in_cell gui cell graphic_name] returns [gui] with a hex drawn
-    in its "hexes" layer with the position corresponding to the coords
-    of [cell]. *)
-let draw_in_cell gui graphic_name layer cell =
-  let top_left = point2d_of_hex_coord gui (Cell.coord cell) in
+(** [draw_in_coord gui graphic_name layer coord] returns [layer] with
+    the graphic with name [graphic_name] of [gui] drawn in the position
+    corresponding to [coord] with an offset of [gui.hex_offset]. *)
+let draw_in_coord gui graphic_name layer coord =
+  let top_left = point2d_of_hex_coord gui coord in
   draw gui graphic_name top_left layer
+
+(** [draw_hexes gui coords layer] returns [layer] with hexes drawn on it
+    in the positions corresponding to [coords] with an offset of
+    [gui.hex_offset]. *)
+let draw_hexes gui coords layer =
+  List.fold_left (draw_in_coord gui "hex") layer coords
+
+(** [draw_soil gui coord soil layer] returns [layer] with a soil marker
+    for [soil] drawn on it in the position corresponding to [coord] with
+    an offset of [gui.hex_offset]. *)
+let draw_soil gui coord soil layer =
+  let filename = "soil" ^ string_of_int soil in
+  draw_in_coord gui filename layer coord
 
 (** [draw_hexes gui cells] returns [gui] with hexes drawn in its "hexes"
     layer with the positions corresponding to the coords of each cell in
     [cells]. *)
-let draw_hexes gui cells layer =
-  List.fold_left (draw_in_cell gui "hex") layer cells
+let draw_plant gui coord plant layer =
+  let filename =
+    "plant_"
+    ^ Plant.(
+        (plant |> plant_stage |> Plant.string_of_plant_stage)
+        ^ "_"
+        ^ String.make 1 (Plant.render_char plant))
+  in
+  draw_in_coord gui filename layer coord
 
-(* TODO: update_cells should add trees or soil labels to cells *)
-let update_cells cells gui = gui
+let draw_cells gui cells layer =
+  let draw_cell gui layer cell =
+    match Cell.plant cell with
+    | None -> draw_soil gui (Cell.coord cell) (Cell.soil cell) layer
+    | Some p -> draw_plant gui (Cell.coord cell) p layer
+  in
+  List.fold_left (draw_cell gui) layer cells
+
+(* [update_cells cells gui] is [gui] with the contents of each cell in
+   [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
+   the space corresponding to [c] will display a marker showing the type
+   of soil in [c]. Otherwise, if [Cell.plant c = Some p], [p] will be
+   displayed. *)
+let update_cells cells gui =
+  gui |> apply_to_layer "cells" (draw_cells gui cells)
 
 (* draw_in_cell gui "small_x_tree" *)
 
@@ -237,24 +270,29 @@ let init_gui cells =
   let background =
     fill_raster (Some { chara = '.'; color = ANSITerminal.Magenta }) w h
   in
+  (* layers must be in order from back to front, since it will be used
+     to make layer_order *)
+  let layers =
+    [
+      ("background", background);
+      ("hexes", blank_raster w h);
+      ("cells", blank_raster w h);
+    ]
+  in
   let gui =
     {
       width = w;
       height = h;
-      layers =
-        [
-          ("background", background);
-          ("hexes", blank_raster w h);
-          ("hexes2", blank_raster w h);
-        ];
-      layer_order = [ "background"; "hexes"; "hexes2" ];
+      layers;
+      layer_order = List.map fst layers;
       graphics =
-        load_graphics '`' [ "hex"; "dot"; "empty"; "vert"; "horiz" ];
+        load_graphics '`'
+          [ "hex"; "dot"; "empty"; "vert"; "horiz"; "plant_small_x" ];
       hex_offset = { x = 0; y = 9 };
     }
   in
   gui
-  |> apply_to_layer "hexes" (draw_hexes gui cells)
+  |> apply_to_layer "hexes" (draw_hexes gui (List.map Cell.coord cells))
   |> update_cells cells
 
 (** (Deprecated) [past_n lst n] is the list containing the contents of
