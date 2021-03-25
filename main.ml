@@ -39,6 +39,7 @@ let main () =
   in
   gui
   |> update_cells [ soil_cell1 { diag = 6; col = 6 } ]
+  |> update_cursor ANSITerminal.Red (Some { diag = 4; col = 3 })
   |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
   |> render
 

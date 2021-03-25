@@ -211,30 +211,6 @@ let draw_in_coord gui graphic layer coord =
   let top_left = point2d_of_hex_coord gui coord in
   draw graphic layer top_left
 
-(** [get_graphic gui char_name color_name] is the combined char-color
-    graphic with [char_name] from [gui.char_graphics] and [color_name]
-    from [gui.color_graphics]. *)
-let get_graphic gui char_name color_name =
-  {
-    char_grid = List.assoc char_name gui.char_graphics;
-    color_grid = List.assoc color_name gui.color_graphics;
-  }
-
-(** [draw_hexes gui coords layer] returns [layer] with hexes drawn on it
-    in the positions corresponding to [coords] with an offset of
-    [gui.hex_offset]. *)
-let draw_hexes gui coords layer =
-  List.fold_left
-    (draw_in_coord gui (get_graphic gui "hex" "hex"))
-    layer coords
-
-(** [draw_soil gui coord soil layer] returns [layer] with a soil marker
-    for [soil] drawn on it in the position corresponding to [coord] with
-    an offset of [gui.hex_offset]. *)
-let draw_soil gui coord soil layer =
-  let char_name = "soil/" ^ string_of_int soil in
-  draw_in_coord gui (get_graphic gui char_name "soil/") layer coord
-
 (** [replace_case_sens find_char replace_char input_char_opt] is [None]
     if [input_char_opt = None]. If [input_char_opt = Some input_char],
     returns [Some output_char], where [output_char] is [replace_char] if
@@ -247,11 +223,52 @@ let replace_case_sens find_char replace_char input_char =
     Char.uppercase_ascii replace_char
   else input_char
 
-let replace find_e replace_e input_e_opt =
-  match input_e_opt with
-  | None -> None
-  | Some input_e ->
-      Some (if input_e = find_e then replace_e else input_e)
+let replace find_e replace_e input_e =
+  if input_e = find_e then replace_e else input_e
+
+(** [get_graphic gui char_name color_name] is the combined char-color
+    graphic with [char_name] from [gui.char_graphics] and [color_name]
+    from [gui.color_graphics]. *)
+let get_graphic gui char_name color_name =
+  {
+    char_grid = List.assoc char_name gui.char_graphics;
+    color_grid = List.assoc color_name gui.color_graphics;
+  }
+
+let replace_color_in_raster find_color replace_color raster =
+  {
+    raster with
+    color_grid =
+      map_grid
+        (double_ended_opt (replace find_color replace_color))
+        raster.color_grid;
+  }
+
+let replace_char_in_raster find_char replace_char raster =
+  {
+    raster with
+    char_grid =
+      map_grid
+        (double_ended_opt (replace_case_sens find_char replace_char))
+        raster.char_grid;
+  }
+
+(** [draw_hexes gui coords layer] returns [layer] with hexes drawn on it
+    in the positions corresponding to [coords] with an offset of
+    [gui.hex_offset]. *)
+let draw_hexes gui coords layer =
+  List.fold_left
+    (draw_in_coord gui
+       ( get_graphic gui "hex" "hex"
+       |> ANSITerminal.(replace_color_in_raster Default White) ))
+    layer coords
+
+(** [draw_soil gui coord soil layer] returns [layer] with a soil marker
+    for [soil] drawn on it in the position corresponding to [coord] with
+    an offset of [gui.hex_offset]. *)
+let draw_soil gui coord soil layer =
+  let char_name = "soil/" ^ string_of_int soil in
+  draw_in_coord gui (get_graphic gui char_name "soil/") layer coord
 
 (** [draw_plants gui coord plant layer] returns [layer] with [plant]
     drawn in the position corresponding to [coord] according to the
@@ -261,21 +278,13 @@ let draw_plant gui coord plant layer =
     "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
   in
   let color_name = "plants/tree" in
-  let graphic = get_graphic gui char_name color_name in
-  let new_char_grid =
-    map_grid
-      (double_ended_opt
-         (replace_case_sens 'x' (Plant.render_char plant)))
-      graphic.char_grid
+  let graphic =
+    get_graphic gui char_name color_name
+    |> replace_char_in_raster 'x' (Plant.render_char plant)
+    |> replace_color_in_raster ANSITerminal.Default
+         (Plant.render_color plant)
   in
-  let new_color_grid =
-    map_grid
-      (replace ANSITerminal.Default (Plant.render_color plant))
-      graphic.color_grid
-  in
-  draw_in_coord gui
-    { char_grid = new_char_grid; color_grid = new_color_grid }
-    layer coord
+  draw_in_coord gui graphic layer coord
 
 (** [draw_cells gui cells layer] returns [layer] with the contents of
     [cells] (either soil or a plant, depending on whether the cell has a
@@ -303,17 +312,11 @@ let draw_cursor gui color coord_opt layer =
   match coord_opt with
   | None -> blank
   | Some coord ->
-      let graphic = get_graphic gui "hex" "hex" in
-      let graphic' =
-        {
-          graphic with
-          color_grid =
-            map_grid
-              (replace ANSITerminal.Default color)
-              graphic.color_grid;
-        }
+      let graphic =
+        get_graphic gui "hex" "hex"
+        |> replace_color_in_raster ANSITerminal.Default color
       in
-      draw_in_coord gui graphic' blank coord
+      draw_in_coord gui graphic blank coord
 
 let update_cursor color coord_opt gui =
   gui |> apply_to_layer "cursor" (draw_cursor gui color coord_opt)
