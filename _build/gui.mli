@@ -17,7 +17,13 @@ val update_cells : Cell.t list -> t -> t
 
 (** [update_sun gui dir] updates the GUI so that the rays of the sun
     will appear to point in direction [dir].*)
-val update_sun : t -> HexUtil.dir -> t
+val update_sun : HexUtil.dir -> t -> t
+
+(** [update_cursor gui color coord_opt], if [coord_opt = Some coord],
+    updates the GUI to create a cursor with color [color] at position
+    [coord]. If [coord_opt = None], no cursor is drawn. If there was
+    previously a cursor on display, it is removed. *)
+val update_cursor : ANSITerminal.color -> HexUtil.coord option -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

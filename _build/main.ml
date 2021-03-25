@@ -37,7 +37,9 @@ let main () =
         basic_cell2 { diag = 3; col = 6 };
       ]
   in
-  let gui' = update_cells [ soil_cell1 { diag = 6; col = 6 } ] gui in
-  render gui'
+  gui
+  |> update_cells [ soil_cell1 { diag = 6; col = 6 } ]
+  |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
+  |> render
 
 let () = main ()

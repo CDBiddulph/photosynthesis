@@ -37,7 +37,8 @@ let map2_grid f grid1 grid2 =
     the values stay the same, except for indices [offset] up to (not
     including) [offset + List.length small_lst]. For index [i] in
     small_lst, value [i + offset] in the new list is
-    [f big_lst.(i + offset) small_lst.(i)]. *)
+    [f big_lst.(i + offset) small_lst.(i)]. Requires [offset >= 0] and
+    [offset + List.length small_lst <= List.length big_lst]. *)
 let map_offset f big_lst small_lst offset =
   assert (offset >= 0);
   let rec map_offset_helper f big_lst small_lst offset acc =
@@ -117,6 +118,7 @@ let apply_to_layer layer_name f gui =
       (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
   }
 
+(* Could be used for testing later *)
 (* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
    "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
    "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 80 29) |>
@@ -124,7 +126,7 @@ let apply_to_layer layer_name f gui =
    (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
    50 5) *)
 
-let update_sun gui dir = gui
+let update_sun dir gui = gui
 
 let fill_raster ch col w h =
   let rec fill_grid elem w h =
@@ -213,7 +215,6 @@ let draw_in_coord gui graphic layer coord =
     graphic with [char_name] from [gui.char_graphics] and [color_name]
     from [gui.color_graphics]. *)
 let get_graphic gui char_name color_name =
-  print_endline color_name;
   {
     char_grid = List.assoc char_name gui.char_graphics;
     color_grid = List.assoc color_name gui.color_graphics;
@@ -246,6 +247,12 @@ let replace_case_sens find_char replace_char input_char =
     Char.uppercase_ascii replace_char
   else input_char
 
+let replace find_e replace_e input_e_opt =
+  match input_e_opt with
+  | None -> None
+  | Some input_e ->
+      Some (if input_e = find_e then replace_e else input_e)
+
 (** [draw_plants gui coord plant layer] returns [layer] with [plant]
     drawn in the position corresponding to [coord] according to the
     hex_offset and graphics in [gui]. *)
@@ -263,9 +270,7 @@ let draw_plant gui coord plant layer =
   in
   let new_color_grid =
     map_grid
-      (double_ended_opt (fun color ->
-           if color = ANSITerminal.Default then Plant.render_color plant
-           else color))
+      (replace ANSITerminal.Default (Plant.render_color plant))
       graphic.color_grid
   in
   draw_in_coord gui
@@ -292,7 +297,26 @@ let draw_cells gui cells layer =
 let update_cells cells gui =
   gui |> apply_to_layer "cells" (draw_cells gui cells)
 
-(* draw_in_cell gui "small_x_tree" *)
+let draw_cursor gui color coord_opt layer =
+  (* TODO: fix so that 76 and 41 are not hard-coded *)
+  let blank = blank_raster 76 41 in
+  match coord_opt with
+  | None -> blank
+  | Some coord ->
+      let graphic = get_graphic gui "hex" "hex" in
+      let graphic' =
+        {
+          graphic with
+          color_grid =
+            map_grid
+              (replace ANSITerminal.Default color)
+              graphic.color_grid;
+        }
+      in
+      draw_in_coord gui graphic' blank coord
+
+let update_cursor color coord_opt gui =
+  gui |> apply_to_layer "cursor" (draw_cursor gui color coord_opt)
 
 (** [init_gui cells] is a GUI with the layers of rasters necessary to
     run the game. Postcondition: Each raster in
@@ -309,6 +333,7 @@ let init_gui cells =
     [
       ("background", background);
       ("hexes", blank_raster w h);
+      ("cursor", blank_raster w h);
       ("cells", blank_raster w h);
     ]
   in
