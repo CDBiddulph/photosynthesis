@@ -289,7 +289,10 @@ let init_gui cells =
             "miscellaneous/empty";
             "miscellaneous/vert";
             "miscellaneous/horiz";
+            "plants/seed_x";
             "plants/small_x";
+            "plants/medium_x";
+            "plants/large_x";
           ];
       color_graphics =
         load_color_grids '`'
