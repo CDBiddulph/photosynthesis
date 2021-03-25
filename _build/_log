@@ -31,14 +31,10 @@ ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o 
 ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules cell.ml > cell.ml.depends # cached
 # Target: cell.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:cell.cmo, file:cell.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o cell.cmo cell.ml # cached
-# Target: gui.ml.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:ml, file:gui.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules gui.ml > gui.ml.depends
 # Target: plant.ml.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:ml, file:plant.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules plant.ml > plant.ml.depends # cached
 # Target: plant.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:plant.cmo, file:plant.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o plant.cmo plant.ml # cached
-# Target: gui.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:gui.cmo, file:gui.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o gui.cmo gui.ml
 # Target: hexUtil.ml.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:ml, file:hexUtil.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules hexUtil.ml > hexUtil.ml.depends # cached
 # Target: hexUtil.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:hexUtil.cmo, file:hexUtil.ml, implem, ocaml, quiet, traverse }

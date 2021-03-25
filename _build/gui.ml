@@ -62,24 +62,8 @@ let map_offset f big_lst small_lst offset =
   in
   map_offset_helper f big_lst small_lst offset []
 
-let color_opt_of_char_opt c_opt =
-  match c_opt with
-  | None -> None
-  | Some c ->
-      Some
-        ANSITerminal.(
-          match c with
-          | 'r' -> Red
-          | 'g' -> Green
-          | 'y' -> Yellow
-          | 'b' -> Blue
-          | 'm' -> Magenta
-          | 'c' -> Cyan
-          | 'w' -> White
-          | 'k' -> Black
-          | 'd' -> Default
-          | other ->
-              failwith ("invalid color code " ^ String.make 1 other))
+let double_sided_opt f x_opt =
+  match x_opt with None -> None | Some x -> Some (f x)
 
 let string_of_color color =
   ANSITerminal.(
@@ -93,6 +77,26 @@ let string_of_color color =
     | White -> "white"
     | Black -> "black"
     | Default -> "default")
+
+let color_of_char ch =
+  ANSITerminal.(
+    match ch with
+    | 'r' -> Red
+    | 'g' -> Green
+    | 'y' -> Yellow
+    | 'b' -> Blue
+    | 'm' -> Magenta
+    | 'c' -> Cyan
+    | 'w' -> White
+    | 'k' -> Black
+    | 'd' -> Default
+    | other -> failwith ("invalid color code " ^ String.make 1 other))
+
+let char_of_color color =
+  ANSITerminal.(
+    match color with
+    | Black -> 'k'
+    | other -> (string_of_color color).[0])
 
 let draw graphic layer top_left =
   let row_draw layer_r graphic_r =
@@ -193,7 +197,7 @@ let load_color_grids none_c names =
       ( n,
         "graphics/" ^ n ^ ".color"
         |> load_char_grid none_c
-        |> map_grid color_opt_of_char_opt ))
+        |> map_grid (double_sided_opt color_of_char) ))
     names
 
 let point2d_of_hex_coord gui coord =
@@ -238,14 +242,11 @@ let draw_soil gui coord soil layer =
     [input_char = find_char], the uppercase of [replace_char] if
     [input_char] equals the uppercase of [find_char], and [input_char]
     otherwise. Requires: [find_char] and [replace_char] are lowercase.*)
-let replace_case_sens find_char replace_char input_char_opt =
-  match input_char_opt with
-  | None -> None
-  | Some input_char ->
-      if input_char = find_char then Some replace_char
-      else if input_char = Char.uppercase_ascii find_char then
-        Some (Char.uppercase_ascii replace_char)
-      else Some input_char
+let replace_case_sens find_char replace_char input_char =
+  if input_char = find_char then replace_char
+  else if input_char = Char.uppercase_ascii find_char then
+    Char.uppercase_ascii replace_char
+  else input_char
 
 (** [draw_plants gui coord plant layer] returns [layer] with [plant]
     drawn in the position corresponding to [coord] according to the
@@ -254,17 +255,23 @@ let draw_plant gui coord plant layer =
   let char_name =
     "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
   in
-  let color_name =
-    "plants/tree_" ^ string_of_color (Plant.render_color plant)
-  in
-  let graphic = get_graphic gui char_name color_name in
+  let color_name = "plants/tree" in
+  let unprocessed_graphic = get_graphic gui char_name color_name in
   let new_char_grid =
     map_grid
-      (replace_case_sens 'x' (Plant.render_char plant))
-      graphic.char_grid
+      (double_sided_opt
+         (replace_case_sens 'x' (Plant.render_char plant)))
+      unprocessed_graphic.char_grid
+  in
+  let new_color_grid =
+    map_grid
+      (double_sided_opt (fun color ->
+           if color = ANSITerminal.Default then Plant.render_color plant
+           else color))
+      unprocessed_graphic.color_grid
   in
   draw_in_coord gui
-    { graphic with char_grid = new_char_grid }
+    { char_grid = new_char_grid; color_grid = new_color_grid }
     layer coord
 
 (** [draw_cells gui cells layer] returns [layer] with the contents of
@@ -338,10 +345,7 @@ let init_gui cells =
             "miscellaneous/empty";
             "miscellaneous/vert";
             "miscellaneous/horiz";
-            "plants/tree_cyan";
-            "plants/tree_green";
-            "plants/tree_red";
-            "plants/tree_yellow";
+            "plants/tree";
             "soil/";
           ];
       hex_offset = { x = 0; y = 9 };
