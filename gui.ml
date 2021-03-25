@@ -37,7 +37,8 @@ let map2_grid f grid1 grid2 =
     the values stay the same, except for indices [offset] up to (not
     including) [offset + List.length small_lst]. For index [i] in
     small_lst, value [i + offset] in the new list is
-    [f big_lst.(i + offset) small_lst.(i)]. *)
+    [f big_lst.(i + offset) small_lst.(i)]. Requires [offset >= 0] and
+    [offset + List.length small_lst <= List.length big_lst]. *)
 let map_offset f big_lst small_lst offset =
   assert (offset >= 0);
   let rec map_offset_helper f big_lst small_lst offset acc =
@@ -98,8 +99,8 @@ let char_of_color ch =
 let draw graphic layer top_left =
   let row_draw layer_r graphic_r =
     map_offset
-      (fun layer_char graphic_char ->
-        match graphic_char with None -> layer_char | c -> c)
+      (* At least for now, ignore the layer beneath completely *)
+        (fun layer_char graphic_char -> graphic_char)
       layer_r graphic_r top_left.x
   in
   {

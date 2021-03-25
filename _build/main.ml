@@ -29,14 +29,15 @@ let main () =
         basic_cell2 { diag = 1; col = 0 };
         basic_cell3 { diag = 0; col = 1 };
         basic_cell4 { diag = 1; col = 1 };
-        soil_cell1 { diag = 0; col = 3 };
+        basic_cell1 { diag = 0; col = 3 };
         soil_cell2 { diag = 3; col = 0 };
         soil_cell3 { diag = 3; col = 3 };
         soil_cell4 { diag = 6; col = 3 };
-        basic_cell2 { diag = 6; col = 6 };
-        basic_cell3 { diag = 3; col = 6 };
+        basic_cell1 { diag = 6; col = 6 };
+        basic_cell2 { diag = 3; col = 6 };
       ]
   in
-  render gui
+  let gui' = update_cells [ soil_cell1 { diag = 6; col = 6 } ] gui in
+  render gui'
 
 let () = main ()

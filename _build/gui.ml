@@ -98,8 +98,8 @@ let char_of_color ch =
 let draw graphic layer top_left =
   let row_draw layer_r graphic_r =
     map_offset
-      (fun layer_char graphic_char ->
-        match graphic_char with None -> layer_char | c -> c)
+      (* At least for now, ignore the layer beneath completely *)
+        (fun layer_char graphic_char -> graphic_char)
       layer_r graphic_r top_left.x
   in
   {
