@@ -1,1 +1,1 @@
-hexMap.ml:
+hexMap.ml: Array Cell HexUtil Int
