@@ -18,8 +18,6 @@ val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> t
     [plant] in [cell] on [board] is a legal move. *)
 val is_place_plant_legal : t -> Cell.t -> Plant.t -> bool
 
-(* this function will probably only be used by GUI *)
-
 (** [place_plant board cell plant] places [plant] in [cell] on [board].
     Raises: [InvalidPlacement] if placing [plant] in [cell] on [board]
     is not a legal move. *)

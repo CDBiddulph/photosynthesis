@@ -6,7 +6,7 @@
     are the second.*)
 type t = Cell.t option array array
 
-let init_map : t =
+let init_map () : t =
   let open Cell in
   [|
     [|

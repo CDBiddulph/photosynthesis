@@ -13,7 +13,7 @@ let block_test
     (does_block map dir c1 c2)
     ~printer:string_of_bool
 
-let i_map = HexMap.init_map
+let i_map = HexMap.init_map ()
 
 let c00 : HexUtil.coord = { col = 0; diag = 0 }
 
