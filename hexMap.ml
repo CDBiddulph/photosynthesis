@@ -129,7 +129,7 @@ let flatten (map : t) =
   for col = 0 to Array.length map - 1 do
     let diag_low = if col < 4 then 0 else col - 4 in
     let diag_high = if col > 2 then Array.length map else 3 + col in
-    for diag = diag_low to diag_high - 1 do
+    for diag = diag_low to diag_high do
       match map.(col).(diag) with
       | Some c -> flat := c :: !flat
       | _ -> ()
