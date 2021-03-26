@@ -2,7 +2,7 @@ type ruleset =
   | Normal
   | Extended
 
-(**  *)
+(** The type [round_phase] represents the part of the round. *)
 type round_phase =
   | Photosynthesis
   | Life_Cycle
@@ -34,7 +34,7 @@ let init_game players map sun ruleset =
     map;
     sun_dir = sun;
     current_turn = Player.player_id first_player;
-    current_phase = Photosynthesis;
+    current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
   }
@@ -50,7 +50,7 @@ let place_plant (board : t) cell plant =
       c
   else raise InvalidPlacement
 
-(* TODO: need some way to increment life points/decrement light points *)
+(* TODO: need some way to increment score points/decrement light points *)
 
 (** [shadows c1 c2] determines if the [Plant.t] in [c1] would shadow the
     [Plant.t] in [c2] based on size and distance. *)
@@ -71,9 +71,10 @@ let shadows map c1 c2 =
       (c2_plnt = Large || c2_plnt = Medium || c2_plnt = Small)
       && HexMap.dist map (coord c1) (coord c2) <= 3
 
-let lp_map =
+(** [lp_map plant] maps [Plant.plant_stage]s to light point amounts. *)
+let lp_map (plant : Plant.plant_stage) : int =
   let open Plant in
-  function Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
+  match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 (** [player_lp_helper board player player_cells] returns an updated
     board with only [player]'s light points updated based on the sun's
@@ -82,13 +83,28 @@ let player_lp_helper (board : t) player player_cells : t =
   let update_board = ref board in
   for i = 0 to List.length player_cells - 1 do
     let cell = List.nth player_cells i in
-    let fst_neigh = HexMap.neighbor board.map cell board.sun_dir in
-    let snd_neigh = HexMap.neighbor board.map fst_neigh board.sun_dir in
-    let thd_neigh = HexMap.neighbor board.map snd_neigh board.sun_dir in
     let shadowed =
-      shadows board.map fst_neigh cell
-      || shadows board.map snd_neigh cell
-      || shadows board.map thd_neigh cell
+      let fst_neigh = HexMap.neighbor board.map cell board.sun_dir in
+      match fst_neigh with
+      | None -> false
+      | Some fst_coord -> (
+          let snd_neigh =
+            HexMap.neighbor board.map fst_neigh board.sun_dir
+          in
+          match snd_neigh with
+          | None -> shadows board.map fst_neigh cell
+          | Some snd_coord -> (
+              let thd_neigh =
+                HexMap.neighbor board.map snd_neigh board.sun_dir
+              in
+              match thd_neigh with
+              | None ->
+                  shadows board.map fst_neigh cell
+                  || shadows board.map snd_neigh cell
+              | Some shadows ->
+                  board.map fst_neigh cell
+                  || shadows board.map snd_neigh cell
+                  || shadows board.map thd_neigh cell))
     in
     if not shadowed then
       let lp = lp_map (Cell.plant cell) in

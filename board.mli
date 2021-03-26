@@ -1,6 +1,7 @@
 (** The abstract type representing the game's board. *)
 type t
 
+(** The type [ruleset] represents the ruleset used in the game. *)
 type ruleset =
   | Normal
   | Extended
@@ -26,6 +27,8 @@ val place_plant : t -> Cell.t -> Plant.t -> t
 (** [flat_board board] is the list of all valid [Cell]s in [board]. *)
 val flat_board : t -> Cell.t list
 
+(** [end_turn board] TODO *)
 val end_turn : t -> t
 
+(** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
