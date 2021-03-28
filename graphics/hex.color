@@ -1,5 +1,13 @@
+<<<<<<< HEAD
   wwwwww
  wwwwwwww
 wwwwwwwwww
 wwwwwwwwww
  wwwwwwww
+=======
+  _____
+ /     \
+/       \
+\       /
+ \_____/
+>>>>>>> Currently adding functionality with colors. Appears to compile, but still need to interpret color from .color file.

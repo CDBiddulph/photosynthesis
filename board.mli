@@ -32,3 +32,8 @@ val end_turn : t -> t
 
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
+
+val can_remove : t -> bool
+
+(** removes plant *)
+val remove_plant : t -> t
