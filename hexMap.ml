@@ -127,9 +127,7 @@ let neighbor (map : t) c (d : HexUtil.dir) =
 let flatten (map : t) =
   let flat = ref [] in
   for col = 0 to Array.length map - 1 do
-    let diag_low = if col < 4 then 0 else col - 4 in
-    let diag_high = if col > 2 then Array.length map else 3 + col in
-    for diag = diag_low to diag_high do
+    for diag = 0 to Array.length map - 1 do
       match map.(col).(diag) with
       | Some c -> flat := c :: !flat
       | _ -> ()
