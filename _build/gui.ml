@@ -29,10 +29,7 @@ let apply_to_layer layer_name f gui =
 
 let update_sun dir gui = gui
 
-let point2d_of_hex_coord gui coord =
-  let x = coord.col * 11 in
-  let y = (coord.diag * 6) - (coord.col * 3) in
-  { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
+let xy_of_hex_coord coord = (coord.diag, coord.col)
 
 (** [draw_in_coord gui graphic_name layer coord] returns [layer] with
     the graphic with name [graphic_name] of [gui] drawn in the position
@@ -56,8 +53,8 @@ let get_graphic gui char_name color_name =
 let draw_hexes gui coords layer =
   List.fold_left
     (draw_in_coord gui
-       ( get_graphic gui "hex" "hex"
-       |> ANSITerminal.(replace_color_in_raster Default White) ))
+       (get_graphic gui "hex" "hex"
+       |> ANSITerminal.(replace_color_in_raster Default White)))
     layer coords
 
 (** [draw_soil gui coord soil layer] returns [layer] with a soil marker

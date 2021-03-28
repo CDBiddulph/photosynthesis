@@ -56,8 +56,8 @@ let get_graphic gui char_name color_name =
 let draw_hexes gui coords layer =
   List.fold_left
     (draw_in_coord gui
-       ( get_graphic gui "hex" "hex"
-       |> ANSITerminal.(replace_color_in_raster Default White) ))
+       (get_graphic gui "hex" "hex"
+       |> ANSITerminal.(replace_color_in_raster Default White)))
     layer coords
 
 (** [draw_soil gui coord soil layer] returns [layer] with a soil marker

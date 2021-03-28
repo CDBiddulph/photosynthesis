@@ -2,7 +2,7 @@
 type t
 
 (** The starting map, with no plants. *)
-val init_map : t
+val init_map : unit -> t
 
 (** [cell_at map coord] is the cell at [coord] of [map]. Requires: [c]
     is a valid coordinate in [map]. *)
