@@ -1,5 +1,6 @@
 type player_id = int
 
+(* add player board (available trees to buy) *)
 type t = {
   id : player_id;
   light_points : int;

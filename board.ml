@@ -24,30 +24,30 @@ type t = {
 exception InvalidPlacement
 
 let init_game players map sun ruleset =
-  let first_player =
-    match players with
-    | [] -> failwith "Invalid player list"
-    | hd :: tl -> hd
-  in
   {
     players;
     map;
     sun_dir = sun;
-    current_turn = Player.player_id first_player;
+    current_turn = 0;
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
   }
 
 let is_place_plant_legal board cell plant =
-  HexMap.valid_coord board (Cell.coord cell) && Cell.plant cell = None
+  HexMap.valid_coord board.map (Cell.coord cell)
+  && Cell.plant cell = None
 
 let place_plant (board : t) cell plant =
-  if is_place_plant_legal board.map cell plant then
+  if is_place_plant_legal board cell plant then
     let c = Cell.coord cell in
-    HexMap.set_cell board.map
-      (Cell.init_cell (Cell.soil cell) plant c)
-      c
+    {
+      board with
+      map =
+        HexMap.set_cell board.map
+          (Cell.init_cell (Cell.soil cell) (Some plant) c)
+          c;
+    }
   else raise InvalidPlacement
 
 (* TODO: need some way to increment score points/decrement light points *)
@@ -192,3 +192,7 @@ let end_turn (board : t) : t =
 let sun_dir board = board.sun_dir
 
 let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
+
+let can_remove board = false
+
+let remove_plant board = board

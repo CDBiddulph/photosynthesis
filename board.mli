@@ -13,7 +13,7 @@ exception InvalidPlacement
     players, board, and sun direction. The first player in the list is
     assumed to be the first, and the order of play follows the order of
     the players in the list. Requires: [players] is non-empty *)
-val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> t
+val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> ruleset -> t
 
 (** [is_place_plant_legal board cell plant] returns [true] iff placing
     [plant] in [cell] on [board] is a legal move. *)
