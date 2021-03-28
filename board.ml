@@ -68,13 +68,13 @@ let shadows map c1 c2 =
           let c1_plnt_opt = plant cell_1 in
           let c2_plnt_opt = plant cell_2 in
           match c2_plnt_opt with
-          | None -> false
+          | None -> true
           | Some c2_plt -> (
               let c2_plnt = plant_stage c2_plt in
               c2_plnt = Seed
               ||
               match c1_plnt_opt with
-              | None -> true
+              | None -> false
               | Some c1_plt -> (
                   let c1_plnt = plant_stage c1_plt in
                   match c1_plnt with
