@@ -45,7 +45,7 @@ let place_plant (board : t) cell plant =
       board with
       map =
         HexMap.set_cell board.map
-          (Cell.init_cell (Cell.soil cell) (Some plant) c)
+          (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
           c;
     }
   else raise InvalidPlacement
@@ -193,6 +193,23 @@ let sun_dir board = board.sun_dir
 
 let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
 
-let can_remove board = false
+let can_remove board c =
+  match HexMap.cell_at board.map c with
+  | None -> false
+  | Some cell -> (
+      match Cell.plant cell with
+      | None -> false
+      | Some plnt -> (
+          match Plant.plant_stage plnt with
+          | Plant.Large -> true
+          | _ -> false))
 
-let remove_plant board = board
+let remove_plant board c =
+  (* can_remove verifies that c has a valid cell --> can incompletely
+     pattern-match [HexMap.cell_at] *)
+  if can_remove board c then
+    let (Some cell) = HexMap.cell_at board.map c in
+    let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
+    let new_map = HexMap.set_cell board.map new_cell c in
+    { board with map = new_map }
+  else board

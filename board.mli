@@ -33,7 +33,10 @@ val end_turn : t -> t
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
-val can_remove : t -> bool
+(** [can_remove board c] determines if the plant at [c] can be removed.
+    If there is no plant at [c] or [c] is invalid, returns false. *)
+val can_remove : t -> HexUtil.coord -> bool
 
-(** removes plant *)
-val remove_plant : t -> t
+(** [remove_plant board c] removes the plant at [c]. If there is no
+    plant or [c] is invalid, no change occurs. *)
+val remove_plant : t -> HexUtil.coord -> t
