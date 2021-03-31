@@ -50,10 +50,8 @@ let place_plant (board : t) cell plant =
     }
   else raise InvalidPlacement
 
-(* TODO: need some way to increment score points/decrement light points *)
-
-(** [shadows c1 c2] determines if the [Plant.t] in [c1] would shadow the
-    [Plant.t] in [c2] based on size and distance. *)
+(** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
+    the [Plant.t] in [c2] based on size and distance. *)
 let shadows map c1 c2 =
   let open Cell in
   let open Plant in
@@ -63,7 +61,7 @@ let shadows map c1 c2 =
   | None -> false
   | Some cell_1 -> (
       match c2_cell_opt with
-      | None -> false
+      | None -> true
       | Some cell_2 -> (
           let c1_plnt_opt = plant cell_1 in
           let c2_plnt_opt = plant cell_2 in
@@ -108,23 +106,23 @@ let player_lp_helper (board : t) player player_cells : t =
       match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
+          let fst_shadow = shadows board.map fst_coord cell_coord in
           let snd_neigh =
             HexMap.neighbor board.map fst_coord board.sun_dir
           in
           match snd_neigh with
-          | None -> shadows board.map fst_coord cell_coord
+          | None -> fst_shadow
           | Some snd_coord -> (
+              let snd_shadow =
+                fst_shadow || shadows board.map snd_coord cell_coord
+              in
               let thd_neigh =
                 HexMap.neighbor board.map snd_coord board.sun_dir
               in
               match thd_neigh with
-              | None ->
-                  shadows board.map fst_coord cell_coord
-                  || shadows board.map snd_coord cell_coord
+              | None -> snd_shadow
               | Some thd_coord ->
-                  shadows board.map fst_coord cell_coord
-                  || shadows board.map snd_coord cell_coord
-                  || shadows board.map thd_coord cell_coord))
+                  snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
       let (Some cell) = HexMap.cell_at board.map cell_coord in
@@ -151,7 +149,6 @@ let player_lp_helper (board : t) player player_cells : t =
     position. *)
 let lp_helper (board : t) : t =
   let update_board = ref board in
-  (* let opposite_sun_dir = (board.sun_dir + 3) mod 6 in *)
   for i = 0 to List.length board.players - 1 do
     let player = List.nth board.players i in
     let player_cells =
@@ -173,7 +170,6 @@ let lp_helper (board : t) : t =
   !update_board
 
 let end_turn (board : t) : t =
-  (* TODO: In progress: light points *)
   let current_phase = board.current_phase in
   match current_phase with
   | Photosynthesis ->
