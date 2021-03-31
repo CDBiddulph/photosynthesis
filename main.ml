@@ -44,7 +44,7 @@ let main1 () =
   |> render
 
 let main2 () =
-  let hex_map = HexMap.init_map in
+  let hex_map = HexMap.init_map () in
   let gui = init_gui (HexMap.flatten hex_map) in
   gui
   |> update_cells
