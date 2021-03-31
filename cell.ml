@@ -4,7 +4,7 @@ type soil = int
 
 type t = {
   soil : soil;
-  plant : Plant.t;
+  plant : Plant.t option;
   location : HexUtil.coord;
 }
 
