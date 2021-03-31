@@ -20,8 +20,3 @@ type coord = {
     horizontal. Valid [dir] values are the integers between 0-5,
     inclusive. *)
 type dir = int
-
-(** [init_cell soil plant] is a Hex Coordinate with col with type int at
-    c and diag with type int at d *)
-
-val init_coord : int -> int -> coord

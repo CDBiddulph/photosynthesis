@@ -1,36 +1,47 @@
 open HexMap
 open HexUtil
 open Board
+open Gui
 open Graphics
 
 exception End
 
+exception Invalid_Direction
+
 type t = {
   current_position : HexUtil.coord;
   hexMap : HexMap.t;
+  gui : Gui.t;
 }
 
-let init_state () : t =
+let init_state gui : t =
   {
-    current_position = HexUtil.init_coord 0 0;
-    hexMap = HexMap.init_map;
+    current_position = { col = 2; diag = 2 };
+    hexMap = HexMap.init_map ();
+    gui;
   }
 
 let extract (c : HexUtil.coord option) : HexUtil.coord =
-  match c with Some i -> i | None -> failwith "Invalid Direction"
+  match c with Some i -> i | None -> raise Invalid_Direction
 
-let update_state s d =
-  let new_st =
-    {
-      current_position =
-        extract (HexMap.neighbor s.hexMap s.current_position d);
-      hexMap = s.hexMap;
-    }
+let scroll s d =
+  let new_gui =
+    Gui.update_cursor Red
+      (HexMap.neighbor s.hexMap s.current_position d)
+      s.gui
   in
-  new_st
-
-(** let state = update_state s d in *)
-let scroll s d = failwith "Not Implemented"
+  render new_gui;
+  try
+    let new_state =
+      {
+        current_position =
+          extract (HexMap.neighbor s.hexMap s.current_position d);
+        hexMap = s.hexMap;
+        gui = s.gui;
+      }
+    in
+    new_state
+  with Invalid_Direction -> s
 
 let handle_char s c =
   match c with
@@ -41,12 +52,15 @@ let handle_char s c =
   | 'd' -> scroll s 3
   | _ -> failwith "Invalid Key Pressed"
 
-let read_char s f_end =
+let rec read_char (s : t) =
   try
     while true do
       try
-        let s = Graphics.wait_next_event [ Graphics.Key_pressed ] in
-        if s.Graphics.keypressed then handle_char s s.Graphics.key
+        let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
+        if a.Graphics.keypressed then
+          let new_state = handle_char s a.Graphics.key in
+          read_char new_state
+        else read_char s
       with End -> raise End
     done
-  with End -> f_end ()
+  with End -> failwith "Not Yet Implemented"
