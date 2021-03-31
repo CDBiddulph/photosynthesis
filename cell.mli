@@ -4,7 +4,7 @@ type t
 (** The soil type of a cell *)
 type soil = int
 
-(** [init_cell soil plant] is a cell with soil type [soil]. If
+(** [init_cell coord soil plant] is a cell with soil type [soil]. If
     [plant = Some p], it will have plant [p]; if [plant = None], it will
     have no plant. *)
 val init_cell : soil -> Plant.t option -> HexUtil.coord -> t
