@@ -4,3 +4,5 @@ type coord = {
 }
 
 type dir = int
+
+let init_coord () = { col = 0; diag = 0 }

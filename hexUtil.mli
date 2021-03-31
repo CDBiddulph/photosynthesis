@@ -20,3 +20,5 @@ type coord = {
     horizontal. Valid [dir] values are the integers between 0-5,
     inclusive. *)
 type dir = int
+
+val init_coord : unit -> coord
