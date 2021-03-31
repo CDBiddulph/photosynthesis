@@ -5,4 +5,4 @@ type coord = {
 
 type dir = int
 
-let init_coord () = { col = 0; diag = 0 }
+let init_coord c d = { col = c; diag = d }
