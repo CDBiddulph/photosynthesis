@@ -21,4 +21,7 @@ type coord = {
     inclusive. *)
 type dir = int
 
-val init_coord : unit -> coord
+(** [init_cell soil plant] is a Hex Coordinate with col with type int at
+    c and diag with type int at d *)
+
+val init_coord : int -> int -> coord

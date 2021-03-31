@@ -1,8 +1,7 @@
 open HexMap
-open Graphics
 open HexUtil
-open Gui
 open Board
+open Graphics
 
 exception End
 
@@ -12,7 +11,10 @@ type t = {
 }
 
 let init_state () : t =
-  { current_position = HexUtil.init_coord (); hexMap = HexMap.init_map }
+  {
+    current_position = HexUtil.init_coord 0 0;
+    hexMap = HexMap.init_map;
+  }
 
 let extract (c : HexUtil.coord option) : HexUtil.coord =
   match c with Some i -> i | None -> failwith "Invalid Direction"
