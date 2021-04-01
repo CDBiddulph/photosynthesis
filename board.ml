@@ -34,13 +34,16 @@ let init_game players map sun ruleset =
     rules = ruleset;
   }
 
-let is_place_plant_legal board cell plant =
-  HexMap.valid_coord board.map (Cell.coord cell)
-  && Cell.plant cell = None
+let is_place_plant_legal board c plant =
+  HexMap.valid_coord board.map c
+  &&
+  match HexMap.cell_at board.map c with
+  | None -> false
+  | Some cell -> Cell.plant cell = None
 
-let place_plant (board : t) cell plant =
-  if is_place_plant_legal board cell plant then
-    let c = Cell.coord cell in
+let place_plant (board : t) c plant =
+  if is_place_plant_legal board c plant then
+    let (Some cell) = HexMap.cell_at board.map c in
     {
       board with
       map =

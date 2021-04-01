@@ -17,12 +17,12 @@ val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> ruleset -> t
 
 (** [is_place_plant_legal board cell plant] returns [true] iff placing
     [plant] in [cell] on [board] is a legal move. *)
-val is_place_plant_legal : t -> Cell.t -> Plant.t -> bool
+val is_place_plant_legal : t -> HexUtil.coord -> Plant.t -> bool
 
 (** [place_plant board cell plant] places [plant] in [cell] on [board].
     Raises: [InvalidPlacement] if placing [plant] in [cell] on [board]
     is not a legal move. *)
-val place_plant : t -> Cell.t -> Plant.t -> t
+val place_plant : t -> HexUtil.coord -> Plant.t -> t
 
 (** [flat_board board] is the list of all valid [Cell]s in [board]. *)
 val flat_board : t -> Cell.t list
