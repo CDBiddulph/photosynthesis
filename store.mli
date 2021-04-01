@@ -1,9 +1,10 @@
-(** Keeps track of the plants that one player can buy *)
+(** Keeps track of the plants that one player can buy. *)
 
-(** Represents a store *)
+(* May want to internally represent this with a PlantInventory, along
+   with other data structures to handle costs, capacities, etc. *)
+
+(** Represents a store. *)
 type t
-
-exception OutOfPlant of Plant.plant_stage
 
 exception InsufficientLightPoints of int
 
@@ -14,10 +15,10 @@ exception FullOfPlant of Plant.plant_stage
 val init_store : t
 
 (** [remove_plant store stage light_points] removes one plant of [stage]
-    from [store]. Raises: [OutOfPlant stage] if there are no more plants
-    of [stage] in the store; [InsufficientLightPoints cost], where
-    [cost] is the cost in light points of the next plant of [stage], if
-    [light_points < cost]. *)
+    from [store]. Raises: [PlantInventory.OutOfPlant stage] if there are
+    no more plants of [stage] in the store;
+    [InsufficientLightPoints cost], where [cost] is the cost in light
+    points of the next plant of [stage], if [light_points < cost]. *)
 val remove_plant : t -> Plant.plant_stage -> int -> t
 
 (** [add_plant store stage] adds one plant of [stage] to [store].
