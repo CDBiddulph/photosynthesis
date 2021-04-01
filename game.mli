@@ -18,9 +18,9 @@ val init_game : t
     (otherwise, it will stay the same, meaning the replaced plant was
     thrown away). Raises: [Board.InvalidPlantPlacement] if placing
     [plant] at [coord] is an illegal move;
-    [Available.OutOfPlant (Plant.plant_stage plant)] if the player does
-    not have any of [Plant.plant_stage plant] in their available area.
-    See [is_place_plant_legal] and [is_plant_available]. *)
+    [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
+    does not have any of [Plant.plant_stage plant] in their available
+    area. See [is_place_plant_legal] and [is_plant_available]. *)
 val place_plant : t -> Plant.t -> HexUtil.coord -> t
 
 (** [harvest game player_id coord] is [game] with the plant at [coord]
@@ -34,8 +34,8 @@ val harvest : t -> Player.player_id -> HexUtil.coord -> t
     more plant of [stage] in their available area. Raises:
     [Store.InsufficientLightPoints] if Player does not have enough light
     points to buy a plant of [stage];
-    [Store.OutOfPlant (Plant.plant_stage plant)] if the player does not
-    have any of [Plant.plant_stage plant] in their store. *)
+    [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
+    does not have any of [Plant.plant_stage plant] in their store. *)
 val buy_plant : t -> Player.player_id -> Plant.plant_stage -> t
 
 (* In the future, we may want to alert the UI that photosynthesis is
