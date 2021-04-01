@@ -5,8 +5,9 @@ type t
 type player_id = int
 
 (** [buy_plant player stage] moves a plant from [player]'s store to
-    their available area. Raises: [Store.OutOfPlant stage] if there are
-    no more plants of [stage]; [InsufficientLightPoints] *)
+    their available area. Raises: [PlantInventory.OutOfPlant stage] if
+    there are no more plants of [stage]; [Store.InsufficientLightPoints]
+    if [player] does not have enough light points to make the purchase. *)
 val buy_plant : t -> Plant.plant_stage -> t
 
 (** [player_id player] is the unique [player_id] of [player]. *)

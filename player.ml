@@ -5,7 +5,15 @@ type t = {
   id : player_id;
   light_points : int;
   score_points : int;
+  store : Store.t;
+  available : PlantInventory.t;
 }
+
+let buy_plant player stage =
+  {
+    player with
+    store = Store.buy_plant player.store stage player.light_points;
+  }
 
 let player_id player = player.id
 
