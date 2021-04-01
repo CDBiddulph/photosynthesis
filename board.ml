@@ -6,7 +6,7 @@ type t = {
   current_stage : int;
 }
 
-exception InvalidPlacement
+exception InvalidPlantPlacement
 
 let init_game players map sun =
   let first_player =
@@ -31,7 +31,7 @@ let place_plant board cell plant =
     HexMap.set_cell board.map
       (Cell.init_cell (Cell.soil cell) plant c)
       c
-  else raise InvalidPlacement
+  else raise InvalidPlantPlacement
 
 let end_turn board =
   (* partial implementation; does not account for sun movements or
