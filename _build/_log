@@ -57,12 +57,24 @@ ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -module
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o hexUtil.cmo hexUtil.ml # cached
 # Target: player.ml.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:ml, file:player.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules player.ml > player.ml.depends # cached
+# Target: plantInventory.mli.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:mli, file:plantInventory.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules plantInventory.mli > plantInventory.mli.depends # cached
+# Target: plantInventory.cmi, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:plantInventory.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o plantInventory.cmi plantInventory.mli # cached
+# Target: store.mli.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:mli, file:store.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules store.mli > store.mli.depends # cached
+# Target: store.cmi, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:store.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o store.cmi store.mli # cached
 # Target: player.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:player.cmo, file:player.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o player.cmo player.ml # cached
 # Target: raster.ml.depends, tags: { package(ANSITerminal), package(ounit2), package(yojson), debug, extension:ml, file:raster.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules raster.ml > raster.ml.depends
+ocamlfind ocamldep -package ounit2 -package yojson -package ANSITerminal -modules raster.ml > raster.ml.depends # cached
 # Target: raster.cmo, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:raster.cmo, file:raster.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o raster.cmo raster.ml
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package ANSITerminal -o raster.cmo raster.ml # cached
 # Target: main.byte, tags: { package(ANSITerminal), package(ounit2), package(yojson), byte, debug, dont_link_with, extension:byte, file:main.byte, link, ocaml, program, quiet, traverse }
 ocamlfind ocamlc -linkpkg -g -package ounit2 -package yojson -package ANSITerminal hexUtil.cmo player.cmo plant.cmo cell.cmo raster.cmo gui.cmo hexMap.cmo main.cmo -o main.byte
-# Compilation successful.
++ ocamlfind ocamlc -linkpkg -g -package ounit2 -package yojson -package ANSITerminal hexUtil.cmo player.cmo plant.cmo cell.cmo raster.cmo gui.cmo hexMap.cmo main.cmo -o main.byte
+File "_none_", line 1:
+Error: Required module `Store' is unavailable
+Command exited with code 2.
+# Compilation unsuccessful.

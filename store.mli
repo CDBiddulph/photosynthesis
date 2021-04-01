@@ -14,12 +14,12 @@ exception FullOfPlant of Plant.plant_stage
     plants. *)
 val init_store : t
 
-(** [remove_plant store stage light_points] removes one plant of [stage]
+(** [buy_plant store stage light_points] removes one plant of [stage]
     from [store]. Raises: [PlantInventory.OutOfPlant stage] if there are
     no more plants of [stage] in the store;
     [InsufficientLightPoints cost], where [cost] is the cost in light
     points of the next plant of [stage], if [light_points < cost]. *)
-val remove_plant : t -> Plant.plant_stage -> int -> t
+val buy_plant : t -> Plant.plant_stage -> int -> t
 
 (** [add_plant store stage] adds one plant of [stage] to [store].
     Raises: [FullOfPlant stage] if no additional plants of [stage] can
