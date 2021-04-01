@@ -5,7 +5,7 @@ type plant_stage =
   | Large
 
 type t = {
-  id : Player.player_id;
+  id : PlayerId.t;
   render_char : char;
   render_color : ANSITerminal.color;
   stage : plant_stage;
