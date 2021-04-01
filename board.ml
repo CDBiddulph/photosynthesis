@@ -21,7 +21,7 @@ type t = {
   rules : ruleset;
 }
 
-exception InvalidPlacement
+exception InvalidPlantPlacement
 
 let init_game players map sun ruleset =
   {
@@ -41,6 +41,7 @@ let is_place_plant_legal board cell plant =
 let place_plant (board : t) cell plant =
   if is_place_plant_legal board cell plant then
     let c = Cell.coord cell in
+<<<<<<< HEAD
     {
       board with
       map =
@@ -49,6 +50,12 @@ let place_plant (board : t) cell plant =
           c;
     }
   else raise InvalidPlacement
+=======
+    HexMap.set_cell board.map
+      (Cell.init_cell (Cell.soil cell) plant c)
+      c
+  else raise InvalidPlantPlacement
+>>>>>>> Created game.mli file and made minor changes to other mli files to fit
 
 (* TODO: need some way to increment score points/decrement light points *)
 
