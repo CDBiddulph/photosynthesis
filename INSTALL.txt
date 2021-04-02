@@ -1,0 +1,7 @@
+Run the following commands to install necessary packages:
+brew install pkg-config
+opam install graphics
+
+Run the following command in the parent directory (the directory with the Makefile)
+to run our programL
+make play
