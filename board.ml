@@ -35,6 +35,7 @@ let init_game players map sun ruleset =
   }
 
 let is_place_plant_legal board c plant =
+  (* plant can replace a smaller plant of the player *)
   HexMap.valid_coord board.map c
   &&
   match HexMap.cell_at board.map c with
@@ -43,14 +44,16 @@ let is_place_plant_legal board c plant =
 
 let place_plant (board : t) c plant =
   if is_place_plant_legal board c plant then
-    let (Some cell) = HexMap.cell_at board.map c in
-    {
-      board with
-      map =
-        HexMap.set_cell board.map
-          (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
-          c;
-    }
+    match HexMap.cell_at board.map c with
+    | None -> failwith "should be a valid cell"
+    | Some cell ->
+        {
+          board with
+          map =
+            HexMap.set_cell board.map
+              (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
+              c;
+        }
   else raise InvalidPlacement
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
@@ -128,22 +131,23 @@ let player_lp_helper (board : t) player player_cells : t =
                   snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      let (Some cell) = HexMap.cell_at board.map cell_coord in
-      let plnt = Cell.plant cell in
-      match plnt with
-      | None -> ()
-      | Some lp_plnt ->
-          let lp = lp_map (Plant.plant_stage lp_plnt) in
-          let new_plst =
-            List.map
-              (fun ply ->
-                if Player.player_id ply = player then
-                  Player.add_lp ply lp
-                else ply)
-              board.players
-          in
-          update_board := { !update_board with players = new_plst }
-    else ()
+      match HexMap.cell_at board.map cell_coord with
+      | None -> failwith "should be a valid cell"
+      | Some cell -> (
+          let plnt = Cell.plant cell in
+          match plnt with
+          | None -> ()
+          | Some lp_plnt ->
+              let lp = lp_map (Plant.plant_stage lp_plnt) in
+              let new_plst =
+                List.map
+                  (fun ply ->
+                    if Player.player_id ply = player then
+                      Player.add_lp ply lp
+                    else ply)
+                  board.players
+              in
+              update_board := { !update_board with players = new_plst })
   done;
   !update_board
 
@@ -207,8 +211,10 @@ let remove_plant board c =
   (* can_remove verifies that c has a valid cell --> can incompletely
      pattern-match [HexMap.cell_at] *)
   if can_remove board c then
-    let (Some cell) = HexMap.cell_at board.map c in
-    let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
-    let new_map = HexMap.set_cell board.map new_cell c in
-    { board with map = new_map }
+    match HexMap.cell_at board.map c with
+    | None -> failwith "should be a valid cell"
+    | Some cell ->
+        let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
+        let new_map = HexMap.set_cell board.map new_cell c in
+        { board with map = new_map }
   else board
