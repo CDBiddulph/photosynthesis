@@ -40,3 +40,11 @@ val can_remove : t -> HexUtil.coord -> bool
 (** [remove_plant board c] removes the plant at [c]. If there is no
     plant or [c] is invalid, no change occurs. *)
 val remove_plant : t -> HexUtil.coord -> t
+
+(** [get_photo_lp board players] is an association list of player ids to
+    the pairs of [HexUtil.coord]s that have plants that the the player
+    owns and the light points gained by the plant in that cell. *)
+val get_photo_lp :
+  t ->
+  Player.player_id list ->
+  (Player.player_id * (HexUtil.coord * int) list) list

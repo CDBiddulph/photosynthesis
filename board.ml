@@ -12,26 +12,28 @@ type round_phase =
     the order of players in the list. [current_phase] indicates if it is
     a Photosynthesis (true) or Life Cycle (false) phase. *)
 type t = {
-  players : Player.t list;
   map : HexMap.t;
   sun_dir : HexUtil.dir;
-  current_turn : int;
   current_phase : round_phase;
   round_count : int;
   rules : ruleset;
+  (* will be moved into the game layer *)
+  players : Player.t list;
+  current_turn : int;
 }
 
 exception InvalidPlacement
 
 let init_game players map sun ruleset =
   {
-    players;
     map;
     sun_dir = sun;
-    current_turn = 0;
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
+    (* will be moved *)
+    players;
+    current_turn = 0;
   }
 
 let is_place_plant_legal board c plant =
@@ -98,11 +100,10 @@ let lp_map (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-(** [player_lp_helper board player player_cells] returns an updated
-    board with only [player]'s light points updated based on the sun's
-    position. *)
-let player_lp_helper (board : t) player player_cells : t =
-  let update_board = ref board in
+(** [player_lp_helper board player_cells] TODO *)
+let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
+    (HexUtil.coord * int) list =
+  let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
     let shadowed =
@@ -139,25 +140,14 @@ let player_lp_helper (board : t) player player_cells : t =
           | None -> ()
           | Some lp_plnt ->
               let lp = lp_map (Plant.plant_stage lp_plnt) in
-              let new_plst =
-                List.map
-                  (fun ply ->
-                    if Player.player_id ply = player then
-                      Player.add_lp ply lp
-                    else ply)
-                  board.players
-              in
-              update_board := { !update_board with players = new_plst })
+              coord_lp_lst := (cell_coord, lp) :: !coord_lp_lst)
   done;
-  !update_board
+  !coord_lp_lst
 
-(** [lp_helper board player_cells player] returns an updated board with
-    each player gaining the appropriate light points based on the sun's
-    position. *)
-let lp_helper (board : t) : t =
-  let update_board = ref board in
-  for i = 0 to List.length board.players - 1 do
-    let player = List.nth board.players i in
+let get_photo_lp board players =
+  let out = ref [] in
+  for i = 0 to List.length players - 1 do
+    let player = List.nth players i in
     let player_cells =
       List.map
         (fun c -> Cell.coord c)
@@ -165,22 +155,19 @@ let lp_helper (board : t) : t =
            (fun c ->
              match Cell.plant c with
              | None -> false
-             | Some plant ->
-                 Plant.player_id plant = Player.player_id player)
+             | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    update_board :=
-      player_lp_helper !update_board
-        (Player.player_id player)
-        player_cells
+    out := (player, player_lp_helper board player_cells) :: !out
   done;
-  !update_board
+  !out
 
 let end_turn (board : t) : t =
   let current_phase = board.current_phase in
   match current_phase with
   | Photosynthesis ->
-      { (lp_helper board) with current_phase = Life_Cycle }
+      { board with current_phase = Life_Cycle }
+      (* { (lp_helper board) with current_phase = Life_Cycle } *)
   | Life_Cycle ->
       if board.current_turn = List.length board.players - 1 then
         {
@@ -208,8 +195,6 @@ let can_remove board c =
           | _ -> false))
 
 let remove_plant board c =
-  (* can_remove verifies that c has a valid cell --> can incompletely
-     pattern-match [HexMap.cell_at] *)
   if can_remove board c then
     match HexMap.cell_at board.map c with
     | None -> failwith "should be a valid cell"
