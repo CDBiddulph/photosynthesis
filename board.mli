@@ -30,7 +30,7 @@ val place_plant : t -> HexUtil.coord -> Plant.t -> t
 (** [harvest board player coord] removes the plant at [coord] on
     [board]. Raises: [InvalidPlantPlacement] if placing [plant] in
     [coord] on [board] with [player] is not a legal move. *)
-val harvest : t -> Player.player_id -> HexUtil.coord -> t
+val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 
 (** [flat_board board] is the list of all valid [Cell]s in [board]. *)
 val flat_board : t -> Cell.t list
@@ -45,6 +45,7 @@ val can_remove : t -> bool
 
 (** removes plant *)
 val remove_plant : t -> t
+
 (* You'll want to use HexMap.flatten for this. *)
 
 (** [cells board] is a list of the Cells in [board], in any order. *)
