@@ -1,5 +1,6 @@
 open ANSITerminal
 open Gui
+open Ui
 
 let basic_cell1 =
   Cell.init_cell 1 (Some (Plant.init_plant 1 'x' Cyan Plant.Small))
@@ -59,6 +60,8 @@ let main2 () =
          basic_cell4 { diag = 0; col = 0 };
        ]
   |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
-  |> render
+  |> render;
+  let state = init_state gui in
+  read_char state
 
 let () = main2 ()

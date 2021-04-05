@@ -17,12 +17,12 @@ val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> ruleset -> t
 
 (** [is_place_plant_legal board cell plant] returns [true] iff placing
     [plant] in [cell] on [board] is a legal move. *)
-val is_place_plant_legal : t -> Cell.t -> Plant.t -> bool
+val is_place_plant_legal : t -> HexUtil.coord -> Plant.t -> bool
 
 (** [place_plant board cell plant] places [plant] in [cell] on [board].
     Raises: [InvalidPlacement] if placing [plant] in [cell] on [board]
     is not a legal move. *)
-val place_plant : t -> Cell.t -> Plant.t -> t
+val place_plant : t -> HexUtil.coord -> Plant.t -> t
 
 (** [flat_board board] is the list of all valid [Cell]s in [board]. *)
 val flat_board : t -> Cell.t list
@@ -33,7 +33,18 @@ val end_turn : t -> t
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
-val can_remove : t -> bool
+(** [can_remove board c] determines if the plant at [c] can be removed.
+    If there is no plant at [c] or [c] is invalid, returns false. *)
+val can_remove : t -> HexUtil.coord -> bool
 
-(** removes plant *)
-val remove_plant : t -> t
+(** [remove_plant board c] removes the plant at [c]. If there is no
+    plant or [c] is invalid, no change occurs. *)
+val remove_plant : t -> HexUtil.coord -> t
+
+(** [get_photo_lp board players] is an association list of player ids to
+    the pairs of [HexUtil.coord]s that have plants that the the player
+    owns and the light points gained by the plant in that cell. *)
+val get_photo_lp :
+  t ->
+  Player.player_id list ->
+  (Player.player_id * (HexUtil.coord * int) list) list
