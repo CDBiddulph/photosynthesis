@@ -1,8 +1,5 @@
-type player_id = int
-
-(* add player board (available trees to buy) *)
 type t = {
-  id : player_id;
+  id : PlayerId.t;
   light_points : int;
   score_points : int;
   store : Store.t;
