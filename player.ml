@@ -1,7 +1,5 @@
-type player_id = int
-
 type t = {
-  id : player_id;
+  id : PlayerId.t;
   light_points : int;
   store : Store.t;
   available : PlantInventory.t;

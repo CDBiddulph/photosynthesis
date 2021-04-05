@@ -12,10 +12,10 @@ type plant_stage =
     [player_id plant = player], [render_char plant = ch],
     [render_color plant = col], and [plant_stage plant = stage]. *)
 val init_plant :
-  Player.player_id -> char -> ANSITerminal.color -> plant_stage -> t
+  PlayerId.t -> char -> ANSITerminal.color -> plant_stage -> t
 
 (** [player_id plant] is the [player_id] of the player who owns [plant]. *)
-val player_id : t -> Player.player_id
+val player_id : t -> PlayerId.t
 
 (** [render_char plant] is the lowercase version of the character used
     to represent [plant] when it is rendered in the GUI. *)
