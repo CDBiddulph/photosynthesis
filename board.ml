@@ -37,12 +37,24 @@ let init_game players map sun ruleset =
   }
 
 let is_place_plant_legal board c plant =
-  (* plant can replace a smaller plant of the player *)
   HexMap.valid_coord board.map c
   &&
   match HexMap.cell_at board.map c with
   | None -> false
-  | Some cell -> Cell.plant cell = None
+  | Some cell -> (
+      match Cell.plant cell with
+      | None -> true
+      | Some old_plt -> (
+          let old_player = Plant.player_id old_plt in
+          let new_player = Plant.player_id plant in
+          old_player = new_player
+          &&
+          let new_stage = Plant.plant_stage plant in
+          match Plant.plant_stage old_plt with
+          | Plant.Seed -> new_stage = Plant.Small
+          | Plant.Small -> new_stage = Plant.Medium
+          | Plant.Medium -> new_stage = Plant.Large
+          | Plant.Large -> false))
 
 let place_plant (board : t) c plant =
   if is_place_plant_legal board c plant then
@@ -100,7 +112,9 @@ let lp_map (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-(** [player_lp_helper board player_cells] TODO *)
+(** [player_lp_helper board player_cells] returns an association list of
+    [HexUtil.coord]s where the player's plants are and their respective
+    light point values based on [board]'s sun direction.*)
 let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
     (HexUtil.coord * int) list =
   let coord_lp_lst = ref [] in
