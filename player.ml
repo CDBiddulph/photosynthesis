@@ -6,6 +6,15 @@ type t = {
   available : PlantInventory.t;
 }
 
+let init_player id =
+  {
+    id;
+    light_points = 0;
+    score_points = 0;
+    store = Store.init_store;
+    available = PlantInventory.init_plant_inventory;
+  }
+
 let buy_plant player stage =
   {
     player with

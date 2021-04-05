@@ -12,11 +12,8 @@ exception InvalidPlantPlacement
 (** Raised when an invalid harvest is attempted. *)
 exception InvalidHarvest
 
-(** [init_game players map sun] initializes a game with the given
-    players, board, and sun direction. The first player in the list is
-    assumed to be the first, and the order of play follows the order of
-    the players in the list. Requires: [players] is non-empty *)
-val init_game : Player.t list -> HexMap.t -> HexUtil.dir -> ruleset -> t
+(** [init_board ruleset] initializes a game with the given ruleset. *)
+val init_board : ruleset -> t
 
 (** [is_place_plant_legal board coord plant] returns [true] iff placing
     [plant] at [coord] on [board] is a legal move. *)

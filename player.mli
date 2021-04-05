@@ -1,6 +1,10 @@
 (** The abstract type representing a player. *)
 type t
 
+(** [init_player id] is a player with player_id [id] and points and
+    inventories set to default values. *)
+val init_player : PlayerId.t -> t
+
 (** [buy_plant player stage] moves a plant from [player]'s store to
     their available area. Raises: [PlantInventory.OutOfPlant stage] if
     there are no more plants of [stage]; [Store.InsufficientLightPoints]

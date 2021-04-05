@@ -23,32 +23,41 @@ type t = {
 
 exception InvalidPlantPlacement
 
-let init_game players map sun ruleset =
+exception InvalidHarvest
+
+let init_board ruleset =
   {
-    players;
-    map;
-    sun_dir = sun;
+    players = [];
+    map = HexMap.init_map ();
+    sun_dir = 0;
     current_turn = 0;
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
   }
 
-let is_place_plant_legal board cell plant =
-  HexMap.valid_coord board.map (Cell.coord cell)
-  && Cell.plant cell = None
+let is_place_plant_legal board coord plant =
+  match HexMap.cell_at board.map coord with
+  | None -> false
+  | Some cell -> Cell.plant cell = None
 
-let place_plant (board : t) cell plant =
-  if is_place_plant_legal board cell plant then
-    let c = Cell.coord cell in
+let place_plant (board : t) coord plant =
+  if is_place_plant_legal board coord plant then
+    let cell =
+      match HexMap.cell_at board.map coord with
+      | None -> failwith "Should be unreachable"
+      | Some c -> c
+    in
     {
       board with
       map =
         HexMap.set_cell board.map
-          (Cell.init_cell (Cell.soil cell) (Some plant) c)
-          c;
+          (Cell.init_cell (Cell.soil cell) (Some plant) coord)
+          coord;
     }
-  else raise InvalidPlacement
+  else raise InvalidPlantPlacement
+
+let harvest board player_id coord = failwith "Not Implemented"
 
 (* TODO: need some way to increment score points/decrement light points *)
 
@@ -127,7 +136,11 @@ let player_lp_helper (board : t) player player_cells : t =
                   || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      let (Some cell) = HexMap.cell_at board.map cell_coord in
+      let cell =
+        match HexMap.cell_at board.map cell_coord with
+        | None -> failwith "Should be unreachable"
+        | Some c -> c
+      in
       let plnt = Cell.plant cell in
       match plnt with
       | None -> ()
@@ -196,3 +209,5 @@ let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
 let can_remove board = false
 
 let remove_plant board = board
+
+let cells board = failwith "Not Implemented"
