@@ -1,11 +1,25 @@
-type player_id = int
-
-(* add player board (available trees to buy) *)
 type t = {
-  id : player_id;
+  id : PlayerId.t;
   light_points : int;
   score_points : int;
+  store : Store.t;
+  available : PlantInventory.t;
 }
+
+let init_player id =
+  {
+    id;
+    light_points = 0;
+    score_points = 0;
+    store = Store.init_store;
+    available = PlantInventory.init_plant_inventory;
+  }
+
+let buy_plant player stage =
+  {
+    player with
+    store = Store.buy_plant player.store stage player.light_points;
+  }
 
 let player_id player = player.id
 

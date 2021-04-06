@@ -40,14 +40,14 @@ let map_offset f big_lst small_lst offset =
                 failwith
                   "offset + length small_lst exceeds length big_lst"
             | bl_h :: bl_t ->
-                map_offset_helper f bl_t sl_t 0 (f bl_h sl_h :: acc) )
+                map_offset_helper f bl_t sl_t 0 (f bl_h sl_h :: acc))
         | o -> (
             (* print_int o; print_newline (); *)
             match big_lst with
             | [] -> failwith "offset exceeds length big_lst"
             | bl_h :: bl_t ->
                 map_offset_helper f bl_t small_lst (o - 1) (bl_h :: acc)
-            ) )
+            ))
   in
   map_offset_helper f big_lst small_lst offset []
 
@@ -133,15 +133,15 @@ let load_char_grid none_c filename =
         | '\n' -> (
             match l_acc with
             | None -> Some []
-            | Some a -> Some (List.rev a) )
+            | Some a -> Some (List.rev a))
         | c ->
             let c_opt = if c = none_c then None else Some c in
             load_line ic
-              ( match l_acc with
+              (match l_acc with
               | None -> Some [ c_opt ]
-              | Some a -> Some (c_opt :: a) )
+              | Some a -> Some (c_opt :: a))
       with End_of_file -> (
-        match l_acc with None -> None | Some a -> Some (List.rev a) )
+        match l_acc with None -> None | Some a -> Some (List.rev a))
     in
     match load_line ic None with
     | None -> List.rev g_acc

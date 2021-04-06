@@ -22,9 +22,11 @@ type t = {
   current_turn : int;
 }
 
-exception InvalidPlacement
+exception InvalidPlantPlacement
 
-let init_game players map sun ruleset =
+exception InvalidHarvest
+
+let init_board ruleset =
   {
     map;
     sun_dir = sun;
@@ -35,6 +37,7 @@ let init_game players map sun ruleset =
     players;
     current_turn = 0;
   }
+
 
 let is_place_plant_legal board c plant =
   HexMap.valid_coord board.map c
@@ -69,6 +72,9 @@ let place_plant (board : t) c plant =
               c;
         }
   else raise InvalidPlacement
+
+let harvest board player_id coord = failwith "Not Implemented"
+
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)
@@ -217,3 +223,5 @@ let remove_plant board c =
         let new_map = HexMap.set_cell board.map new_cell c in
         { board with map = new_map }
   else board
+
+let cells board = failwith "Not Implemented"

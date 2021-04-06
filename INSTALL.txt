@@ -1,0 +1,2 @@
+There should not be anything to install besides the standard CS 3110 required modules.
+run [make play] to see the GUI with a sample board layout.
