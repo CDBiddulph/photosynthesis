@@ -28,16 +28,15 @@ exception InvalidHarvest
 
 let init_board ruleset =
   {
-    map;
-    sun_dir = sun;
+    map = HexMap.init_map ();
+    sun_dir = 0;
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
     (* will be moved *)
-    players;
+    players = [];
     current_turn = 0;
   }
-
 
 let is_place_plant_legal board c plant =
   HexMap.valid_coord board.map c
@@ -71,10 +70,9 @@ let place_plant (board : t) c plant =
               (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
               c;
         }
-  else raise InvalidPlacement
+  else raise InvalidPlantPlacement
 
 let harvest board player_id coord = failwith "Not Implemented"
-
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)

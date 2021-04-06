@@ -50,9 +50,7 @@ val remove_plant : t -> HexUtil.coord -> t
     the pairs of [HexUtil.coord]s that have plants that the the player
     owns and the light points gained by the plant in that cell. *)
 val get_photo_lp :
-  t ->
-  Player.player_id list ->
-  (Player.player_id * (HexUtil.coord * int) list) list
+  t -> PlayerId.t list -> (PlayerId.t * (HexUtil.coord * int) list) list
 
 (** [cells board] is a list of the Cells in [board], in any order. *)
 val cells : t -> Cell.t list
