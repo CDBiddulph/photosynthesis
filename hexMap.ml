@@ -91,7 +91,7 @@ let cell_at (map : t) coord : Cell.t option =
 let set_cell (map : t) cell coord : t =
   if valid_coord map coord then (
     let open HexUtil in
-    map.(coord.col).(coord.diag) <- Some cell;
+    map.(coord.col).(coord.diag) <- cell;
     map)
   else failwith "Invalid location"
 

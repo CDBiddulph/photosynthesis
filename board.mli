@@ -38,12 +38,21 @@ val end_turn : t -> t
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
-val can_remove : t -> bool
+(** [can_remove board c] determines if the plant at [c] can be removed.
+    If there is no plant at [c] or [c] is invalid, returns false. *)
+val can_remove : t -> HexUtil.coord -> bool
 
-(** removes plant *)
-val remove_plant : t -> t
+(** [remove_plant board c] removes the plant at [c]. If there is no
+    plant or [c] is invalid, no change occurs. *)
+val remove_plant : t -> HexUtil.coord -> t
 
-(* You'll want to use HexMap.flatten for this. *)
+(** [get_photo_lp board players] is an association list of player ids to
+    the pairs of [HexUtil.coord]s that have plants that the the player
+    owns and the light points gained by the plant in that cell. *)
+val get_photo_lp :
+  t ->
+  Player.player_id list ->
+  (Player.player_id * (HexUtil.coord * int) list) list
 
 (** [cells board] is a list of the Cells in [board], in any order. *)
 val cells : t -> Cell.t list
