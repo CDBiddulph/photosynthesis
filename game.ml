@@ -1,3 +1,4 @@
+(** TODO: Doc comment *)
 type t = {
   players : (PlayerId.t * Player.t) list;
   board : Board.t;
@@ -31,5 +32,31 @@ let harvest game player_id coord =
 
 let buy_plant game player_id stage = failwith "Not Implemented"
 
+let end_turn game = failwith "Not Implemented"
+
 let is_place_plant_legal game coord plant =
   Board.is_place_plant_legal game.board coord plant
+
+let num_in_available game player_id stage = failwith "Not Implemented"
+
+let num_in_store game player_id stage = failwith "Not Implemented"
+
+let store_capacity game player_id stage = failwith "Not Implemented"
+
+let is_store_full game player_id stage = failwith "Not Implemented"
+
+let turn game = failwith "Not Implemented"
+
+let player_of game player_id = failwith "Not Implemented"
+
+let cell_at game coord = failwith "Not Implemented"
+
+let can_buy_plant game player_id stage = failwith "Not Implemented"
+
+let player_light_points game player_id = failwith "Not Implemented"
+
+let player_scoring_points game player_id = failwith "Not Implemented"
+
+let next_scoring_points game soil = failwith "Not Implemented"
+
+let cells game = failwith "Not Implemented"
