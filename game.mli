@@ -8,7 +8,7 @@ type t
 
 (** [init_game num_players] is a new game with [num_players] players and
     all initial defaults. *)
-val init_game : int -> t
+val init_game : int -> Board.ruleset -> t
 
 (** [place_plant game plant coord] is [game] with [plant] placed at
     [coord] in the board, the available plants of type

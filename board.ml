@@ -30,7 +30,7 @@ let init_board ruleset =
     rules = ruleset;
   }
 
-let is_place_plant_legal board c plant =
+let is_place_plant_legal board c player stage =
   HexMap.valid_coord board.map c
   &&
   match HexMap.cell_at board.map c with
@@ -40,18 +40,19 @@ let is_place_plant_legal board c plant =
       | None -> true
       | Some old_plt -> (
           let old_player = Plant.player_id old_plt in
-          let new_player = Plant.player_id plant in
-          old_player = new_player
+          old_player = player
           &&
-          let new_stage = Plant.plant_stage plant in
           match Plant.plant_stage old_plt with
-          | Plant.Seed -> new_stage = Plant.Small
-          | Plant.Small -> new_stage = Plant.Medium
-          | Plant.Medium -> new_stage = Plant.Large
+          | Plant.Seed -> stage = Plant.Small
+          | Plant.Small -> stage = Plant.Medium
+          | Plant.Medium -> stage = Plant.Large
           | Plant.Large -> false))
 
 let place_plant (board : t) c plant =
-  if is_place_plant_legal board c plant then
+  if
+    is_place_plant_legal board c (Plant.player_id plant)
+      (Plant.plant_stage plant)
+  then
     match HexMap.cell_at board.map c with
     | None -> failwith "should be a valid cell"
     | Some cell ->

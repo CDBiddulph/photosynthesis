@@ -24,7 +24,7 @@ let update_board game board = { game with board }
 
 let update_players game players = { game with players }
 
-let place_plant game coord plant =
+let place_plant game plant coord =
   update_board game (Board.place_plant game.board coord plant)
 
 let harvest game player_id coord =
@@ -34,8 +34,11 @@ let buy_plant game player_id stage = failwith "Not Implemented"
 
 let end_turn game = failwith "Not Implemented"
 
-let is_place_plant_legal game coord plant =
-  Board.is_place_plant_legal game.board coord plant
+let is_place_plant_legal game coord player_id plant =
+  Board.is_place_plant_legal game.board coord player_id plant
+
+let is_plant_in_available game player_id stage =
+  failwith "Not Implemented"
 
 let num_in_available game player_id stage = failwith "Not Implemented"
 

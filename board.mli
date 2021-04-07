@@ -15,9 +15,10 @@ exception InvalidHarvest
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
 
-(** [is_place_plant_legal board coord plant] returns [true] iff placing
-    [plant] at [coord] on [board] is a legal move. *)
-val is_place_plant_legal : t -> HexUtil.coord -> Plant.t -> bool
+(** [is_place_plant_legal board coord player stage] returns [true] iff
+    placing [plant] at [coord] on [board] is a legal move. *)
+val is_place_plant_legal :
+  t -> HexUtil.coord -> PlayerId.t -> Plant.plant_stage -> bool
 
 (** [place_plant board coord plant] places [plant] at [coord] on
     [board]. Raises: [InvalidPlantPlacement] if placing [plant] in
