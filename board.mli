@@ -24,13 +24,15 @@ val is_place_plant_legal : t -> HexUtil.coord -> Plant.t -> bool
     [coord] on [board] is not a legal move. *)
 val place_plant : t -> HexUtil.coord -> Plant.t -> t
 
-(** [harvest board player coord] removes the plant at [coord] on
-    [board]. Raises: [InvalidPlantPlacement] if placing [plant] in
-    [coord] on [board] with [player] is not a legal move. *)
-val harvest : t -> PlayerId.t -> HexUtil.coord -> t
+(** [can_remove board player c] determines if the plant at [c] can be
+    removed by [player]. If there is no plant at [c], or [c] is invalid,
+    or the plant is not owned by [player], returns false. *)
+val can_remove : t -> PlayerId.t -> HexUtil.coord -> bool
 
-(** [flat_board board] is the list of all valid [Cell]s in [board]. *)
-val flat_board : t -> Cell.t list
+(** [harvest board player coord] removes the plant at [coord] on
+    [board]. Raises: [InvalidHarvest] if removing the plant in [coord]
+    on [board] with [player] is not a legal move. *)
+val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 
 (** [end_turn board] TODO *)
 val end_turn : t -> t
@@ -38,17 +40,11 @@ val end_turn : t -> t
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
-(** [can_remove board c] determines if the plant at [c] can be removed.
-    If there is no plant at [c] or [c] is invalid, returns false. *)
-val can_remove : t -> HexUtil.coord -> bool
-
-(** [remove_plant board c] removes the plant at [c]. If there is no
-    plant or [c] is invalid, no change occurs. *)
-val remove_plant : t -> HexUtil.coord -> t
-
 (** [get_photo_lp board players] is an association list of player ids to
     the pairs of [HexUtil.coord]s that have plants that the the player
-    owns and the light points gained by the plant in that cell. *)
+    owns and the light points gained by the plant in that cell. If the
+    board is not currently in the [Photosynthesis] phase, returns an
+    empty list. *)
 val get_photo_lp :
   t -> PlayerId.t list -> (PlayerId.t * (HexUtil.coord * int) list) list
 

@@ -7,19 +7,14 @@ type round_phase =
   | Photosynthesis
   | Life_Cycle
 
-(** A record type representing a game and its data. The [Player.t list]
-    is a list of all the players in the game, with the turn order being
-    the order of players in the list. [current_phase] indicates if it is
-    a Photosynthesis (true) or Life Cycle (false) phase. *)
+(** A record type representing a game and its data. [sun_dir] indicates
+    the direction that shadoows are cast. *)
 type t = {
   map : HexMap.t;
   sun_dir : HexUtil.dir;
   current_phase : round_phase;
   round_count : int;
   rules : ruleset;
-  (* will be moved into the game layer *)
-  players : Player.t list;
-  current_turn : int;
 }
 
 exception InvalidPlantPlacement
@@ -33,9 +28,6 @@ let init_board ruleset =
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
-    (* will be moved *)
-    players = [];
-    current_turn = 0;
   }
 
 let is_place_plant_legal board c plant =
@@ -71,8 +63,6 @@ let place_plant (board : t) c plant =
               c;
         }
   else raise InvalidPlantPlacement
-
-let harvest board player_id coord = failwith "Not Implemented"
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)
@@ -163,45 +153,40 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
   !coord_lp_lst
 
 let get_photo_lp board players =
-  let out = ref [] in
-  for i = 0 to List.length players - 1 do
-    let player = List.nth players i in
-    let player_cells =
-      List.map
-        (fun c -> Cell.coord c)
-        (List.filter
-           (fun c ->
-             match Cell.plant c with
-             | None -> false
-             | Some plant -> Plant.player_id plant = player)
-           (HexMap.flatten board.map))
-    in
-    out := (player, player_lp_helper board player_cells) :: !out
-  done;
-  !out
+  if board.current_phase = Photosynthesis then (
+    let out = ref [] in
+    for i = 0 to List.length players - 1 do
+      let player = List.nth players i in
+      let player_cells =
+        List.map
+          (fun c -> Cell.coord c)
+          (List.filter
+             (fun c ->
+               match Cell.plant c with
+               | None -> false
+               | Some plant -> Plant.player_id plant = player)
+             (HexMap.flatten board.map))
+      in
+      out := (player, player_lp_helper board player_cells) :: !out
+    done;
+    !out)
+  else []
 
 let end_turn (board : t) : t =
   let current_phase = board.current_phase in
   match current_phase with
-  | Photosynthesis ->
-      { board with current_phase = Life_Cycle }
-      (* { (lp_helper board) with current_phase = Life_Cycle } *)
+  | Photosynthesis -> { board with current_phase = Life_Cycle }
   | Life_Cycle ->
-      if board.current_turn = List.length board.players - 1 then
-        {
-          board with
-          current_phase = Photosynthesis;
-          current_turn = 0;
-          sun_dir = (board.sun_dir + 1) mod 6;
-          round_count = board.round_count + 1;
-        }
-      else { board with current_turn = board.current_turn + 1 }
+      {
+        board with
+        current_phase = Photosynthesis;
+        sun_dir = (board.sun_dir + 1) mod 6;
+        round_count = board.round_count + 1;
+      }
 
 let sun_dir board = board.sun_dir
 
-let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
-
-let can_remove board c =
+let can_remove board player c =
   match HexMap.cell_at board.map c with
   | None -> false
   | Some cell -> (
@@ -209,17 +194,20 @@ let can_remove board c =
       | None -> false
       | Some plnt -> (
           match Plant.plant_stage plnt with
-          | Plant.Large -> true
+          | Plant.Large -> Plant.player_id plnt = player
           | _ -> false))
 
-let remove_plant board c =
-  if can_remove board c then
-    match HexMap.cell_at board.map c with
+let harvest board player_id coord =
+  if can_remove board player_id coord then
+    match HexMap.cell_at board.map coord with
     | None -> failwith "should be a valid cell"
     | Some cell ->
-        let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
-        let new_map = HexMap.set_cell board.map new_cell c in
+        let new_cell =
+          Some (Cell.init_cell (Cell.soil cell) None coord)
+        in
+        let new_map = HexMap.set_cell board.map new_cell coord in
         { board with map = new_map }
-  else board
+  else raise InvalidHarvest
+(* board *)
 
-let cells board = failwith "Not Implemented"
+let cells (board : t) : Cell.t list = HexMap.flatten board.map
