@@ -34,8 +34,9 @@ val can_remove : t -> PlayerId.t -> HexUtil.coord -> bool
     on [board] with [player] is not a legal move. *)
 val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 
-(** [end_turn board] TODO *)
-val end_turn : t -> t
+(** [end_phase board] moves [board] to the next phase of the game, and
+    the next round if necessary. *)
+val end_phase : t -> t
 
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir

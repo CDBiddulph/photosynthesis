@@ -8,7 +8,7 @@ type round_phase =
   | Life_Cycle
 
 (** A record type representing a game and its data. [sun_dir] indicates
-    the direction that shadoows are cast. *)
+    the direction that shadows are cast. *)
 type t = {
   map : HexMap.t;
   sun_dir : HexUtil.dir;
@@ -172,7 +172,7 @@ let get_photo_lp board players =
     !out)
   else []
 
-let end_turn (board : t) : t =
+let end_phase (board : t) : t =
   let current_phase = board.current_phase in
   match current_phase with
   | Photosynthesis -> { board with current_phase = Life_Cycle }
