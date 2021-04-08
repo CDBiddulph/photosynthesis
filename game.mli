@@ -101,11 +101,11 @@ val can_buy_plant : t -> Plant.plant_stage -> bool
 
 (** [player_light_points game player_id] is the number of light points
     that the current player of [game] has. *)
-val player_light_points : t -> int
+val player_light_points : t -> PlayerId.t -> int
 
 (** [player_scoring_points game player_id] is the number of scoring
     points that the current player of [game] has. *)
-val player_scoring_points : t -> int
+val player_scoring_points : t -> PlayerId.t -> int
 
 (** [next_scoring_points game soil] is the number of scoring points that
     will be collected by the next player to harvest a tree of type

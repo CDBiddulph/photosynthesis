@@ -127,10 +127,12 @@ let cell_at game coord = failwith "Not Implemented"
 
 let can_buy_plant game stage = failwith "Not Implemented"
 
-let player_light_points game = failwith "Not Implemented"
+let player_light_points game player_id =
+  player_of game player_id |> Player.light_points
 
-let player_scoring_points game = failwith "Not Implemented"
+let player_scoring_points game player_id =
+  player_of game player_id |> Player.score_points
 
 let next_scoring_points game soil = failwith "Not Implemented"
 
-let cells game = failwith "Not Implemented"
+let cells game = Board.cells game.board
