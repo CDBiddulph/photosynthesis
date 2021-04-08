@@ -12,8 +12,6 @@ type round_phase =
 type t = {
   map : HexMap.t;
   sun_dir : HexUtil.dir;
-  current_phase : round_phase;
-  round_count : int;
   rules : ruleset;
 }
 
@@ -22,13 +20,7 @@ exception InvalidPlantPlacement
 exception InvalidHarvest
 
 let init_board ruleset =
-  {
-    map = HexMap.init_map ();
-    sun_dir = 0;
-    current_phase = Life_Cycle;
-    round_count = 0;
-    rules = ruleset;
-  }
+  { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
 
 let is_place_plant_legal board c player stage =
   HexMap.valid_coord board.map c
@@ -154,36 +146,25 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
   !coord_lp_lst
 
 let get_photo_lp board players =
-  if board.current_phase = Photosynthesis then (
-    let out = ref [] in
-    for i = 0 to List.length players - 1 do
-      let player = List.nth players i in
-      let player_cells =
-        List.map
-          (fun c -> Cell.coord c)
-          (List.filter
-             (fun c ->
-               match Cell.plant c with
-               | None -> false
-               | Some plant -> Plant.player_id plant = player)
-             (HexMap.flatten board.map))
-      in
-      out := (player, player_lp_helper board player_cells) :: !out
-    done;
-    !out)
-  else []
+  let out = ref [] in
+  for i = 0 to List.length players - 1 do
+    let player = List.nth players i in
+    let player_cells =
+      List.map
+        (fun c -> Cell.coord c)
+        (List.filter
+           (fun c ->
+             match Cell.plant c with
+             | None -> false
+             | Some plant -> Plant.player_id plant = player)
+           (HexMap.flatten board.map))
+    in
+    out := (player, player_lp_helper board player_cells) :: !out
+  done;
+  !out
 
 let end_phase (board : t) : t =
-  let current_phase = board.current_phase in
-  match current_phase with
-  | Photosynthesis -> { board with current_phase = Life_Cycle }
-  | Life_Cycle ->
-      {
-        board with
-        current_phase = Photosynthesis;
-        sun_dir = (board.sun_dir + 1) mod 6;
-        round_count = board.round_count + 1;
-      }
+  { board with sun_dir = (board.sun_dir + 1) mod 6 }
 
 let sun_dir board = board.sun_dir
 

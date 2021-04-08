@@ -16,7 +16,8 @@ exception InvalidHarvest
 val init_board : ruleset -> t
 
 (** [is_place_plant_legal board coord player stage] returns [true] iff
-    placing [plant] at [coord] on [board] is a legal move. *)
+    [player] placing a plant of stage [stage] at [coord] on [board] is a
+    legal move. *)
 val is_place_plant_legal :
   t -> HexUtil.coord -> PlayerId.t -> Plant.plant_stage -> bool
 
@@ -35,18 +36,15 @@ val can_remove : t -> PlayerId.t -> HexUtil.coord -> bool
     on [board] with [player] is not a legal move. *)
 val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 
-(** [end_phase board] moves [board] to the next phase of the game, and
-    the next round if necessary. *)
-val end_phase : t -> t
+(** [move_sun board] moves the board's sun by one position. *)
+val move_sun : t -> t
 
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
 (** [get_photo_lp board players] is an association list of player ids to
     the pairs of [HexUtil.coord]s that have plants that the the player
-    owns and the light points gained by the plant in that cell. If the
-    board is not currently in the [Photosynthesis] phase, returns an
-    empty list. *)
+    owns and the light points gained by the plant in that cell. *)
 val get_photo_lp :
   t -> PlayerId.t list -> (PlayerId.t * (HexUtil.coord * int) list) list
 
