@@ -2,7 +2,9 @@ MODULES=board cell hexMap plant player raster store plantInventory playerId game
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
-TEST=test_hexmap.byte
+TESTNAMES=test testGame testHexmap
+TESTS=$(TESTNAMES:=.cmo)
+MAINTEST=test.byte
 MAIN=main.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
@@ -13,7 +15,7 @@ build:
 	$(OCAMLBUILD) $(OBJECTS)
 
 test:
-	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
+	$(OCAMLBUILD) -tag 'debug' $(MAINTEST) && ./$(MAINTEST) -runner sequential
 
 play:
 	$(OCAMLBUILD) -tag 'debug' $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)

@@ -25,4 +25,4 @@ let does_block_tests =
 let suite =
   "test suite for HexMap" >::: List.flatten [ does_block_tests ]
 
-let _ = run_test_tt_main suite
+let test = run_test_tt_main suite

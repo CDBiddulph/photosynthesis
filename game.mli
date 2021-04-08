@@ -24,20 +24,20 @@ val init_game : int -> Board.ruleset -> t
     area. See [is_place_plant_legal] and [is_plant_available]. *)
 val place_plant : t -> Plant.t -> HexUtil.coord -> t
 
-(** [harvest game player_id coord] is [game] with the plant at [coord]
-    removed and the scoring points player of [player_id] increased
+(** [harvest game coord] is [game] with the plant at [coord] removed and
+    the scoring points of the current player of [game] increased
     appropriately. Raises: [Board.InvalidHarvest] if harvesting from
-    [coord] with player of [player_id] is illegal. *)
-val harvest : t -> PlayerId.t -> HexUtil.coord -> t
+    [coord] with the current player of [game] is illegal. *)
+val harvest : t -> HexUtil.coord -> t
 
-(** [buy_plant game player_id stage] is [game] where player of
-    [player_id] has one less plant of [stage] in their store and one
-    more plant of [stage] in their available area. Raises:
+(** [buy_plant game stage] is [game] where the current player of [game]
+    has one less plant of [stage] in their store and one more plant of
+    [stage] in their available area. Raises:
     [Store.InsufficientLightPoints] if Player does not have enough light
     points to buy a plant of [stage];
     [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
     does not have any of [Plant.plant_stage plant] in their store. *)
-val buy_plant : t -> PlayerId.t -> Plant.plant_stage -> t
+val buy_plant : t -> Plant.plant_stage -> t
 
 (* In the future, we may want to alert the UI that photosynthesis is
    about to happen instead of just lumping photosynthesis in with
@@ -49,40 +49,42 @@ val buy_plant : t -> PlayerId.t -> Plant.plant_stage -> t
     performed if appropriate. *)
 val end_turn : t -> t
 
-(* Getter functions *)
+(* Getter functions. *)
 
 (** [is_place_plant_legal game coord player_id stage] is true iff
-    placing a plant of [stage] with the player of [player_id] at [coord]
-    is a legal move, disregarding whether the player of [player_id]
-    actually has the plant in their available area. *)
+    placing a plant of [stage] with the the current player of [game] at
+    [coord] is a legal move, disregarding whether the the current player
+    of [game] actually has the plant in their available area. *)
 val is_place_plant_legal :
-  t -> HexUtil.coord -> PlayerId.t -> Plant.plant_stage -> bool
+  t -> HexUtil.coord -> Plant.plant_stage -> bool
 
 (** [is_plant_in_available game player_id stage] is true iff player of
     [player_id] has more than zero plants of [stage] in their available
     area. *)
-val is_plant_in_available : t -> PlayerId.t -> Plant.plant_stage -> bool
+val is_plant_in_available : t -> Plant.plant_stage -> bool
 
 (** [num_in_available game player_id stage] is the number of plants of
-    [stage] that player of [player_id] has in their available area. *)
-val num_in_available : t -> PlayerId.t -> Plant.plant_stage -> int
+    [stage] that the current player of [game] has in their available
+    area. *)
+val num_in_available : t -> Plant.plant_stage -> int
 
 (** [num_in_store game player_id stage] is the number of plants of
-    [stage] that player of [player_id] has in their store. *)
-val num_in_store : t -> PlayerId.t -> Plant.plant_stage -> int
+    [stage] that the current player of [game] has in their store. *)
+val num_in_store : t -> Plant.plant_stage -> int
 
 (** [store_capacity game player_id stage] is the maximum number of
-    plants of [stage] that player of [player_id] can have in their
-    store. *)
-val store_capacity : t -> PlayerId.t -> Plant.plant_stage -> int
+    plants of [stage] that the current player of [game] can have in
+    their store. *)
+val store_capacity : t -> Plant.plant_stage -> int
 
 (** [is_store_full game player_id stage] is true iff the number of
-    plants of [stage] in player of [player_id]'s store is at maximum
-    capacity. *)
-val is_store_full : t -> PlayerId.t -> Plant.plant_stage -> bool
+    plants of [stage] in the current player of [game] store is at
+    maximum capacity. *)
+val is_store_full : t -> Plant.plant_stage -> bool
 
-(** [turn game] is the player whose turn it is in [game]. *)
-val turn : t -> Player.t
+(** [turn game] is the player_id of the player whose turn it is in
+    [game]. *)
+val turn : t -> PlayerId.t
 
 (** [player_of game player_id] is the player of [player_id] in [game]. *)
 val player_of : t -> PlayerId.t -> Player.t
@@ -93,15 +95,15 @@ val cell_at : t -> HexUtil.coord -> Cell.t
 (** [can_buy_plant game player_id stage] is true iff player of
     [player_id] can buy a plant of [stage] and place it in their
     available area. *)
-val can_buy_plant : t -> PlayerId.t -> Plant.plant_stage -> bool
+val can_buy_plant : t -> Plant.plant_stage -> bool
 
 (** [player_light_points game player_id] is the number of light points
-    that player of [player_id] has. *)
-val player_light_points : t -> PlayerId.t -> int
+    that the current player of [game] has. *)
+val player_light_points : t -> int
 
 (** [player_scoring_points game player_id] is the number of scoring
-    points that player of [player_id] has. *)
-val player_scoring_points : t -> PlayerId.t -> int
+    points that the current player of [game] has. *)
+val player_scoring_points : t -> int
 
 (** [next_scoring_points game soil] is the number of scoring points that
     will be collected by the next player to harvest a tree of type

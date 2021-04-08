@@ -2,7 +2,7 @@ type t = unit
 
 exception OutOfPlant of Plant.plant_stage
 
-let init_plant_inventory = failwith "Not Implemented"
+let init_plant_inventory = ()
 
 let remove_plant inv stage light_points = failwith "Not Implemented"
 

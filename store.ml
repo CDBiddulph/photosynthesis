@@ -4,7 +4,7 @@ exception InsufficientLightPoints of int
 
 exception FullOfPlant of Plant.plant_stage
 
-let init_store = failwith "Not Implemented"
+let init_store = ()
 
 let buy_plant store stage light_points = failwith "Not Implemented"
 
