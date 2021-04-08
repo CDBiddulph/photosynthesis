@@ -90,14 +90,18 @@ let end_turn game =
   let new_turn =
     if will_photo then new_starting_turn else turn_after_this
   in
-  let photo_players =
+  let new_players =
     if will_photo then photosynthesis game else game.players
+  in
+  let new_board =
+    if will_photo then Board.move_sun game.board else game.board
   in
   {
     game with
-    players = photo_players;
-    turn = new_turn;
     starting_turn = new_starting_turn;
+    turn = new_turn;
+    players = new_players;
+    board = new_board;
   }
 
 let is_place_plant_legal game coord plant =

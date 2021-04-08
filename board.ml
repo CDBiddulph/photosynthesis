@@ -166,6 +166,9 @@ let get_photo_lp board players =
 let end_phase (board : t) : t =
   { board with sun_dir = (board.sun_dir + 1) mod 6 }
 
+let move_sun board =
+  { board with sun_dir = HexUtil.move_cw board.sun_dir }
+
 let sun_dir board = board.sun_dir
 
 let can_remove board player c =
