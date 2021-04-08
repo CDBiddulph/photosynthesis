@@ -4,6 +4,7 @@ type t = {
   board : Board.t;
   turn : PlayerId.t;
   starting_turn : PlayerId.t;
+  is_setup : bool;
 }
 
 let init_game num_players ruleset =
@@ -21,6 +22,7 @@ let init_game num_players ruleset =
     board = Board.init_board ruleset;
     turn = List.nth player_ids 0;
     starting_turn = List.nth player_ids 0;
+    is_setup = true;
   }
 
 let player_of game id = List.assoc id game.players
@@ -82,6 +84,7 @@ let photosynthesis game =
     lp_per_player
 
 let end_turn game =
+  (* TODO: implement rules for game.is_setup = true*)
   let turn_after_this = turn_after game game.turn in
   let will_photo = turn_after_this = game.starting_turn in
   let new_starting_turn =
