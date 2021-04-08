@@ -76,9 +76,12 @@ let init_map () : t =
 
 let valid_coord (map : t) c =
   let open HexUtil in
-  let row_low = if c.col < 4 then 0 else c.col - 4 in
-  let row_high = if c.col > 3 then Array.length map else 3 - c.col in
-  c.col < Array.length map && c.diag <= row_high && c.diag >= row_low
+  let diag_low = if c.col < 4 then 0 else c.col - 3 in
+  let diag_high =
+    if c.col > 2 then Array.length map - 1
+    else Array.length map - 4 + c.col
+  in
+  c.col < Array.length map && c.diag <= diag_high && c.diag >= diag_low
 
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)

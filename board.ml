@@ -22,10 +22,10 @@ exception InvalidHarvest
 let init_board ruleset =
   { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
 
-let is_place_plant_legal board c player stage =
-  HexMap.valid_coord board.map c
+let is_place_plant_legal board coord player stage =
+  HexMap.valid_coord board.map coord
   &&
-  match HexMap.cell_at board.map c with
+  match HexMap.cell_at board.map coord with
   | None -> false
   | Some cell -> (
       match Cell.plant cell with
@@ -40,20 +40,20 @@ let is_place_plant_legal board c player stage =
           | Plant.Medium -> stage = Plant.Large
           | Plant.Large -> false))
 
-let place_plant (board : t) c plant =
+let place_plant board coord plant =
   if
-    is_place_plant_legal board c (Plant.player_id plant)
+    is_place_plant_legal board coord (Plant.player_id plant)
       (Plant.plant_stage plant)
   then
-    match HexMap.cell_at board.map c with
+    match HexMap.cell_at board.map coord with
     | None -> failwith "should be a valid cell"
     | Some cell ->
         {
           board with
           map =
             HexMap.set_cell board.map
-              (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
-              c;
+              (Some (Cell.init_cell (Cell.soil cell) (Some plant) coord))
+              coord;
         }
   else raise InvalidPlantPlacement
 

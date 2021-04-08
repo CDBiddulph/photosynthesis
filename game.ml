@@ -36,6 +36,7 @@ let update_player game player_id player =
     ((player_id, player) :: List.remove_assoc player_id game.players)
 
 let place_plant game plant coord =
+  assert (Plant.player_id plant = game.turn);
   update_board game (Board.place_plant game.board coord plant)
 
 let harvest game coord =
@@ -118,8 +119,6 @@ let store_capacity game stage = failwith "Not Implemented"
 let is_store_full game stage = failwith "Not Implemented"
 
 let turn game = failwith "Not Implemented"
-
-let player_of game player_id = failwith "Not Implemented"
 
 let cell_at game coord = failwith "Not Implemented"
 

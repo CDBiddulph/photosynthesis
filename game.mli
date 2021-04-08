@@ -21,7 +21,9 @@ val init_game : int -> Board.ruleset -> t
     [plant] at [coord] is an illegal move;
     [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
     does not have any of [Plant.plant_stage plant] in their available
-    area. See [is_place_plant_legal] and [is_plant_available]. *)
+    area. See [is_place_plant_legal] and [is_plant_available].
+    Precondition: [Plant.player_id plant] is the player_id of the
+    current player in [game]. *)
 val place_plant : t -> Plant.t -> HexUtil.coord -> t
 
 (** [harvest game coord] is [game] with the plant at [coord] removed and
