@@ -196,3 +196,5 @@ let harvest board player_id coord =
 (* board *)
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
+
+let cell_at board coord = HexMap.cell_at board.map coord

@@ -50,3 +50,6 @@ val get_photo_lp :
 
 (** [cells board] is a list of the Cells in [board], in any order. *)
 val cells : t -> Cell.t list
+
+(** [cell_at board coord] is the cell at [coord] in [board]. *)
+val cell_at : t -> HexUtil.coord -> Cell.t option
