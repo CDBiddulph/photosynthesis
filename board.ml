@@ -35,7 +35,8 @@ let init_board ruleset =
 
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
-let can_plant_seed board player_id coord = cell_at board coord = None
+let can_plant_seed board player_id coord =
+  cell_at board coord <> None && plant_at board coord = None
 
 let plant_seed board player_id coord =
   if can_plant_seed board player_id coord then
@@ -62,11 +63,11 @@ let can_grow_plant board player_id coord =
 let grow_plant board coord player_id =
   if can_grow_plant board player_id coord then
     match cell_at board coord with
-    | None -> raise IllegalGrowPlant
+    | None -> failwith "Impossible"
     | Some old_cell ->
         let old_plant =
           match Cell.plant old_cell with
-          | None -> raise IllegalGrowPlant
+          | None -> failwith "Impossible"
           | Some p -> p
         in
         let next_plant =
@@ -75,7 +76,7 @@ let grow_plant board coord player_id =
                (match
                   old_plant |> Plant.plant_stage |> Plant.next_stage
                 with
-               | None -> raise IllegalGrowPlant
+               | None -> failwith "Impossible"
                | Some p -> p))
         in
         {
