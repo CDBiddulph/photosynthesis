@@ -21,3 +21,5 @@ val plant_stage : t -> plant_stage
 (** [string_of_plant_stage plant_stage] is either "seed", "small",
     "medium", or "large", depending on [plant_stage]. *)
 val string_of_plant_stage : plant_stage -> string
+
+val next_stage : plant_stage -> plant_stage option

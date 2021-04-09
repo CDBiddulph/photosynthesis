@@ -15,14 +15,16 @@ type t = {
   rules : ruleset;
 }
 
-exception InvalidPlantPlacement
+exception IllegalPlantSeed
 
-exception InvalidHarvest
+exception IllegalGrowPlant
+
+exception IllegalHarvest
 
 let init_board ruleset =
   { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
 
-let is_place_plant_legal board coord player stage =
+let can_place_plant board coord player stage =
   HexMap.valid_coord board.map coord
   &&
   match HexMap.cell_at board.map coord with
@@ -42,7 +44,7 @@ let is_place_plant_legal board coord player stage =
 
 let place_plant board coord plant =
   if
-    is_place_plant_legal board coord (Plant.player_id plant)
+    can_place_plant board coord (Plant.player_id plant)
       (Plant.plant_stage plant)
   then
     match HexMap.cell_at board.map coord with
@@ -55,7 +57,7 @@ let place_plant board coord plant =
               (Some (Cell.init_cell (Cell.soil cell) (Some plant) coord))
               coord;
         }
-  else raise InvalidPlantPlacement
+  else raise IllegalGrowPlant
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)
@@ -171,7 +173,7 @@ let move_sun board =
 
 let sun_dir board = board.sun_dir
 
-let can_remove board player c =
+let can_harvest board player c =
   match HexMap.cell_at board.map c with
   | None -> false
   | Some cell -> (
@@ -183,7 +185,7 @@ let can_remove board player c =
           | _ -> false))
 
 let harvest board player_id coord =
-  if can_remove board player_id coord then
+  if can_harvest board player_id coord then
     match HexMap.cell_at board.map coord with
     | None -> failwith "should be a valid cell"
     | Some cell ->
@@ -192,9 +194,13 @@ let harvest board player_id coord =
         in
         let new_map = HexMap.set_cell board.map new_cell coord in
         { board with map = new_map }
-  else raise InvalidHarvest
-(* board *)
+  else raise IllegalHarvest
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
 let cell_at board coord = HexMap.cell_at board.map coord
+
+let plant_at board coord =
+  match cell_at board coord with
+  | None -> None
+  | Some cell -> Cell.plant cell

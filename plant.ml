@@ -21,3 +21,10 @@ let string_of_plant_stage stage =
   | Small -> "small"
   | Medium -> "medium"
   | Large -> "large"
+
+let next_stage stage =
+  match stage with
+  | Seed -> Some Small
+  | Small -> Some Medium
+  | Medium -> Some Large
+  | Large -> None
