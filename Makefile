@@ -6,7 +6,8 @@ TESTNAMES=test testGame testHexmap
 TESTS=$(TESTNAMES:=.cmo)
 MAINTEST=test.byte
 MAIN=main.byte
-OCAMLBUILD=ocamlbuild -use-ocamlfind
+OCAMLBUILD=ocamlbuild -use-ocamlfind \
+	-plugin-tag 'package(bisect_ppx-ocamlbuild)'
 
 default: build
 	OCAMLRUNPARAM=b utop
@@ -15,7 +16,11 @@ build:
 	$(OCAMLBUILD) $(OBJECTS)
 
 test:
-	$(OCAMLBUILD) -tag 'debug' $(MAINTEST) && ./$(MAINTEST) -runner sequential
+	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(MAINTEST) \
+		&& ./$(MAINTEST) -runner sequential
+
+bisect: clean test
+	bisect-ppx-report html
 
 play:
 	$(OCAMLBUILD) -tag 'debug' $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)

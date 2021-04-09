@@ -1,5 +1,6 @@
+#directory "_build";;
 #require "ounit2";;
 #require "yojson";;
 #require "ANSITerminal";;
-#directory "_build";;
+#require "bisect_ppx.runtime";;
 #load "gui.cmo";;
