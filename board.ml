@@ -21,40 +21,68 @@ exception IllegalGrowPlant
 
 exception IllegalHarvest
 
+let cell_at board coord = HexMap.cell_at board.map coord
+
+let valid_coord board coord = HexMap.valid_coord board.map coord
+
+let plant_at board coord =
+  match cell_at board coord with
+  | None -> None
+  | Some cell -> Cell.plant cell
+
 let init_board ruleset =
   { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
 
-let can_place_plant board coord player stage =
-  HexMap.valid_coord board.map coord
-  &&
-  match HexMap.cell_at board.map coord with
-  | None -> false
-  | Some cell -> (
-      match Cell.plant cell with
-      | None -> true
-      | Some old_plt -> (
-          let old_player = Plant.player_id old_plt in
-          old_player = player
-          &&
-          match Plant.plant_stage old_plt with
-          | Plant.Seed -> stage = Plant.Small
-          | Plant.Small -> stage = Plant.Medium
-          | Plant.Medium -> stage = Plant.Large
-          | Plant.Large -> false))
+(* TODO: check that location is within the necessary radius of one of
+   the player's trees *)
+let can_plant_seed board player_id coord = cell_at board coord = None
 
-let place_plant board coord plant =
-  if
-    can_place_plant board coord (Plant.player_id plant)
-      (Plant.plant_stage plant)
-  then
-    match HexMap.cell_at board.map coord with
-    | None -> failwith "should be a valid cell"
-    | Some cell ->
+let plant_seed board player_id coord =
+  if can_plant_seed board player_id coord then
+    match cell_at board coord with
+    | None -> raise IllegalPlantSeed
+    | Some old_cell ->
+        let next_plant = Some (Plant.init_plant player_id Plant.Seed) in
         {
           board with
           map =
             HexMap.set_cell board.map
-              (Some (Cell.init_cell (Cell.soil cell) (Some plant) coord))
+              (Some (Cell.set_plant old_cell next_plant))
+              coord;
+        }
+  else raise IllegalPlantSeed
+
+let can_grow_plant board player_id coord =
+  match plant_at board coord with
+  | None -> false
+  | Some old_plant ->
+      let old_player = Plant.player_id old_plant in
+      old_player = player_id
+
+let grow_plant board coord player_id =
+  if can_grow_plant board player_id coord then
+    match cell_at board coord with
+    | None -> raise IllegalGrowPlant
+    | Some old_cell ->
+        let old_plant =
+          match Cell.plant old_cell with
+          | None -> raise IllegalGrowPlant
+          | Some p -> p
+        in
+        let next_plant =
+          Some
+            (Plant.init_plant player_id
+               (match
+                  old_plant |> Plant.plant_stage |> Plant.next_stage
+                with
+               | None -> raise IllegalGrowPlant
+               | Some p -> p))
+        in
+        {
+          board with
+          map =
+            HexMap.set_cell board.map
+              (Some (Cell.set_plant old_cell next_plant))
               coord;
         }
   else raise IllegalGrowPlant
@@ -135,7 +163,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
                   snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      match HexMap.cell_at board.map cell_coord with
+      match cell_at board cell_coord with
       | None -> failwith "should be a valid cell"
       | Some cell -> (
           let plnt = Cell.plant cell in
@@ -174,7 +202,7 @@ let move_sun board =
 let sun_dir board = board.sun_dir
 
 let can_harvest board player c =
-  match HexMap.cell_at board.map c with
+  match cell_at board c with
   | None -> false
   | Some cell -> (
       match Cell.plant cell with
@@ -186,7 +214,7 @@ let can_harvest board player c =
 
 let harvest board player_id coord =
   if can_harvest board player_id coord then
-    match HexMap.cell_at board.map coord with
+    match cell_at board coord with
     | None -> failwith "should be a valid cell"
     | Some cell ->
         let new_cell =
@@ -197,10 +225,3 @@ let harvest board player_id coord =
   else raise IllegalHarvest
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
-
-let cell_at board coord = HexMap.cell_at board.map coord
-
-let plant_at board coord =
-  match cell_at board coord with
-  | None -> None
-  | Some cell -> Cell.plant cell

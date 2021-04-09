@@ -37,12 +37,14 @@ let update_player game player_id player =
   update_players game
     ((player_id, player) :: List.remove_assoc player_id game.players)
 
-let place_plant game plant coord =
-  assert (Plant.player_id plant = game.turn);
-  update_board game (Board.place_plant game.board coord plant)
+let grow_plant game player_id coord =
+  update_board game (Board.grow_plant game.board coord player_id)
 
-let harvest game coord =
-  update_board game (Board.harvest game.board game.turn coord)
+let plant_seed game coord player_id =
+  update_board game (Board.plant_seed game.board coord player_id)
+
+let harvest game player_id coord =
+  update_board game (Board.harvest game.board player_id coord)
 
 let buy_plant game stage =
   let player = player_of game game.turn in
@@ -109,8 +111,8 @@ let end_turn game =
   }
 
 (* Getter functions. *)
-let is_place_plant_legal game coord plant =
-  Board.is_place_plant_legal game.board coord game.turn plant
+let can_grow_plant game coord player_id =
+  Board.can_grow_plant game.board player_id coord
 
 let is_plant_in_available game stage = failwith "Not Implemented"
 

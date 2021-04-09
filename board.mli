@@ -13,7 +13,7 @@ exception IllegalPlantSeed
 exception IllegalGrowPlant
 
 (** Raised when an invalid harvest is attempted. *)
-exception InvalidHarvest
+exception IllegalHarvest
 
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
@@ -22,7 +22,7 @@ val init_board : ruleset -> t
     [player] at [coord] on [board]. Raises: [IllegalPlantSeed] if
     placing a seed as [player] in [coord] on [board] is not a legal
     move. *)
-val plant_seed : t -> HexUtil.coord -> PlayerId.t -> t
+val plant_seed : t -> PlayerId.t -> HexUtil.coord -> t
 
 (** [grow_plant board coord player_id] grows the plant belonging to
     [player] at [coord] on [board]. Raises: [IllegalGrowPlant] if
@@ -38,7 +38,7 @@ val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 (** [can_plant_seed board coord player_id stage] returns [true] iff
     player of [player_id] planting a seed at [coord] on [board] is
     possible. *)
-val can_plant_seed : t -> PlayerId.t -> HexUtil.coord -> t -> bool
+val can_plant_seed : t -> PlayerId.t -> HexUtil.coord -> bool
 
 (** [can_grow_plant board coord player_id stage] returns [true] iff
     player of [player_id] growing a plant of [stage] at [coord] on
@@ -69,5 +69,10 @@ val cells : t -> Cell.t list
 (** [cell_at board coord] is the cell at [coord] in [board]. *)
 val cell_at : t -> HexUtil.coord -> Cell.t option
 
-(** [plant_at board coord] is the plant at [coord] on [board]. *)
-val plant_at : t -> HexUtil.coord -> Plant.t
+(** [valid_coord board coord] is true if [coord] is a valid coordinate
+    in [board]. *)
+val valid_coord : t -> HexUtil.coord -> bool
+
+(** [plant_at board coord] is the plant at [coord] on [board], if it
+    exists. *)
+val plant_at : t -> HexUtil.coord -> Plant.t option

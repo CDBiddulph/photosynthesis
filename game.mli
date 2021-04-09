@@ -10,6 +10,8 @@ type t
     all initial defaults. *)
 val init_game : int -> Board.ruleset -> t
 
+val plant_seed : t -> PlayerId.t -> HexUtil.coord -> t
+
 (** [place_plant game plant coord] is [game] with [plant] placed at
     [coord] in the board, the available plants of type
     [Plant.plant_stage plant] of the player corresponding to
@@ -21,16 +23,16 @@ val init_game : int -> Board.ruleset -> t
     [plant] at [coord] is an illegal move;
     [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
     does not have any of [Plant.plant_stage plant] in their available
-    area. See [is_place_plant_legal] and [is_plant_available].
-    Precondition: [Plant.player_id plant] is the player_id of the
-    current player in [game]. *)
-val place_plant : t -> Plant.t -> HexUtil.coord -> t
+    area. See [can_grow_plant] and [is_plant_available]. Precondition:
+    [Plant.player_id plant] is the player_id of the current player in
+    [game]. *)
+val grow_plant : t -> PlayerId.t -> HexUtil.coord -> t
 
 (** [harvest game coord] is [game] with the plant at [coord] removed and
     the scoring points of the current player of [game] increased
     appropriately. Raises: [Board.InvalidHarvest] if harvesting from
     [coord] with the current player of [game] is illegal. *)
-val harvest : t -> HexUtil.coord -> t
+val harvest : t -> PlayerId.t -> HexUtil.coord -> t
 
 (** [buy_plant game stage] is [game] where the current player of [game]
     has one less plant of [stage] in their store and one more plant of
@@ -57,8 +59,7 @@ val end_turn : t -> t
     placing a plant of [stage] with the the current player of [game] at
     [coord] is a legal move, disregarding whether the the current player
     of [game] actually has the plant in their available area. *)
-val is_place_plant_legal :
-  t -> HexUtil.coord -> Plant.plant_stage -> bool
+val can_grow_plant : t -> HexUtil.coord -> PlayerId.t -> bool
 
 (** [is_plant_in_available game player_id stage] is true iff player of
     [player_id] has more than zero plants of [stage] in their available
