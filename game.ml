@@ -108,6 +108,7 @@ let end_turn game =
     board = new_board;
   }
 
+(* Getter functions. *)
 let is_place_plant_legal game coord plant =
   Board.is_place_plant_legal game.board coord game.turn plant
 
@@ -123,7 +124,10 @@ let is_store_full game stage = failwith "Not Implemented"
 
 let turn game = failwith "Not Implemented"
 
-let cell_at game coord = failwith "Not Implemented"
+let cell_at game coord =
+  match Board.cell_at game.board coord with
+  | None -> failwith "invalid cell"
+  | Some cell -> cell
 
 let can_buy_plant game stage = failwith "Not Implemented"
 
