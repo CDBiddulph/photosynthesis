@@ -9,6 +9,7 @@ type t = {
   char_graphics : (string * char grid) list;
   color_graphics : (string * ANSITerminal.color grid) list;
   hex_offset : point2d;
+  player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
 }
 
 let apply_to_layer layer_name f gui =
@@ -67,7 +68,13 @@ let draw_soil gui coord soil layer =
   let char_name = "soil/" ^ string_of_int soil in
   draw_in_coord gui (get_graphic gui char_name "soil/") layer coord
 
-(** [draw_plants gui coord plant layer] returns [layer] with [plant]
+let render_char player_id gui =
+  fst (List.assoc player_id gui.player_params)
+
+let render_color player_id gui =
+  snd (List.assoc player_id gui.player_params)
+
+(** [draw_plant gui coord plant layer] returns [layer] with [plant]
     drawn in the position corresponding to [coord] according to the
     hex_offset and graphics in [gui]. *)
 let draw_plant gui coord plant layer =
@@ -76,10 +83,11 @@ let draw_plant gui coord plant layer =
   in
   let color_name = "plants/tree" in
   let graphic =
+    let player_id = Plant.player_id plant in
     get_graphic gui char_name color_name
-    |> replace_char_in_raster 'x' (Plant.render_char plant)
+    |> replace_char_in_raster 'x' (render_char player_id gui)
     |> replace_color_in_raster ANSITerminal.Default
-         (Plant.render_color plant)
+         (render_color player_id gui)
   in
   draw_in_coord gui graphic layer coord
 
@@ -121,7 +129,7 @@ let update_cursor color coord_opt gui =
 (** [init_gui cells] is a GUI with the layers of rasters necessary to
     run the game. Postcondition: Each raster in
     [(init_gui cells).layers] has the same dimensions. *)
-let init_gui cells =
+let init_gui cells player_params =
   let w = 76 in
   let h = 41 in
   let background =
@@ -172,6 +180,7 @@ let init_gui cells =
             "soil/";
           ];
       hex_offset = { x = 0; y = 9 };
+      player_params;
     }
   in
   gui

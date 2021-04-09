@@ -15,14 +15,14 @@ let rec iter_turns n game =
 let game4 =
   init_game 4 Board.Normal
   |> plant_pipeline
-       (Plant.init_plant 1 'x' ANSITerminal.Green Plant.Medium)
+       (Plant.init_plant 1 Plant.Medium)
        { col = 4; diag = 6 }
   |> end_turn
   |> plant_pipeline
-       (Plant.init_plant 2 'x' ANSITerminal.Green Plant.Small)
+       (Plant.init_plant 2 Plant.Small)
        { col = 2; diag = 1 }
   |> plant_pipeline
-       (Plant.init_plant 2 'x' ANSITerminal.Green Plant.Medium)
+       (Plant.init_plant 2 Plant.Medium)
        { col = 3; diag = 1 }
   |> iter_turns 3
 
