@@ -1,4 +1,4 @@
-MODULES=board cell hexMap plant player raster gui ui
+MODULES=board cell hexMap plant player raster ui
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
