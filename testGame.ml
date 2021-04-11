@@ -21,15 +21,15 @@ let game4 =
   |> end_turn
   |> seed_pipeline 2 { col = 2; diag = 1 }
   |> grow_pipeline 2 { col = 2; diag = 1 }
-  |> iter_turns 3
+  |> iter_turns 7
 
 let player_tests =
   [
-    test_light_points "zero turns P1" 1 game4 1;
-    test_light_points "zero turns P2" 2 game4 1;
-    (* test_light_points "three turns" 1 (iter_turns 3 game4) 0;
-       test_light_points "four turns" 1 (iter_turns 4 game4) 2;
-       test_light_points "eight turns" 1 (iter_turns 8 game4) 4; *)
+    test_light_points "zero turns P1" 1 game4 0;
+    test_light_points "zero turns P2" 2 game4 0;
+    test_light_points "three turns P1" 1 (iter_turns 3 game4) 0;
+    test_light_points "four turns P1" 1 (iter_turns 4 game4) 1;
+    test_light_points "eight turns P1" 1 (iter_turns 8 game4) 2;
   ]
 
 let suite = "test suite for Game" >::: List.flatten [ player_tests ]

@@ -4,7 +4,7 @@ type t = {
   board : Board.t;
   turn : PlayerId.t;
   starting_turn : PlayerId.t;
-  is_setup : bool;
+  setup_rounds_left : int;
   scoring_points : (Cell.soil * int list) list;
 }
 
@@ -23,7 +23,7 @@ let init_game num_players ruleset =
     board = Board.init_board ruleset;
     turn = List.nth player_ids 0;
     starting_turn = List.nth player_ids 0;
-    is_setup = true;
+    setup_rounds_left = 2;
     scoring_points =
       [
         (1, [ 14; 14; 13; 13; 13; 12; 12; 12; 12 ]);
@@ -80,6 +80,7 @@ let harvest game player_id coord =
   let harvest_game =
     update_board (Board.harvest game.board player_id coord) game
   in
+  (* Should already have failed if harvesting is not possible *)
   let sp_to_add, scored_game =
     get_scoring_points harvest_game
       (coord |> cell_at harvest_game |> Cell.soil)
@@ -128,9 +129,7 @@ let photosynthesis game =
       (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
 
-let end_turn game =
-  (* TODO: implement rules for game.is_setup = true*)
-  let turn_after_this = turn_after game game.turn in
+let end_turn_normal turn_after_this game =
   let will_photo = turn_after_this = game.starting_turn in
   let new_starting_turn =
     if will_photo then turn_after game game.starting_turn
@@ -152,6 +151,23 @@ let end_turn game =
     players = new_players;
     board = new_board;
   }
+
+let end_turn_setup turn_after_this game =
+  let is_new_round = turn_after_this = game.starting_turn in
+  let new_setup_rounds_left =
+    game.setup_rounds_left - if is_new_round then 1 else 0
+  in
+  {
+    game with
+    turn = turn_after_this;
+    setup_rounds_left = new_setup_rounds_left;
+  }
+
+let end_turn game =
+  let turn_after_this = turn_after game game.turn in
+  if game.setup_rounds_left = 0 then
+    end_turn_normal turn_after_this game
+  else end_turn_setup turn_after_this game
 
 let can_plant_seed game coord player_id =
   Board.can_plant_seed game.board player_id coord
