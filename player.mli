@@ -24,11 +24,11 @@ val score_points : t -> int
 
 (** [add_lp player pts] adds [pts] light points to [player]'s light
     points. *)
-val add_lp : t -> int -> t
+val add_lp : int -> t -> t
 
 (** [add_sp player pts] adds [pts] score points to [player]'s score
     points. *)
-val add_sp : t -> int -> t
+val add_sp : int -> t -> t
 
 (** [is_in_available stage player] is true if [player] has a plant of
     [stage] in their available area. *)

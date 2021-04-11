@@ -27,10 +27,10 @@ let light_points player = player.light_points
 
 let score_points player = player.score_points
 
-let add_lp player pts =
+let add_lp pts player =
   { player with light_points = player.light_points + pts }
 
-let add_sp player pts =
+let add_sp pts player =
   { player with score_points = player.score_points + pts }
 
 let is_in_available stage player = failwith "Unimplemented"

@@ -39,27 +39,59 @@ let turn game = game.turn
 
 let player_of_turn game = game |> turn |> player_of game
 
-let update_board game board = { game with board }
+let update_board board game = { game with board }
 
-let update_players game players = { game with players }
+let update_players players game = { game with players }
 
-let update_player game player_id player =
-  update_players game
+let update_player player_id player game =
+  update_players
     ((player_id, player) :: List.remove_assoc player_id game.players)
+    game
 
 let grow_plant game player_id coord =
-  update_board game (Board.grow_plant game.board coord player_id)
+  update_board (Board.grow_plant game.board coord player_id) game
 
 let plant_seed game coord player_id =
-  update_board game (Board.plant_seed game.board coord player_id)
+  update_board (Board.plant_seed game.board coord player_id) game
+
+(** [get_scoring_points game soil] is a tuple [(sp, new_game)] where
+    [sp] is the number of scoring points awarded to the next player to
+    harvest a tree on [soil] and [new_game] is [game] with the
+    corresponding scoring token removed. *)
+let rec get_scoring_points game soil =
+  try
+    match List.assoc soil game.scoring_points with
+    | [] -> get_scoring_points game (soil - 1)
+    | h :: t ->
+        ( h,
+          {
+            game with
+            scoring_points =
+              (soil, t) :: List.remove_assoc soil game.scoring_points;
+          } )
+  with Not_found -> (0, game)
+
+let cell_at game coord =
+  match Board.cell_at game.board coord with
+  | None -> failwith "invalid cell"
+  | Some cell -> cell
 
 let harvest game player_id coord =
-  update_board game (Board.harvest game.board player_id coord)
-(* TODO: add scoring points *)
+  let harvest_game =
+    update_board (Board.harvest game.board player_id coord) game
+  in
+  let sp_to_add, scored_game =
+    get_scoring_points harvest_game
+      (coord |> cell_at harvest_game |> Cell.soil)
+  in
+  let scored_player =
+    player_id |> player_of game |> Player.add_sp sp_to_add
+  in
+  scored_game |> update_player player_id scored_player
 
 let buy_plant game stage =
   let player = player_of game game.turn in
-  update_player game game.turn (Player.buy_plant player stage)
+  update_player game.turn (Player.buy_plant player stage) game
 
 let next_in_wraparound_lst lst elem =
   let rec next_in_wraparound_lst_helper first lst elem =
@@ -93,7 +125,7 @@ let photosynthesis game =
   in
   List.map
     (fun (player_id, lp) ->
-      (player_id, Player.add_lp (player_of game player_id) lp))
+      (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
 
 let end_turn game =
@@ -121,14 +153,12 @@ let end_turn game =
     board = new_board;
   }
 
+let can_plant_seed game coord player_id =
+  Board.can_plant_seed game.board player_id coord
+
 let can_grow_plant game coord player_id =
   Board.can_grow_plant game.board player_id coord
 
-let cell_at game coord =
-  match Board.cell_at game.board coord with
-  | None -> failwith "invalid cell"
-  | Some cell -> cell
-
-let next_scoring_points game soil = failwith "Not Implemented"
+let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
