@@ -32,3 +32,15 @@ let add_lp player pts =
 
 let add_sp player pts =
   { player with score_points = player.score_points + pts }
+
+let is_in_available stage player = failwith "Unimplemented"
+
+let num_in_available stage player = failwith "Unimplemented"
+
+let num_in_store player stage = failwith "Unimplemented"
+
+let store_capacity player stage = failwith "Unimplemented"
+
+let is_store_full player stage = failwith "Unimplemented"
+
+let can_buy_plant player stage = failwith "Unimplemented"

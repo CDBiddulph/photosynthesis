@@ -61,30 +61,6 @@ val end_turn : t -> t
     of [game] actually has the plant in their available area. *)
 val can_grow_plant : t -> HexUtil.coord -> PlayerId.t -> bool
 
-(** [is_plant_in_available game player_id stage] is true iff player of
-    [player_id] has more than zero plants of [stage] in their available
-    area. *)
-val is_plant_in_available : t -> Plant.plant_stage -> bool
-
-(** [num_in_available game player_id stage] is the number of plants of
-    [stage] that the current player of [game] has in their available
-    area. *)
-val num_in_available : t -> Plant.plant_stage -> int
-
-(** [num_in_store game player_id stage] is the number of plants of
-    [stage] that the current player of [game] has in their store. *)
-val num_in_store : t -> Plant.plant_stage -> int
-
-(** [store_capacity game player_id stage] is the maximum number of
-    plants of [stage] that the current player of [game] can have in
-    their store. *)
-val store_capacity : t -> Plant.plant_stage -> int
-
-(** [is_store_full game player_id stage] is true iff the number of
-    plants of [stage] in the current player of [game] store is at
-    maximum capacity. *)
-val is_store_full : t -> Plant.plant_stage -> bool
-
 (** [turn game] is the player_id of the player whose turn it is in
     [game]. *)
 val turn : t -> PlayerId.t
@@ -92,21 +68,11 @@ val turn : t -> PlayerId.t
 (** [player_of game player_id] is the player of [player_id] in [game]. *)
 val player_of : t -> PlayerId.t -> Player.t
 
+(** [player_of_turn game] is the player whose turn it is in [game]. *)
+val player_of_turn : t -> Player.t
+
 (** [cell_at game coord] is the cell at [coord] in [game]. *)
 val cell_at : t -> HexUtil.coord -> Cell.t
-
-(** [can_buy_plant game player_id stage] is true iff player of
-    [player_id] can buy a plant of [stage] and place it in their
-    available area. *)
-val can_buy_plant : t -> Plant.plant_stage -> bool
-
-(** [player_light_points game player_id] is the number of light points
-    that the current player of [game] has. *)
-val player_light_points : t -> PlayerId.t -> int
-
-(** [player_scoring_points game player_id] is the number of scoring
-    points that the current player of [game] has. *)
-val player_scoring_points : t -> PlayerId.t -> int
 
 (** [next_scoring_points game soil] is the number of scoring points that
     will be collected by the next player to harvest a tree of type

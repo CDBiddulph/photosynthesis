@@ -29,3 +29,27 @@ val add_lp : t -> int -> t
 (** [add_sp player pts] adds [pts] score points to [player]'s score
     points. *)
 val add_sp : t -> int -> t
+
+(** [is_in_available stage player] is true if [player] has a plant of
+    [stage] in their available area. *)
+val is_in_available : Plant.plant_stage -> t -> bool
+
+(** [num_in_available stage player] is the number of plants of [stage]
+    in [player]'s available area. *)
+val num_in_available : Plant.plant_stage -> t -> int
+
+(** [num_in_store stage player] is the number of plants of [stage] that
+    [player] has in their store. *)
+val num_in_store : t -> Plant.plant_stage -> int
+
+(** [store_capacity stage player] is the maximum number of plants of
+    [stage] that [player] can have in their store. *)
+val store_capacity : t -> Plant.plant_stage -> int
+
+(** [is_store_full stage player] is true iff the number of plants of
+    [stage] in [player]'s store is at maximum capacity. *)
+val is_store_full : t -> Plant.plant_stage -> bool
+
+(** [can_buy_plant game player_id stage] is true iff [player] can buy a
+    plant of [stage] and place it in their available area. *)
+val can_buy_plant : t -> Plant.plant_stage -> bool

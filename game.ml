@@ -5,6 +5,7 @@ type t = {
   turn : PlayerId.t;
   starting_turn : PlayerId.t;
   is_setup : bool;
+  scoring_points : (Cell.soil * int list) list;
 }
 
 let init_game num_players ruleset =
@@ -23,11 +24,20 @@ let init_game num_players ruleset =
     turn = List.nth player_ids 0;
     starting_turn = List.nth player_ids 0;
     is_setup = true;
+    scoring_points =
+      [
+        (1, [ 14; 14; 13; 13; 13; 12; 12; 12; 12 ]);
+        (2, [ 17; 16; 16; 14; 14; 13; 13 ]);
+        (3, [ 19; 18; 18; 17; 17 ]);
+        (4, [ 22; 21; 20 ]);
+      ];
   }
 
 let player_of game id = List.assoc id game.players
 
 let turn game = game.turn
+
+let player_of_turn game = game |> turn |> player_of game
 
 let update_board game board = { game with board }
 
@@ -45,6 +55,7 @@ let plant_seed game coord player_id =
 
 let harvest game player_id coord =
   update_board game (Board.harvest game.board player_id coord)
+(* TODO: add scoring points *)
 
 let buy_plant game stage =
   let player = player_of game game.turn in
@@ -110,34 +121,13 @@ let end_turn game =
     board = new_board;
   }
 
-(* Getter functions. *)
 let can_grow_plant game coord player_id =
   Board.can_grow_plant game.board player_id coord
-
-let is_plant_in_available game stage = failwith "Not Implemented"
-
-let num_in_available game stage = failwith "Not Implemented"
-
-let num_in_store game stage = failwith "Not Implemented"
-
-let store_capacity game stage = failwith "Not Implemented"
-
-let is_store_full game stage = failwith "Not Implemented"
-
-let turn game = failwith "Not Implemented"
 
 let cell_at game coord =
   match Board.cell_at game.board coord with
   | None -> failwith "invalid cell"
   | Some cell -> cell
-
-let can_buy_plant game stage = failwith "Not Implemented"
-
-let player_light_points game player_id =
-  player_of game player_id |> Player.light_points
-
-let player_scoring_points game player_id =
-  player_of game player_id |> Player.score_points
 
 let next_scoring_points game soil = failwith "Not Implemented"
 
