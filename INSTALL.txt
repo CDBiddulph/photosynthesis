@@ -5,5 +5,6 @@ You may need to run the following in order to install the graphics package:
 brew install pkg-config
 
 Run the following command in the parent directory (the directory with the Makefile)
-to run our programL
+to run our program:
+make build
 make play
