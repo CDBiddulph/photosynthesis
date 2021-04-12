@@ -18,3 +18,5 @@ type dir = int
 
 (** [move_cw dir] is [dir] after it moves clockwise once. *)
 val move_cw : dir -> dir
+
+val dir_of_int : int -> dir

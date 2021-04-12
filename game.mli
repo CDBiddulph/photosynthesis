@@ -91,3 +91,6 @@ val next_scoring_points : t -> Cell.soil -> int
 (** [cells game] is a list of the Cells in the board of game, in any
     order. *)
 val cells : t -> Cell.t list
+
+(** [sun_dir game] is the direction the sun is facing in [game]. *)
+val sun_dir : t -> HexUtil.dir

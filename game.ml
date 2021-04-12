@@ -6,6 +6,7 @@ type t = {
   starting_turn : PlayerId.t;
   setup_rounds_left : int;
   scoring_points : (Cell.soil * int list) list;
+  num_rounds : int;
 }
 
 let init_game num_players ruleset =
@@ -31,6 +32,7 @@ let init_game num_players ruleset =
         (3, [ 19; 18; 18; 17; 17 ]);
         (4, [ 22; 21; 20 ]);
       ];
+    num_rounds = 0;
   }
 
 let player_of game id = List.assoc id game.players
@@ -129,20 +131,22 @@ let photosynthesis game =
       (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
 
-let end_turn_normal turn_after_this game =
-  let will_photo = turn_after_this = game.starting_turn in
+let end_turn_normal turn_after_this is_new_round game =
   let new_starting_turn =
-    if will_photo then turn_after game game.starting_turn
+    if is_new_round then turn_after game game.starting_turn
     else game.starting_turn
   in
   let new_turn =
-    if will_photo then new_starting_turn else turn_after_this
+    if is_new_round then new_starting_turn else turn_after_this
   in
   let new_players =
-    if will_photo then photosynthesis game else game.players
+    if is_new_round then photosynthesis game else game.players
   in
   let new_board =
-    if will_photo then Board.move_sun game.board else game.board
+    if is_new_round then Board.move_sun game.board else game.board
+  in
+  let new_num_rounds =
+    game.num_rounds + if is_new_round then 1 else 0
   in
   {
     game with
@@ -150,10 +154,10 @@ let end_turn_normal turn_after_this game =
     turn = new_turn;
     players = new_players;
     board = new_board;
+    num_rounds = new_num_rounds;
   }
 
-let end_turn_setup turn_after_this game =
-  let is_new_round = turn_after_this = game.starting_turn in
+let end_turn_setup turn_after_this is_new_round game =
   let new_setup_rounds_left =
     game.setup_rounds_left - if is_new_round then 1 else 0
   in
@@ -165,9 +169,10 @@ let end_turn_setup turn_after_this game =
 
 let end_turn game =
   let turn_after_this = turn_after game game.turn in
+  let is_new_round = turn_after_this = game.starting_turn in
   if game.setup_rounds_left = 0 then
-    end_turn_normal turn_after_this game
-  else end_turn_setup turn_after_this game
+    end_turn_normal turn_after_this is_new_round game
+  else end_turn_setup turn_after_this is_new_round game
 
 let can_plant_seed game coord player_id =
   Board.can_plant_seed game.board player_id coord
@@ -178,3 +183,5 @@ let can_grow_plant game coord player_id =
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
+
+let sun_dir game = HexUtil.dir_of_int game.num_rounds
