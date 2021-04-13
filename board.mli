@@ -57,11 +57,15 @@ val move_sun : t -> t
 (** [sun_dir board] is the current sun direction for [board]. *)
 val sun_dir : t -> HexUtil.dir
 
-(** [get_photo_lp board players] is an association list of player ids to
-    the pairs of [HexUtil.coord]s that have plants that the the player
-    owns and the light points gained by the plant in that cell. *)
+(** [get_photo_lp sun_dir players board] is an association list of
+    player ids to the pairs of [HexUtil.coord]s that have plants that
+    the player owns and the light points gained by the plant in that
+    cell when the sun is facing in direction [sun_dir]. *)
 val get_photo_lp :
-  t -> PlayerId.t list -> (PlayerId.t * (HexUtil.coord * int) list) list
+  HexUtil.dir ->
+  PlayerId.t list ->
+  t ->
+  (PlayerId.t * (HexUtil.coord * int) list) list
 
 (** [cells board] is a list of the Cells in [board], in any order. *)
 val cells : t -> Cell.t list

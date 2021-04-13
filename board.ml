@@ -176,7 +176,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
   done;
   !coord_lp_lst
 
-let get_photo_lp board players =
+let get_photo_lp sun_dir players board =
   let out = ref [] in
   for i = 0 to List.length players - 1 do
     let player = List.nth players i in

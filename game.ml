@@ -108,6 +108,8 @@ let next_in_wraparound_lst lst elem =
   in
   next_in_wraparound_lst_helper (List.nth lst 0) lst elem
 
+let sun_dir game = HexUtil.dir_of_int game.num_rounds
+
 let turn_after game player =
   next_in_wraparound_lst game.player_order player
 
@@ -119,7 +121,9 @@ let photosynthesis game =
   let add_lp coord_lp_lst =
     List.fold_left (fun sum (_, lp) -> sum + lp) 0 coord_lp_lst
   in
-  let lp_lst = Board.get_photo_lp game.board game.player_order in
+  let lp_lst =
+    Board.get_photo_lp (sun_dir game) game.player_order game.board
+  in
   let lp_per_player =
     List.map
       (fun (player_id, coord_lp_lst) ->
@@ -183,5 +187,3 @@ let can_grow_plant game coord player_id =
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
-
-let sun_dir game = HexUtil.dir_of_int game.num_rounds
