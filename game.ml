@@ -149,9 +149,6 @@ let end_turn_normal turn_after_this is_new_round game =
   let new_players =
     if is_new_round then photosynthesis game else game.players
   in
-  let new_board =
-    if is_new_round then Board.move_sun game.board else game.board
-  in
   let new_num_rounds =
     game.num_rounds + if is_new_round then 1 else 0
   in
@@ -160,7 +157,6 @@ let end_turn_normal turn_after_this is_new_round game =
     starting_turn = new_starting_turn;
     turn = new_turn;
     players = new_players;
-    board = new_board;
     num_rounds = new_num_rounds;
   }
 

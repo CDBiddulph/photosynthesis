@@ -11,7 +11,6 @@ type round_phase =
     the direction that shadows are cast. *)
 type t = {
   map : HexMap.t;
-  sun_dir : HexUtil.dir;
   rules : ruleset;
 }
 
@@ -30,8 +29,7 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
-let init_board ruleset =
-  { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
+let init_board ruleset = { map = HexMap.init_map (); rules = ruleset }
 
 let cell_if_empty coord board =
   match cell_at board coord with
@@ -158,22 +156,20 @@ let lp_map (plant : Plant.plant_stage) : int =
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
-let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
+let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
   let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
     let shadowed =
       let fst_neigh_opt =
-        HexMap.neighbor board.map cell_coord board.sun_dir
+        HexMap.neighbor board.map cell_coord sun_dir
       in
       match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
           let fst_shadow = shadows board.map fst_coord cell_coord in
-          let snd_neigh =
-            HexMap.neighbor board.map fst_coord board.sun_dir
-          in
+          let snd_neigh = HexMap.neighbor board.map fst_coord sun_dir in
           match snd_neigh with
           | None -> fst_shadow
           | Some snd_coord -> (
@@ -181,7 +177,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
                 fst_shadow || shadows board.map snd_coord cell_coord
               in
               let thd_neigh =
-                HexMap.neighbor board.map snd_coord board.sun_dir
+                HexMap.neighbor board.map snd_coord sun_dir
               in
               match thd_neigh with
               | None -> snd_shadow
@@ -215,17 +211,9 @@ let get_photo_lp sun_dir players board =
              | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    out := (player, player_lp_helper board player_cells) :: !out
+    out := (player, player_lp_helper sun_dir player_cells board) :: !out
   done;
   !out
-
-let end_phase (board : t) : t =
-  { board with sun_dir = (board.sun_dir + 1) mod 6 }
-
-let move_sun board =
-  { board with sun_dir = HexUtil.move_cw board.sun_dir }
-
-let sun_dir board = board.sun_dir
 
 let can_harvest player c board =
   match cell_at c board with
