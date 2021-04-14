@@ -10,6 +10,20 @@ type t
     all initial defaults. *)
 val init_game : int -> Board.ruleset -> t
 
+(** [_init_game_test num_players board turn starting_turn
+    setup_rounds_left scoring_points num_rounds]
+    is a new game with all of those things. Should only be used for
+    testing. *)
+val _init_game_test :
+  int ->
+  Board.t ->
+  PlayerId.t ->
+  PlayerId.t ->
+  int ->
+  (Cell.soil * int list) list ->
+  int ->
+  t
+
 (** [plant_seed player_id coord game] is game with a seed of [player]
     planted at [coord] and the available seeds of the player decremented
     by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at
@@ -116,3 +130,8 @@ val cells : t -> Cell.t list
 
 (** [sun_dir game] is the direction the sun is facing in [game]. *)
 val sun_dir : t -> HexUtil.dir
+
+(** [scoring_points game] is an association list of the list of
+    remaining scoring points for each soil type, in order from the next
+    available to the last available. *)
+val scoring_points : t -> (Cell.soil * int list) list

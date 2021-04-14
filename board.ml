@@ -40,7 +40,7 @@ let cell_if_empty coord board =
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
 let can_plant_seed player_id coord board =
-  cell_if_empty board coord = None
+  cell_if_empty board coord <> None
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
     [coord] in [board] and the cell has soil of type [1]. *)
@@ -229,7 +229,7 @@ let can_harvest player c board =
 let harvest player_id coord board =
   if can_harvest player_id coord board then
     match cell_at coord board with
-    | None -> failwith "should be a valid cell"
+    | None -> failwith "Unreachable"
     | Some cell ->
         let new_cell =
           Some (Cell.init_cell (Cell.soil cell) None coord)

@@ -9,17 +9,20 @@ type t = {
   num_rounds : int;
 }
 
+let generate_player_ids num_players =
+  match num_players with
+  | 2 -> [ 1; 2 ]
+  | 3 -> [ 1; 2; 3 ]
+  | 4 -> [ 1; 2; 3; 4 ]
+  | _ -> failwith "Must be 2-4 players"
+
+let players_of_player_ids player_ids =
+  List.map (fun id -> (id, Player.init_player id)) player_ids
+
 let init_game num_players ruleset =
-  let player_ids =
-    match num_players with
-    | 2 -> [ 1; 2 ]
-    | 3 -> [ 1; 2; 3 ]
-    | 4 -> [ 1; 2; 3; 4 ]
-    | _ -> failwith "Must be 2-4 players"
-  in
+  let player_ids = generate_player_ids num_players in
   {
-    players =
-      List.map (fun id -> (id, Player.init_player id)) player_ids;
+    players = players_of_player_ids player_ids;
     player_order = player_ids;
     board = Board.init_board ruleset;
     turn = List.nth player_ids 0;
@@ -33,6 +36,26 @@ let init_game num_players ruleset =
         (4, if num_players > 2 then [ 22; 21; 20 ] else []);
       ];
     num_rounds = 0;
+  }
+
+let _init_game_test
+    num_players
+    board
+    turn
+    starting_turn
+    setup_rounds_left
+    scoring_points
+    num_rounds =
+  let player_ids = generate_player_ids num_players in
+  {
+    players = players_of_player_ids player_ids;
+    player_order = player_ids;
+    board;
+    turn;
+    starting_turn;
+    setup_rounds_left;
+    scoring_points;
+    num_rounds;
   }
 
 let player_of game id = List.assoc id game.players
@@ -204,3 +227,5 @@ let can_grow_plant coord player_id game =
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
+
+let scoring_points game = game.scoring_points
