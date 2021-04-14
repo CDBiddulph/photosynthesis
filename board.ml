@@ -133,22 +133,22 @@ let lp_map (plant : Plant.plant_stage) : int =
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
-let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
-    (HexUtil.coord * int) list =
+let player_lp_helper
+    (board : t)
+    sun_dir
+    (player_cells : HexUtil.coord list) : (HexUtil.coord * int) list =
   let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
     let shadowed =
       let fst_neigh_opt =
-        HexMap.neighbor board.map cell_coord board.sun_dir
+        HexMap.neighbor board.map cell_coord sun_dir
       in
       match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
           let fst_shadow = shadows board.map fst_coord cell_coord in
-          let snd_neigh =
-            HexMap.neighbor board.map fst_coord board.sun_dir
-          in
+          let snd_neigh = HexMap.neighbor board.map fst_coord sun_dir in
           match snd_neigh with
           | None -> fst_shadow
           | Some snd_coord -> (
@@ -176,8 +176,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
   done;
   !coord_lp_lst
 
-(* have sun_dir passed as argument *)
-let get_photo_lp board players =
+let get_photo_lp board sun_dir players =
   let out = ref [] in
   for i = 0 to List.length players - 1 do
     let player = List.nth players i in
@@ -191,7 +190,7 @@ let get_photo_lp board players =
              | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    out := (player, player_lp_helper board player_cells) :: !out
+    out := (player, player_lp_helper board sun_dir player_cells) :: !out
   done;
   !out
 
