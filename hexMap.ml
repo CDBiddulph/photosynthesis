@@ -74,17 +74,13 @@ let init_map () : t =
     |];
   |]
 
-let valid_coord (map : t) c =
-  let open HexUtil in
-  let row_low = if c.col < 4 then 0 else c.col - 4 in
-  let row_high = if c.col > 3 then Array.length map else 3 - c.col in
-  c.col < Array.length map && c.diag <= row_high && c.diag >= row_low
-
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
 let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
   map.(coord.col).(coord.diag)
+
+let valid_coord (map : t) c = cell_at map coord <> None
 
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
@@ -98,12 +94,16 @@ let set_cell (map : t) cell coord : t =
 let does_block (map : t) (d : HexUtil.dir) c1 c2 =
   let open HexUtil in
   match d with
-  | 0 -> c1.col + 1 = c2.col && c1.diag = c2.diag
-  | 1 -> c1.col = c2.col && c1.diag = c2.diag + 1
-  | 2 -> c1.col - 1 = c2.col && c1.diag = c2.diag + 1
-  | 3 -> c1.col - 1 = c2.col && c1.diag = c2.diag
-  | 4 -> c1.col = c2.col && c1.diag = c2.diag - 1
-  | 5 -> c1.col + 1 = c2.col && c1.diag = c2.diag - 1
+  | 0 ->
+      c1.col < c2.col && c1.diag < c2.diag
+      && c2.col - c1.col = c2.diag - c2.col
+  | 1 -> c1.col = c2.col && c2.diag > c1.diag
+  | 2 -> c1.diag = c2.diag && c1.col > c2.col
+  | 3 ->
+      c1.col > c2.col && c1.diag > c2.diag
+      && c2.col - c1.col = c2.diag - c2.col
+  | 4 -> c1.col = c2.col && c1.diag > c2.diag
+  | 5 -> c1.diag = c2.diag && c2.col > c1.col
   | _ -> failwith "Invalid direction"
 
 let dist (map : t) c1 c2 =
@@ -114,12 +114,12 @@ let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in
   let new_coord =
     match d with
-    | 0 -> { c with col = c.col + 1 }
-    | 1 -> { c with diag = c.diag - 1 }
-    | 2 -> { col = c.col - 1; diag = c.diag - 1 }
-    | 3 -> { c with col = c.col - 1 }
-    | 4 -> { c with diag = c.diag + 1 }
-    | 5 -> { col = c.col + 1; diag = c.diag + 1 }
+    | 0 -> { col = c.col + 1; diag = c.diag + 1 }
+    | 1 -> { c with diag = c.diag + 1 }
+    | 2 -> { c with col = c.col - 1 }
+    | 3 -> { col = c.col - 1; diag = c.diag - 1 }
+    | 4 -> { c with diag = c.diag - 1 }
+    | 5 -> { c with col = c.col + 1 }
     | _ -> failwith "Invalid direction"
   in
   if valid_coord map new_coord then Some new_coord else None
