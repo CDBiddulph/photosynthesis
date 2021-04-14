@@ -239,3 +239,8 @@ let harvest player_id coord board =
   else raise IllegalHarvest
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
+
+(* TODO: some notion of turn to keep track of cells that are touched
+   this "turn" *)
+(* TODO: update shadows/lp to use blocks instead of what's happening now
+   (?) *)
