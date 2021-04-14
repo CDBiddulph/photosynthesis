@@ -50,11 +50,14 @@ let update_player player_id player game =
     ((player_id, player) :: List.remove_assoc player_id game.players)
     game
 
-let grow_plant game player_id coord =
-  update_board (Board.grow_plant game.board coord player_id) game
+let grow_plant player_id coord game =
+  update_board (Board.grow_plant coord player_id game.board) game
 
-let plant_seed game coord player_id =
-  update_board (Board.plant_seed game.board coord player_id) game
+let plant_seed coord player_id game =
+  update_board (Board.plant_seed coord player_id game.board) game
+
+let plant_small coord player_id game =
+  update_board (Board.plant_small coord player_id game.board) game
 
 (** [get_scoring_points game soil] is a tuple [(sp, new_game)] where
     [sp] is the number of scoring points awarded to the next player to
@@ -74,13 +77,13 @@ let rec get_scoring_points game soil =
   with Not_found -> (0, game)
 
 let cell_at game coord =
-  match Board.cell_at game.board coord with
+  match Board.cell_at coord game.board with
   | None -> failwith "invalid cell"
   | Some cell -> cell
 
-let harvest game player_id coord =
+let harvest player_id coord game =
   let harvest_game =
-    update_board (Board.harvest game.board player_id coord) game
+    update_board (Board.harvest player_id coord game.board) game
   in
   (* Should already have failed if harvesting is not possible *)
   let sp_to_add, scored_game =
@@ -92,7 +95,7 @@ let harvest game player_id coord =
   in
   scored_game |> update_player player_id scored_player
 
-let buy_plant game stage =
+let buy_plant stage game =
   let player = player_of game game.turn in
   update_player game.turn (Player.buy_plant player stage) game
 
@@ -178,11 +181,17 @@ let end_turn game =
     end_turn_normal turn_after_this is_new_round game
   else end_turn_setup turn_after_this is_new_round game
 
-let can_plant_seed game coord player_id =
-  Board.can_plant_seed game.board player_id coord
+let is_setup game = game.setup_rounds_left > 0
 
-let can_grow_plant game coord player_id =
-  Board.can_grow_plant game.board player_id coord
+let can_plant_seed coord player_id game =
+  (not (is_setup game))
+  && Board.can_plant_seed player_id coord game.board
+
+let can_plant_small coord player_id game =
+  is_setup game && Board.can_plant_seed player_id coord game.board
+
+let can_grow_plant coord player_id game =
+  Board.can_grow_plant player_id coord game.board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 

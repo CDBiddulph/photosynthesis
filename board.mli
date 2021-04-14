@@ -6,8 +6,8 @@ type ruleset =
   | Normal
   | Extended
 
-(** Raised when an illegal seed-planting is attempted. *)
-exception IllegalPlantSeed
+(** Raised when an illegal plant placement is attempted. *)
+exception IllegalPlacePlant
 
 (** Raised when an illegal plant-growing is attempted. *)
 exception IllegalGrowPlant
@@ -18,38 +18,50 @@ exception IllegalHarvest
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
 
-(** [plant_seed board coord player_id] places a seed belonging to
-    [player] at [coord] on [board]. Raises: [IllegalPlantSeed] if
+(** [plant_seed stage board coord player_id] places a seed belonging to
+    [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
     placing a seed as [player] in [coord] on [board] is not a legal
-    move. *)
-val plant_seed : t -> PlayerId.t -> HexUtil.coord -> t
+    move, under the assumption that the game is not in the setup phase. *)
+val plant_seed : PlayerId.t -> HexUtil.coord -> t -> t
+
+(** [plant_small stage board coord player_id] places a small tree
+    belonging to [player] at [coord] on [board]. Raises:
+    [IllegalPlacePlant] if placing a seed as [player] in [coord] on
+    [board] is not a legal move, under the assumption that the game is
+    in the setup phase. *)
+val plant_small : PlayerId.t -> HexUtil.coord -> t -> t
 
 (** [grow_plant board coord player_id] grows the plant belonging to
     [player] at [coord] on [board]. Raises: [IllegalGrowPlant] if
     placing a seed as [player] in [coord] on [board] is not a legal
     move. *)
-val grow_plant : t -> HexUtil.coord -> PlayerId.t -> t
+val grow_plant : HexUtil.coord -> PlayerId.t -> t -> t
 
 (** [harvest board player coord] removes the plant at [coord] on
     [board]. Raises: [IllegalHarvest] if removing the plant in [coord]
     on [board] with [player] is not a legal move. *)
-val harvest : t -> PlayerId.t -> HexUtil.coord -> t
+val harvest : PlayerId.t -> HexUtil.coord -> t -> t
 
-(** [can_plant_seed board coord player_id stage] returns [true] iff
+(** [can_plant_seed coord player_id board] returns [true] iff player of
+    [player_id] planting a seed at [coord] on [board] is possible,
+    assuming the game is not in the setup stage. *)
+val can_plant_seed : PlayerId.t -> HexUtil.coord -> t -> bool
+
+(** [can_plant_small board coord player_id stage] returns [true] iff
     player of [player_id] planting a seed at [coord] on [board] is
-    possible. *)
-val can_plant_seed : t -> PlayerId.t -> HexUtil.coord -> bool
+    possible, assuming the game is in the setup stage. *)
+val can_plant_small : HexUtil.coord -> t -> bool
 
 (** [can_grow_plant board coord player_id stage] returns [true] iff
     player of [player_id] growing a plant of [stage] at [coord] on
     [board] is possible. *)
-val can_grow_plant : t -> PlayerId.t -> HexUtil.coord -> bool
+val can_grow_plant : PlayerId.t -> HexUtil.coord -> t -> bool
 
 (** [can_harvest board player c] returns true if the plant at [c] can be
     harvested by [player]. If the cell at [c] does not contain a Large
     plant, or [c] is invalid, or the plant is not owned by [player],
     returns false. *)
-val can_harvest : t -> PlayerId.t -> HexUtil.coord -> bool
+val can_harvest : PlayerId.t -> HexUtil.coord -> t -> bool
 
 (** [move_sun board] moves the board's sun by one position. *)
 val move_sun : t -> t
@@ -71,12 +83,12 @@ val get_photo_lp :
 val cells : t -> Cell.t list
 
 (** [cell_at board coord] is the cell at [coord] in [board]. *)
-val cell_at : t -> HexUtil.coord -> Cell.t option
+val cell_at : HexUtil.coord -> t -> Cell.t option
 
 (** [valid_coord board coord] is true if [coord] is a valid coordinate
     in [board]. *)
-val valid_coord : t -> HexUtil.coord -> bool
+val valid_coord : HexUtil.coord -> t -> bool
 
 (** [plant_at board coord] is the plant at [coord] on [board], if it
     exists. *)
-val plant_at : t -> HexUtil.coord -> Plant.t option
+val plant_at : HexUtil.coord -> t -> Plant.t option

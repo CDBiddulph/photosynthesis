@@ -15,15 +15,15 @@ type t = {
   rules : ruleset;
 }
 
-exception IllegalPlantSeed
+exception IllegalPlacePlant
 
 exception IllegalGrowPlant
 
 exception IllegalHarvest
 
-let cell_at board coord = HexMap.cell_at board.map coord
+let cell_at coord board = HexMap.cell_at board.map coord
 
-let valid_coord board coord = HexMap.valid_coord board.map coord
+let valid_coord coord board = HexMap.valid_coord board.map coord
 
 let plant_at board coord =
   match cell_at board coord with
@@ -33,36 +33,61 @@ let plant_at board coord =
 let init_board ruleset =
   { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
 
+let cell_if_empty coord board =
+  match cell_at board coord with
+  | None -> None
+  | Some c -> (
+      match Cell.plant c with None -> Some c | Some p -> None)
+
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
-let can_plant_seed board player_id coord =
-  cell_at board coord <> None && plant_at board coord = None
+let can_plant_seed player_id coord board =
+  cell_if_empty board coord = None
 
-let plant_seed board player_id coord =
-  if can_plant_seed board player_id coord then
-    match cell_at board coord with
-    | None -> raise IllegalPlantSeed
+(** [can_plant_small coord board] is [true] if there is an empty cell at
+    [coord] in [board] and the cell has soil of type [1]. *)
+let can_plant_small coord board =
+  match cell_if_empty board coord with
+  | None -> false
+  | Some c -> Cell.soil c = 1
+
+let place_plant can_place plant coord board =
+  if can_place then
+    match cell_at coord board with
+    | None -> failwith "Unreachable"
     | Some old_cell ->
-        let next_plant = Some (Plant.init_plant player_id Plant.Seed) in
         {
           board with
           map =
             HexMap.set_cell board.map
-              (Some (Cell.set_plant old_cell next_plant))
+              (Some (Cell.set_plant old_cell (Some plant)))
               coord;
         }
-  else raise IllegalPlantSeed
+  else raise IllegalPlacePlant
 
-let can_grow_plant board player_id coord =
-  match plant_at board coord with
+let plant_seed player_id coord board =
+  place_plant
+    (can_plant_seed player_id coord board)
+    (Plant.init_plant player_id Plant.Seed)
+    coord board
+
+let plant_small player_id coord board =
+  place_plant
+    (can_plant_small coord board)
+    (Plant.init_plant player_id Plant.Small)
+    coord board
+
+let can_grow_plant player_id coord board =
+  match plant_at coord board with
   | None -> false
   | Some old_plant ->
-      let old_player = Plant.player_id old_plant in
-      old_player = player_id
+      let old_player_id = Plant.player_id old_plant in
+      let not_large = Plant.plant_stage old_plant <> Plant.Large in
+      old_player_id = player_id && not_large
 
-let grow_plant board coord player_id =
-  if can_grow_plant board player_id coord then
-    match cell_at board coord with
+let grow_plant coord player_id board =
+  if can_grow_plant player_id coord board then
+    match cell_at coord board with
     | None -> failwith "Impossible"
     | Some old_cell ->
         let old_plant =
@@ -164,7 +189,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
                   snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      match cell_at board cell_coord with
+      match cell_at cell_coord board with
       | None -> failwith "should be a valid cell"
       | Some cell -> (
           let plnt = Cell.plant cell in
@@ -202,8 +227,8 @@ let move_sun board =
 
 let sun_dir board = board.sun_dir
 
-let can_harvest board player c =
-  match cell_at board c with
+let can_harvest player c board =
+  match cell_at c board with
   | None -> false
   | Some cell -> (
       match Cell.plant cell with
@@ -213,9 +238,9 @@ let can_harvest board player c =
           | Plant.Large -> Plant.player_id plnt = player
           | _ -> false))
 
-let harvest board player_id coord =
-  if can_harvest board player_id coord then
-    match cell_at board coord with
+let harvest player_id coord board =
+  if can_harvest player_id coord board then
+    match cell_at coord board with
     | None -> failwith "should be a valid cell"
     | Some cell ->
         let new_cell =
