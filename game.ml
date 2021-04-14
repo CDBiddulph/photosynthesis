@@ -50,11 +50,14 @@ let update_player player_id player game =
     ((player_id, player) :: List.remove_assoc player_id game.players)
     game
 
-let grow_plant game player_id coord =
-  update_board (Board.grow_plant game.board coord player_id) game
+let grow_plant player_id coord game =
+  update_board (Board.grow_plant coord player_id game.board) game
 
-let plant_seed game coord player_id =
-  update_board (Board.plant_seed game.board coord player_id) game
+let plant_seed coord player_id game =
+  update_board (Board.plant_seed coord player_id game.board) game
+
+let plant_small coord player_id game =
+  update_board (Board.plant_small coord player_id game.board) game
 
 (** [get_scoring_points game soil] is a tuple [(sp, new_game)] where
     [sp] is the number of scoring points awarded to the next player to
@@ -74,13 +77,13 @@ let rec get_scoring_points game soil =
   with Not_found -> (0, game)
 
 let cell_at game coord =
-  match Board.cell_at game.board coord with
+  match Board.cell_at coord game.board with
   | None -> failwith "invalid cell"
   | Some cell -> cell
 
-let harvest game player_id coord =
+let harvest player_id coord game =
   let harvest_game =
-    update_board (Board.harvest game.board player_id coord) game
+    update_board (Board.harvest player_id coord game.board) game
   in
   (* Should already have failed if harvesting is not possible *)
   let sp_to_add, scored_game =
@@ -92,7 +95,7 @@ let harvest game player_id coord =
   in
   scored_game |> update_player player_id scored_player
 
-let buy_plant game stage =
+let buy_plant stage game =
   let player = player_of game game.turn in
   update_player game.turn (Player.buy_plant player stage) game
 
@@ -108,6 +111,8 @@ let next_in_wraparound_lst lst elem =
   in
   next_in_wraparound_lst_helper (List.nth lst 0) lst elem
 
+let sun_dir game = HexUtil.dir_of_int game.num_rounds
+
 let turn_after game player =
   next_in_wraparound_lst game.player_order player
 
@@ -119,7 +124,9 @@ let photosynthesis game =
   let add_lp coord_lp_lst =
     List.fold_left (fun sum (_, lp) -> sum + lp) 0 coord_lp_lst
   in
-  let lp_lst = Board.get_photo_lp game.board game.player_order in
+  let lp_lst =
+    Board.get_photo_lp (sun_dir game) game.player_order game.board
+  in
   let lp_per_player =
     List.map
       (fun (player_id, coord_lp_lst) ->
@@ -142,9 +149,6 @@ let end_turn_normal turn_after_this is_new_round game =
   let new_players =
     if is_new_round then photosynthesis game else game.players
   in
-  let new_board =
-    if is_new_round then Board.move_sun game.board else game.board
-  in
   let new_num_rounds =
     game.num_rounds + if is_new_round then 1 else 0
   in
@@ -153,7 +157,6 @@ let end_turn_normal turn_after_this is_new_round game =
     starting_turn = new_starting_turn;
     turn = new_turn;
     players = new_players;
-    board = new_board;
     num_rounds = new_num_rounds;
   }
 
@@ -174,14 +177,18 @@ let end_turn game =
     end_turn_normal turn_after_this is_new_round game
   else end_turn_setup turn_after_this is_new_round game
 
-let can_plant_seed game coord player_id =
-  Board.can_plant_seed game.board player_id coord
+let is_setup game = game.setup_rounds_left > 0
 
-let can_grow_plant game coord player_id =
-  Board.can_grow_plant game.board player_id coord
+let can_plant_seed coord player_id game =
+  (not (is_setup game))
+  && Board.can_plant_seed player_id coord game.board
+
+let can_plant_small coord player_id game =
+  is_setup game && Board.can_plant_seed player_id coord game.board
+
+let can_grow_plant coord player_id game =
+  Board.can_grow_plant player_id coord game.board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
-
-let sun_dir game = HexUtil.dir_of_int game.num_rounds

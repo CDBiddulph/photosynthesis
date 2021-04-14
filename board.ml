@@ -11,58 +11,81 @@ type round_phase =
     the direction that shadows are cast. *)
 type t = {
   map : HexMap.t;
-  sun_dir : HexUtil.dir;
   rules : ruleset;
 }
 
-exception IllegalPlantSeed
+exception IllegalPlacePlant
 
 exception IllegalGrowPlant
 
 exception IllegalHarvest
 
-let cell_at board coord = HexMap.cell_at board.map coord
+let cell_at coord board = HexMap.cell_at board.map coord
 
-let valid_coord board coord = HexMap.valid_coord board.map coord
+let valid_coord coord board = HexMap.valid_coord board.map coord
 
 let plant_at board coord =
   match cell_at board coord with
   | None -> None
   | Some cell -> Cell.plant cell
 
-let init_board ruleset =
-  { map = HexMap.init_map (); sun_dir = 0; rules = ruleset }
+let init_board ruleset = { map = HexMap.init_map (); rules = ruleset }
+
+let cell_if_empty coord board =
+  match cell_at board coord with
+  | None -> None
+  | Some c -> (
+      match Cell.plant c with None -> Some c | Some p -> None)
 
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
-let can_plant_seed board player_id coord =
-  cell_at board coord <> None && plant_at board coord = None
+let can_plant_seed player_id coord board =
+  cell_if_empty board coord = None
 
-let plant_seed board player_id coord =
-  if can_plant_seed board player_id coord then
-    match cell_at board coord with
-    | None -> raise IllegalPlantSeed
+(** [can_plant_small coord board] is [true] if there is an empty cell at
+    [coord] in [board] and the cell has soil of type [1]. *)
+let can_plant_small coord board =
+  match cell_if_empty board coord with
+  | None -> false
+  | Some c -> Cell.soil c = 1
+
+let place_plant can_place plant coord board =
+  if can_place then
+    match cell_at coord board with
+    | None -> failwith "Unreachable"
     | Some old_cell ->
-        let next_plant = Some (Plant.init_plant player_id Plant.Seed) in
         {
           board with
           map =
             HexMap.set_cell board.map
-              (Some (Cell.set_plant old_cell next_plant))
+              (Some (Cell.set_plant old_cell (Some plant)))
               coord;
         }
-  else raise IllegalPlantSeed
+  else raise IllegalPlacePlant
 
-let can_grow_plant board player_id coord =
-  match plant_at board coord with
+let plant_seed player_id coord board =
+  place_plant
+    (can_plant_seed player_id coord board)
+    (Plant.init_plant player_id Plant.Seed)
+    coord board
+
+let plant_small player_id coord board =
+  place_plant
+    (can_plant_small coord board)
+    (Plant.init_plant player_id Plant.Small)
+    coord board
+
+let can_grow_plant player_id coord board =
+  match plant_at coord board with
   | None -> false
   | Some old_plant ->
-      let old_player = Plant.player_id old_plant in
-      old_player = player_id
+      let old_player_id = Plant.player_id old_plant in
+      let not_large = Plant.plant_stage old_plant <> Plant.Large in
+      old_player_id = player_id && not_large
 
-let grow_plant board coord player_id =
-  if can_grow_plant board player_id coord then
-    match cell_at board coord with
+let grow_plant coord player_id board =
+  if can_grow_plant player_id coord board then
+    match cell_at coord board with
     | None -> failwith "Impossible"
     | Some old_cell ->
         let old_plant =
@@ -133,10 +156,8 @@ let lp_map (plant : Plant.plant_stage) : int =
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
-let player_lp_helper
-    (board : t)
-    sun_dir
-    (player_cells : HexUtil.coord list) : (HexUtil.coord * int) list =
+let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
+    (HexUtil.coord * int) list =
   let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
@@ -156,7 +177,7 @@ let player_lp_helper
                 fst_shadow || shadows board.map snd_coord cell_coord
               in
               let thd_neigh =
-                HexMap.neighbor board.map snd_coord board.sun_dir
+                HexMap.neighbor board.map snd_coord sun_dir
               in
               match thd_neigh with
               | None -> snd_shadow
@@ -164,7 +185,7 @@ let player_lp_helper
                   snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      match cell_at board cell_coord with
+      match cell_at cell_coord board with
       | None -> failwith "should be a valid cell"
       | Some cell -> (
           let plnt = Cell.plant cell in
@@ -176,7 +197,7 @@ let player_lp_helper
   done;
   !coord_lp_lst
 
-let get_photo_lp board sun_dir players =
+let get_photo_lp sun_dir players board =
   let out = ref [] in
   for i = 0 to List.length players - 1 do
     let player = List.nth players i in
@@ -190,20 +211,12 @@ let get_photo_lp board sun_dir players =
              | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    out := (player, player_lp_helper board sun_dir player_cells) :: !out
+    out := (player, player_lp_helper sun_dir player_cells board) :: !out
   done;
   !out
 
-let end_phase (board : t) : t =
-  { board with sun_dir = (board.sun_dir + 1) mod 6 }
-
-let move_sun board =
-  { board with sun_dir = HexUtil.move_cw board.sun_dir }
-
-let sun_dir board = board.sun_dir
-
-let can_harvest board player c =
-  match cell_at board c with
+let can_harvest player c board =
+  match cell_at c board with
   | None -> false
   | Some cell -> (
       match Cell.plant cell with
@@ -213,9 +226,9 @@ let can_harvest board player c =
           | Plant.Large -> Plant.player_id plnt = player
           | _ -> false))
 
-let harvest board player_id coord =
-  if can_harvest board player_id coord then
-    match cell_at board coord with
+let harvest player_id coord board =
+  if can_harvest player_id coord board then
+    match cell_at coord board with
     | None -> failwith "should be a valid cell"
     | Some cell ->
         let new_cell =
