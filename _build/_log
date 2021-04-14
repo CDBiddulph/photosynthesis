@@ -9,60 +9,60 @@ ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package AN
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules cell.mli > cell.mli.depends # cached
 # Target: hexUtil.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:hexUtil.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules hexUtil.mli > hexUtil.mli.depends # cached
+# Target: hexUtil.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:hexUtil.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexUtil.cmi hexUtil.mli # cached
 # Target: plant.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:plant.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules plant.mli > plant.mli.depends # cached
 # Target: player.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:player.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules player.mli > player.mli.depends # cached
 # Target: player.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:player.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o player.cmi player.mli
-# Target: hexUtil.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:hexUtil.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexUtil.cmi hexUtil.mli
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o player.cmi player.mli # cached
 # Target: plant.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:plant.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o plant.cmi plant.mli
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o plant.cmi plant.mli # cached
+# Target: cell.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:cell.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o cell.cmi cell.mli # cached
 # Target: gui.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:gui.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules gui.mli > gui.mli.depends # cached
-# Target: cell.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:cell.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o cell.cmi cell.mli
+# Target: gui.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:gui.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o gui.cmi gui.mli # cached
 # Target: hexMap.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:hexMap.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules hexMap.mli > hexMap.mli.depends # cached
+# Target: hexMap.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:hexMap.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexMap.cmi hexMap.mli # cached
 # Target: ui.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:ui.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules ui.mli > ui.mli.depends # cached
-# Target: gui.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:gui.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o gui.cmi gui.mli
-# Target: hexMap.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:hexMap.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexMap.cmi hexMap.mli
 # Target: ui.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:ui.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o ui.cmi ui.mli
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o ui.cmi ui.mli # cached
 # Target: main.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o main.cmo main.ml # cached
 # Target: cell.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:cell.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules cell.ml > cell.ml.depends # cached
+# Target: cell.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:cell.cmo, file:cell.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o cell.cmo cell.ml # cached
 # Target: gui.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:gui.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules gui.ml > gui.ml.depends # cached
 # Target: raster.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:raster.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules raster.mli > raster.mli.depends # cached
 # Target: raster.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:raster.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o raster.cmi raster.mli
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o raster.cmi raster.mli # cached
 # Target: gui.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:gui.cmo, file:gui.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o gui.cmo gui.ml # cached
 # Target: hexMap.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:hexMap.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules hexMap.ml > hexMap.ml.depends # cached
+# Target: hexMap.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:hexMap.cmo, file:hexMap.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexMap.cmo hexMap.ml # cached
 # Target: plant.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:plant.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules plant.ml > plant.ml.depends # cached
+# Target: plant.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:plant.cmo, file:plant.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o plant.cmo plant.ml # cached
 # Target: ui.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:ui.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules ui.ml > ui.ml.depends # cached
 # Target: board.mli.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:mli, file:board.mli, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules board.mli > board.mli.depends # cached
 # Target: board.cmi, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:mli, file:board.mli, interf, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o board.cmi board.mli
-# Target: cell.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:cell.cmo, file:cell.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o cell.cmo cell.ml
-# Target: hexMap.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:hexMap.cmo, file:hexMap.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o hexMap.cmo hexMap.ml
-# Target: plant.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:plant.cmo, file:plant.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o plant.cmo plant.ml
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o board.cmi board.mli # cached
 # Target: ui.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:ui.cmo, file:ui.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o ui.cmo ui.ml
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o ui.cmo ui.ml # cached
 # Target: hexUtil.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:hexUtil.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules hexUtil.ml > hexUtil.ml.depends # cached
 # Target: hexUtil.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:hexUtil.cmo, file:hexUtil.ml, implem, ocaml, quiet, traverse }
@@ -70,30 +70,15 @@ ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -packag
 # Target: player.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:player.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules player.ml > player.ml.depends # cached
 # Target: player.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:player.cmo, file:player.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o player.cmo player.ml
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o player.cmo player.ml # cached
 # Target: raster.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:raster.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules raster.ml > raster.ml.depends # cached
 # Target: raster.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:raster.cmo, file:raster.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o raster.cmo raster.ml
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o raster.cmo raster.ml # cached
 # Target: board.ml.depends, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), debug, extension:ml, file:board.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package ounit2 -package yojson -package graphics -package ANSITerminal -modules board.ml > board.ml.depends # cached
 # Target: board.cmo, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, compile, debug, extension:cmo, extension:ml, file:board.cmo, file:board.ml, implem, ocaml, quiet, traverse }
-ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o board.cmo board.ml
-+ ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o board.cmo board.ml
-File "board.ml", lines 130-144, characters 6-67:
-130 | ......let (Some cell) = HexMap.cell_at board.map cell_coord in
-131 |       let plnt = Cell.plant cell in
-132 |       match plnt with
-133 |       | None -> ()
-134 |       | Some lp_plnt ->
-...
-141 |                 else ply)
-142 |               board.players
-143 |           in
-144 |           update_board := { !update_board with players = new_plst }
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-None
+ocamlfind ocamlc -c -g -package ounit2 -package yojson -package graphics -package ANSITerminal -o board.cmo board.ml # cached
 # Target: main.byte, tags: { package(ANSITerminal), package(graphics), package(ounit2), package(yojson), byte, debug, dont_link_with, extension:byte, file:main.byte, link, ocaml, program, quiet, traverse }
-ocamlfind ocamlc -linkpkg -g -package ounit2 -package yojson -package graphics -package ANSITerminal hexUtil.cmo player.cmo plant.cmo cell.cmo raster.cmo gui.cmo hexMap.cmo board.cmo ui.cmo main.cmo -o main.byte
+ocamlfind ocamlc -linkpkg -g -package ounit2 -package yojson -package graphics -package ANSITerminal hexUtil.cmo player.cmo plant.cmo cell.cmo raster.cmo gui.cmo hexMap.cmo board.cmo ui.cmo main.cmo -o main.byte # cached
 # Compilation successful.

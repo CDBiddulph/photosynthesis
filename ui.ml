@@ -46,8 +46,8 @@ let scroll s d =
 let handle_char s c =
   match c with
   | '&' -> raise End
-  | 'w' -> scroll s 0
-  | 'a' -> scroll s 1
+  | 'w' -> scroll s 5
+  | 'a' -> scroll s 0
   | 's' -> scroll s 2
   | 'd' -> scroll s 3
   | _ -> failwith "Invalid Key Pressed"

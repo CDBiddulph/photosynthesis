@@ -2,7 +2,6 @@ open HexMap
 open HexUtil
 open Board
 open Gui
-open Graphics
 
 exception End
 
@@ -25,31 +24,26 @@ let extract (c : HexUtil.coord option) : HexUtil.coord =
   match c with Some i -> i | None -> raise Invalid_Direction
 
 let scroll s d =
-  let new_gui =
-    Gui.update_cursor Red
-      (HexMap.neighbor s.hexMap s.current_position d)
-      s.gui
-  in
-  render new_gui;
   try
+    let newcoord = HexMap.neighbor s.hexMap s.current_position d in
     let new_state =
       {
-        current_position =
-          extract (HexMap.neighbor s.hexMap s.current_position d);
+        current_position = extract newcoord;
         hexMap = s.hexMap;
-        gui = s.gui;
+        gui = let new_coord = HexMap.neighbor s.hexMap s.current_position d in  
+        Gui.update_cursor ANSITerminal.Red new_coord s.gui;
       }
     in
-    new_state
+    render new_state.gui; new_state
   with Invalid_Direction -> s
 
 let handle_char s c =
   match c with
   | '&' -> raise End
   | 'w' -> scroll s 0
-  | 'a' -> scroll s 1
+  | 'a' -> scroll s 3
   | 's' -> scroll s 2
-  | 'd' -> scroll s 3
+  | 'd' -> scroll s 5
   | _ -> failwith "Invalid Key Pressed"
 
 let rec read_char (s : t) =
