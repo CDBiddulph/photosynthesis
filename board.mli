@@ -63,12 +63,6 @@ val can_grow_plant : PlayerId.t -> HexUtil.coord -> t -> bool
     returns false. *)
 val can_harvest : PlayerId.t -> HexUtil.coord -> t -> bool
 
-(** [move_sun board] moves the board's sun by one position. *)
-val move_sun : t -> t
-
-(** [sun_dir board] is the current sun direction for [board]. *)
-val sun_dir : t -> HexUtil.dir
-
 (** [get_photo_lp sun_dir players board] is an association list of
     player ids to the pairs of [HexUtil.coord]s that have plants that
     the player owns and the light points gained by the plant in that
