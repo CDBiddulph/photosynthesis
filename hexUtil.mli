@@ -11,8 +11,8 @@ type coord = {
 }
 
 (** The type representing directions on the hexagonal board. [dir]
-    represents [60 * dir + 30] degrees counterclockwise from the
-    horizontal. Valid [dir] values are the integers between 0-5,
+    represents [60 * dir + 30] degrees counterclockwise from the vector
+    pointing right. Valid [dir] values are the integers between 0-5,
     inclusive. *)
 type dir = int
 

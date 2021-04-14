@@ -41,6 +41,8 @@ let turn game = game.turn
 
 let player_of_turn game = game |> turn |> player_of game
 
+let player_order game = game.player_order
+
 let update_board board game = { game with board }
 
 let update_players players game = { game with players }
@@ -138,35 +140,45 @@ let photosynthesis game =
       (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
 
-let end_turn_normal turn_after_this is_new_round game =
+let end_turn_normal natural_next_turn is_new_round game =
+  let new_num_rounds =
+    game.num_rounds + if is_new_round then 1 else 0
+  in
   let new_starting_turn =
     if is_new_round then turn_after game game.starting_turn
     else game.starting_turn
   in
   let new_turn =
-    if is_new_round then new_starting_turn else turn_after_this
+    if is_new_round then new_starting_turn else natural_next_turn
+  in
+  (* Must change num_rounds first, because photosynthesis depends on the
+     direction of the sun in game, and that depends on num_rounds *)
+  let move_sun_game =
+    {
+      game with
+      num_rounds = new_num_rounds;
+      starting_turn = new_starting_turn;
+      turn = new_turn;
+    }
   in
   let new_players =
     if is_new_round then photosynthesis game else game.players
   in
-  let new_num_rounds =
-    game.num_rounds + if is_new_round then 1 else 0
-  in
-  {
-    game with
-    starting_turn = new_starting_turn;
-    turn = new_turn;
-    players = new_players;
-    num_rounds = new_num_rounds;
-  }
+  { move_sun_game with players = new_players }
 
-let end_turn_setup turn_after_this is_new_round game =
+let end_turn_setup natural_next_turn is_new_round game =
   let new_setup_rounds_left =
     game.setup_rounds_left - if is_new_round then 1 else 0
   in
+  (* Unlike in end_turn_normal, the sun direction does not change *)
+  let new_players =
+    if new_setup_rounds_left = 0 then photosynthesis game
+    else game.players
+  in
   {
     game with
-    turn = turn_after_this;
+    turn = natural_next_turn;
+    players = new_players;
     setup_rounds_left = new_setup_rounds_left;
   }
 

@@ -62,7 +62,11 @@ val buy_plant : Plant.plant_stage -> t -> t
 
 (** [end_turn game] is [game] with control relinquished to the player
     who plays after the current player, and with photosynthesis
-    performed if appropriate. *)
+    performed if appropriate. If [game] is not in setup, photosynthesis
+    is accompanied by the direction of the sun moving and the number of
+    rounds being incremented. Photosynthesis is performed when moving
+    from setup to the normal game, and whenever a round in the normal
+    game ends. *)
 val end_turn : t -> t
 
 (* Getter functions. *)
@@ -93,6 +97,10 @@ val player_of : t -> PlayerId.t -> Player.t
 
 (** [player_of_turn game] is the player whose turn it is in [game]. *)
 val player_of_turn : t -> Player.t
+
+(** [player_order game] is the list of players in order of play, with
+    the first player to ever make a move listed first. *)
+val player_order : t -> PlayerId.t list
 
 (** [cell_at game coord] is the cell at [coord] in [game]. *)
 val cell_at : t -> HexUtil.coord -> Cell.t
