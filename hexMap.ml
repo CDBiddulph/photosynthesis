@@ -80,7 +80,7 @@ let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
   map.(coord.col).(coord.diag)
 
-let valid_coord (map : t) c = cell_at map coord <> None
+let valid_coord (map : t) c = cell_at map c <> None
 
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
