@@ -46,10 +46,12 @@ let scroll s d =
 let handle_char s c =
   match c with
   | '&' -> raise End
-  | 'w' -> scroll s 5
-  | 'a' -> scroll s 0
-  | 's' -> scroll s 2
-  | 'd' -> scroll s 3
+  | 'q' -> scroll s 3
+  | 'e' -> scroll s 5
+  | 'w' -> scroll s 4
+  | 'a' -> scroll s 2
+  | 's' -> scroll s 1
+  | 'd' -> scroll s 0
   | _ -> failwith "Invalid Key Pressed"
 
 let rec read_char (s : t) =
