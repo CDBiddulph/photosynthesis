@@ -10,7 +10,7 @@ val cell_at : t -> HexUtil.coord -> Cell.t option
 
 (** [set_cell map cell coord] is [map] where the cell at [coord] is set
     to [cell]. Requires: [coord] is a valid coordinate in [map]. *)
-val set_cell : t -> Cell.t -> HexUtil.coord -> t
+val set_cell : t -> Cell.t option -> HexUtil.coord -> t
 
 (** [does_block map d c1 c2] is [true] iff it is possible to move on
     [map] one hex at a time, only in direction [d] and starting from

@@ -12,48 +12,54 @@ type round_phase =
     the order of players in the list. [current_phase] indicates if it is
     a Photosynthesis (true) or Life Cycle (false) phase. *)
 type t = {
-  players : Player.t list;
   map : HexMap.t;
   sun_dir : HexUtil.dir;
-  current_turn : int;
   current_phase : round_phase;
   round_count : int;
   rules : ruleset;
+  (* will be moved into the game layer *)
+  players : Player.t list;
+  current_turn : int;
 }
 
 exception InvalidPlacement
 
 let init_game players map sun ruleset =
   {
-    players;
     map;
     sun_dir = sun;
-    current_turn = 0;
     current_phase = Life_Cycle;
     round_count = 0;
     rules = ruleset;
+    (* will be moved *)
+    players;
+    current_turn = 0;
   }
 
-let is_place_plant_legal board cell plant =
-  HexMap.valid_coord board.map (Cell.coord cell)
-  && Cell.plant cell = None
+let is_place_plant_legal board c plant =
+  (* plant can replace a smaller plant of the player *)
+  HexMap.valid_coord board.map c
+  &&
+  match HexMap.cell_at board.map c with
+  | None -> false
+  | Some cell -> Cell.plant cell = None
 
-let place_plant (board : t) cell plant =
-  if is_place_plant_legal board cell plant then
-    let c = Cell.coord cell in
-    {
-      board with
-      map =
-        HexMap.set_cell board.map
-          (Cell.init_cell (Cell.soil cell) (Some plant) c)
-          c;
-    }
+let place_plant (board : t) c plant =
+  if is_place_plant_legal board c plant then
+    match HexMap.cell_at board.map c with
+    | None -> failwith "should be a valid cell"
+    | Some cell ->
+        {
+          board with
+          map =
+            HexMap.set_cell board.map
+              (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
+              c;
+        }
   else raise InvalidPlacement
 
-(* TODO: need some way to increment score points/decrement light points *)
-
-(** [shadows c1 c2] determines if the [Plant.t] in [c1] would shadow the
-    [Plant.t] in [c2] based on size and distance. *)
+(** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
+    the [Plant.t] in [c2] based on size and distance. *)
 let shadows map c1 c2 =
   let open Cell in
   let open Plant in
@@ -63,18 +69,18 @@ let shadows map c1 c2 =
   | None -> false
   | Some cell_1 -> (
       match c2_cell_opt with
-      | None -> false
+      | None -> true
       | Some cell_2 -> (
           let c1_plnt_opt = plant cell_1 in
           let c2_plnt_opt = plant cell_2 in
           match c2_plnt_opt with
-          | None -> false
+          | None -> true
           | Some c2_plt -> (
               let c2_plnt = plant_stage c2_plt in
               c2_plnt = Seed
               ||
               match c1_plnt_opt with
-              | None -> true
+              | None -> false
               | Some c1_plt -> (
                   let c1_plnt = plant_stage c1_plt in
                   match c1_plnt with
@@ -94,11 +100,10 @@ let lp_map (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-(** [player_lp_helper board player player_cells] returns an updated
-    board with only [player]'s light points updated based on the sun's
-    position. *)
-let player_lp_helper (board : t) player player_cells : t =
-  let update_board = ref board in
+(** [player_lp_helper board player_cells] TODO *)
+let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
+    (HexUtil.coord * int) list =
+  let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
     let shadowed =
@@ -108,52 +113,41 @@ let player_lp_helper (board : t) player player_cells : t =
       match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
+          let fst_shadow = shadows board.map fst_coord cell_coord in
           let snd_neigh =
             HexMap.neighbor board.map fst_coord board.sun_dir
           in
           match snd_neigh with
-          | None -> shadows board.map fst_coord cell_coord
+          | None -> fst_shadow
           | Some snd_coord -> (
+              let snd_shadow =
+                fst_shadow || shadows board.map snd_coord cell_coord
+              in
               let thd_neigh =
                 HexMap.neighbor board.map snd_coord board.sun_dir
               in
               match thd_neigh with
-              | None ->
-                  shadows board.map fst_coord cell_coord
-                  || shadows board.map snd_coord cell_coord
+              | None -> snd_shadow
               | Some thd_coord ->
-                  shadows board.map fst_coord cell_coord
-                  || shadows board.map snd_coord cell_coord
-                  || shadows board.map thd_coord cell_coord))
+                  snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      let (Some cell) = HexMap.cell_at board.map cell_coord in
-      let plnt = Cell.plant cell in
-      match plnt with
-      | None -> ()
-      | Some lp_plnt ->
-          let lp = lp_map (Plant.plant_stage lp_plnt) in
-          let new_plst =
-            List.map
-              (fun ply ->
-                if Player.player_id ply = player then
-                  Player.add_lp ply lp
-                else ply)
-              board.players
-          in
-          update_board := { !update_board with players = new_plst }
-    else ()
+      match HexMap.cell_at board.map cell_coord with
+      | None -> failwith "should be a valid cell"
+      | Some cell -> (
+          let plnt = Cell.plant cell in
+          match plnt with
+          | None -> ()
+          | Some lp_plnt ->
+              let lp = lp_map (Plant.plant_stage lp_plnt) in
+              coord_lp_lst := (cell_coord, lp) :: !coord_lp_lst)
   done;
-  !update_board
+  !coord_lp_lst
 
-(** [lp_helper board player_cells player] returns an updated board with
-    each player gaining the appropriate light points based on the sun's
-    position. *)
-let lp_helper (board : t) : t =
-  let update_board = ref board in
-  (* let opposite_sun_dir = (board.sun_dir + 3) mod 6 in *)
-  for i = 0 to List.length board.players - 1 do
-    let player = List.nth board.players i in
+let get_photo_lp board players =
+  let out = ref [] in
+  for i = 0 to List.length players - 1 do
+    let player = List.nth players i in
     let player_cells =
       List.map
         (fun c -> Cell.coord c)
@@ -161,23 +155,19 @@ let lp_helper (board : t) : t =
            (fun c ->
              match Cell.plant c with
              | None -> false
-             | Some plant ->
-                 Plant.player_id plant = Player.player_id player)
+             | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    update_board :=
-      player_lp_helper !update_board
-        (Player.player_id player)
-        player_cells
+    out := (player, player_lp_helper board player_cells) :: !out
   done;
-  !update_board
+  !out
 
 let end_turn (board : t) : t =
-  (* TODO: In progress: light points *)
   let current_phase = board.current_phase in
   match current_phase with
   | Photosynthesis ->
-      { (lp_helper board) with current_phase = Life_Cycle }
+      { board with current_phase = Life_Cycle }
+      (* { (lp_helper board) with current_phase = Life_Cycle } *)
   | Life_Cycle ->
       if board.current_turn = List.length board.players - 1 then
         {
@@ -193,6 +183,23 @@ let sun_dir board = board.sun_dir
 
 let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
 
-let can_remove board = false
+let can_remove board c =
+  match HexMap.cell_at board.map c with
+  | None -> false
+  | Some cell -> (
+      match Cell.plant cell with
+      | None -> false
+      | Some plnt -> (
+          match Plant.plant_stage plnt with
+          | Plant.Large -> true
+          | _ -> false))
 
-let remove_plant board = board
+let remove_plant board c =
+  if can_remove board c then
+    match HexMap.cell_at board.map c with
+    | None -> failwith "should be a valid cell"
+    | Some cell ->
+        let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
+        let new_map = HexMap.set_cell board.map new_cell c in
+        { board with map = new_map }
+  else board

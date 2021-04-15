@@ -1,1 +1,1 @@
-board.ml: Cell HexMap HexUtil List Plant Player
+board.ml: Bisect Cell HexMap HexUtil List Plant Player
