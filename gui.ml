@@ -9,6 +9,7 @@ type t = {
   char_graphics : (string * char grid) list;
   color_graphics : (string * ANSITerminal.color grid) list;
   hex_offset : point2d;
+  board_offset : point2d;
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
 }
 
@@ -31,16 +32,15 @@ let apply_to_layer layer_name f gui =
 let update_sun dir gui = gui
 
 let point2d_of_hex_coord gui coord =
-  let x = coord.col * 11 in
-  let y = (coord.diag * 6) - (coord.col * 3) in
-  { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
+  { x = coord.col * 11; y = (coord.diag * 6) - (coord.col * 3) }
+  +: gui.hex_offset
 
 (** [draw_in_coord gui graphic_name layer coord] returns [layer] with
     the graphic with name [graphic_name] of [gui] drawn in the position
     corresponding to [coord] with an offset of [gui.hex_offset]. *)
 let draw_in_coord gui graphic layer coord =
   let top_left = point2d_of_hex_coord gui coord in
-  draw graphic layer top_left
+  draw graphic layer (top_left +: gui.board_offset)
 
 (** [get_graphic gui char_name color_name] is the combined char-color
     graphic with [char_name] from [gui.char_graphics] and [color_name]
@@ -112,8 +112,7 @@ let update_cells cells gui =
   gui |> apply_to_layer "cells" (draw_cells gui cells)
 
 let draw_cursor gui color coord_opt layer =
-  (* TODO: fix so that 76 and 41 are not hard-coded *)
-  let blank = blank_raster 76 41 in
+  let blank = blank_raster gui.width gui.height in
   match coord_opt with
   | None -> blank
   | Some coord ->
@@ -130,8 +129,8 @@ let update_cursor color coord_opt gui =
     run the game. Postcondition: Each raster in
     [(init_gui cells).layers] has the same dimensions. *)
 let init_gui cells player_params =
-  let w = 76 in
-  let h = 41 in
+  let w = 120 in
+  let h = 50 in
   let background =
     fill_raster (Some '.') (Some ANSITerminal.Magenta) w h
   in
@@ -180,6 +179,7 @@ let init_gui cells player_params =
             "soil/";
           ];
       hex_offset = { x = 0; y = 9 };
+      board_offset = { x = 10; y = 5 };
       player_params;
     }
   in

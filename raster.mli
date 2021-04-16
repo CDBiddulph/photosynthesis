@@ -10,6 +10,8 @@ type t = {
   color_grid : ANSITerminal.color grid;
 }
 
+val ( +: ) : point2d -> point2d -> point2d
+
 val draw : t -> t -> point2d -> t
 
 val map_grid : ('a option -> 'b option) -> 'a grid -> 'b grid
