@@ -212,62 +212,53 @@ let lp_map (plant : Plant.plant_stage) : int =
     light point values based on [board]'s sun direction.*)
 let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
-  let coord_lp_lst = ref [] in
-  for i = 0 to List.length player_cells - 1 do
-    let cell_coord = List.nth player_cells i in
+  let single_cell_shadowed coord =
+    let neighbors = neighbors_in_dir board coord sun_dir in
     let shadowed =
-      let fst_neigh_opt =
-        HexMap.neighbor board.map cell_coord sun_dir
-      in
-      match fst_neigh_opt with
-      | None -> false
-      | Some fst_coord -> (
-          let fst_shadow = shadows board.map fst_coord cell_coord in
-          let snd_neigh = HexMap.neighbor board.map fst_coord sun_dir in
-          match snd_neigh with
-          | None -> fst_shadow
-          | Some snd_coord -> (
-              let snd_shadow =
-                fst_shadow || shadows board.map snd_coord cell_coord
-              in
-              let thd_neigh =
-                HexMap.neighbor board.map snd_coord sun_dir
-              in
-              match thd_neigh with
-              | None -> snd_shadow
-              | Some thd_coord ->
-                  snd_shadow || shadows board.map thd_coord cell_coord))
+      List.fold_left
+        (fun acc neighbors_coord ->
+          shadows board.map neighbors_coord coord || acc)
+        false neighbors
     in
-    if not shadowed then
-      match cell_at cell_coord board with
-      | None -> failwith "should be a valid cell"
-      | Some cell -> (
-          let plnt = Cell.plant cell in
-          match plnt with
-          | None -> ()
-          | Some lp_plnt ->
-              let lp = lp_map (Plant.plant_stage lp_plnt) in
-              coord_lp_lst := (cell_coord, lp) :: !coord_lp_lst)
-  done;
-  !coord_lp_lst
+    if shadowed then None
+    else
+      let cell =
+        match cell_at coord board with
+        | None -> failwith "should be impossible"
+        | Some c -> c
+      in
+      let plt_stage =
+        match Cell.plant cell with
+        | None -> failwith "should be impossible"
+        | Some plant -> Plant.plant_stage plant
+      in
+      Some (lp_map plt_stage)
+  in
+  List.fold_left
+    (fun acc player_cell_coord ->
+      match single_cell_shadowed player_cell_coord with
+      | None -> acc
+      | Some lp_value -> (player_cell_coord, lp_value) :: acc)
+    [] player_cells
 
 let get_photo_lp sun_dir players board =
-  let out = ref [] in
-  for i = 0 to List.length players - 1 do
-    let player = List.nth players i in
-    let player_cells =
-      List.map
-        (fun c -> Cell.coord c)
-        (List.filter
-           (fun c ->
-             match Cell.plant c with
-             | None -> false
-             | Some plant -> Plant.player_id plant = player)
-           (HexMap.flatten board.map))
-    in
-    out := (player, player_lp_helper sun_dir player_cells board) :: !out
-  done;
-  !out
+  let get_player_cell_coords player_id =
+    List.map
+      (fun cell -> Cell.coord cell)
+      (List.filter
+         (fun cell ->
+           match Cell.plant cell with
+           | None -> false
+           | Some plant -> Plant.player_id plant = player_id)
+         (HexMap.flatten board.map))
+  in
+  List.map
+    (fun player_id ->
+      ( player_id,
+        player_lp_helper sun_dir
+          (get_player_cell_coords player_id)
+          board ))
+    players
 
 let can_harvest player c board =
   (not (List.mem c board.touched_cells))
