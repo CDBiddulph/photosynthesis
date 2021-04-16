@@ -12,7 +12,9 @@ type t = {
 
 val ( +: ) : point2d -> point2d -> point2d
 
-val draw : t -> t -> point2d -> t
+(** [draw top_left graphic layer] is [layer] with [graphic] superimposed
+    on top of it, with the top-left corner of [graphic] at [top_left]. *)
+val draw : point2d -> t -> t -> t
 
 val map_grid : ('a option -> 'b option) -> 'a grid -> 'b grid
 

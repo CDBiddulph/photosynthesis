@@ -13,9 +13,12 @@ type t
 val init_gui :
   Cell.t list -> (PlayerId.t * (char * ANSITerminal.color)) list -> t
 
-(** [update_board gui cells] updates the GUI with all of the data in the
-    cells, while leaving any cells that are not in cells. Precondition:
-    hexagons of board match the hexagons formed in init *)
+(** [update_cells cells gui] is [gui] with the contents of each cell in
+    [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
+    the space corresponding to [c] will display a marker showing the
+    type of soil in [c]. Otherwise, if [Cell.plant c = Some p], [p] will
+    be displayed. Precondition: hexagons of board match the hexagons
+    formed in init *)
 val update_cells : Cell.t list -> t -> t
 
 (** [update_sun gui dir] updates the GUI so that the rays of the sun

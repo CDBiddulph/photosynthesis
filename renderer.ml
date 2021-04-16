@@ -9,8 +9,7 @@ type t = {
   color_graphics : (string * ANSITerminal.color grid) list;
 }
 
-let apply_to_layer layer_name f rend =
-  let new_layer = f (List.assoc layer_name rend.layers) in
+let set_layer layer_name new_layer rend =
   {
     rend with
     layers =
@@ -23,6 +22,8 @@ let get_graphic char_name color_name rend =
     char_grid = List.assoc char_name rend.char_graphics;
     color_grid = List.assoc color_name rend.color_graphics;
   }
+
+let get_layer name gui = List.assoc name gui.layers
 
 let init_rend size layer_names char_grid_names color_grid_names =
   (* layers must be in order from back to front, since it will be used

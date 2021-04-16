@@ -87,7 +87,7 @@ let char_of_color ch =
   ANSITerminal.(
     match ch with Black -> 'k' | other -> (string_of_color other).[0])
 
-let draw graphic layer top_left =
+let draw top_left graphic layer =
   let row_draw layer_r graphic_r =
     map_offset
       (* At least for now, ignore the layer beneath completely *)
