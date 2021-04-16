@@ -10,7 +10,10 @@ type t
     place corresponding to a Some value in [cells]. Then,
     [update_cells cells] will be called. The colors and chars of
     [player_params] will be used to render the trees of each individual
-    player. *)
+    player. The store and available area, when they are updated, will
+    render according to the player id that equals 1 in [player_params].
+    The store will have capacities according to the defaults, in order
+    of the plant stages in type [Plant.plant_stage]. *)
 val init_gui : Cell.t list -> (PlayerId.t * (char * color)) list -> t
 
 (** [update_cells cells gui] is [gui] with the contents of each cell in
@@ -34,6 +37,21 @@ val update_cursor : color -> HexUtil.coord option -> t -> t
 (** [update_message text color] updates the message at the top of the
     screen with [text] and [color]. *)
 val update_message : string -> color -> t -> t
+
+(** [update_turn player_id gui] configures [gui] to render its store and
+    available area according to [player_id] in future updates, and also
+    updates the sign displaying whose turn it is. *)
+val update_turn : PlayerId.t -> t -> t
+
+(** [update_store num_bought gui] is [gui] with the number of magenta
+    plants in each row updated from top to bottom according to
+    [num_bought], in the order of [Plant.all_stages]. *)
+val update_store : int list -> t -> t
+
+(** [update_available num_available gui] is [gui] with the number of
+    plants in each row in the available area updated from top to bottom
+    according to [num_available], in the order of [Plant.all_stages]. *)
+val update_available : int list -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

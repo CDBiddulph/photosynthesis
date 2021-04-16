@@ -9,7 +9,15 @@ type t = {
   color_graphics : (string * ANSITerminal.color grid) list;
 }
 
+exception Layer_not_found of string
+
+exception Char_grid_not_found of string
+
+exception Color_grid_not_found of string
+
 let set_layer layer_name new_layer rend =
+  if not (List.mem_assoc layer_name rend.layers) then
+    raise (Layer_not_found layer_name);
   {
     rend with
     layers =
@@ -18,10 +26,15 @@ let set_layer layer_name new_layer rend =
   }
 
 let get_graphic char_name color_name rend =
-  {
-    char_grid = List.assoc char_name rend.char_graphics;
-    color_grid = List.assoc color_name rend.color_graphics;
-  }
+  let char_grid =
+    try List.assoc char_name rend.char_graphics
+    with Not_found -> raise (Char_grid_not_found char_name)
+  in
+  let color_grid =
+    try List.assoc color_name rend.color_graphics
+    with Not_found -> raise (Color_grid_not_found color_name)
+  in
+  { char_grid; color_grid }
 
 let get_layer name gui = List.assoc name gui.layers
 

@@ -9,18 +9,11 @@ type t = {
   num_rounds : int;
 }
 
-let generate_player_ids num_players =
-  match num_players with
-  | 2 -> [ 1; 2 ]
-  | 3 -> [ 1; 2; 3 ]
-  | 4 -> [ 1; 2; 3; 4 ]
-  | _ -> failwith "Must be 2-4 players"
-
 let players_of_player_ids player_ids =
   List.map (fun id -> (id, Player.init_player id)) player_ids
 
 let init_game num_players ruleset =
-  let player_ids = generate_player_ids num_players in
+  let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
     player_order = player_ids;

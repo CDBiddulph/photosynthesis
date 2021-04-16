@@ -6,6 +6,9 @@ type t = {
   rend : Renderer.t;
   board_offset : point2d;
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
+  turn : PlayerId.t;
+  store_capacities : int list;
+  store_num_bought : int list;
 }
 
 let set_layer layer_name new_layer gui =
@@ -87,13 +90,31 @@ let draw_cursor layer_name color point_opt gui =
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
-let draw_text point text color gui =
+let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
-  draw_at_point "text" text_graphic gui point
+  draw_at_point layer_name text_graphic gui point
+
+let update_cells = draw_cells "cells"
+
+let update_sun dir gui = gui
+
+let update_cursor color coord gui =
+  let layer_name = "cursor" in
+  gui |> set_blank layer_name |> draw_cursor layer_name color coord
+
+let update_message text color gui =
+  gui |> set_blank "message"
+  |> draw_text "message" { x = 0; y = 0 } text color
+
+let update_turn player_id gui = { gui with turn = player_id }
+
+let update_store num_bought gui = failwith "Unimplemented"
+
+let update_available num_available gui = failwith "Unimplemented"
 
 let init_gui cells player_params =
   let layer_names =
-    [ "background"; "hexes"; "cursor"; "cells"; "text" ]
+    [ "background"; "hexes"; "cursor"; "cells"; "message" ]
   in
   let char_grid_names =
     [
@@ -130,6 +151,9 @@ let init_gui cells player_params =
           color_grid_names;
       board_offset = { x = 5; y = 2 };
       player_params;
+      turn = PlayerId.first;
+      store_capacities = [ 4; 4; 3; 2 ];
+      store_num_bought = List.map (fun _ -> 0) Plant.all_stages;
     }
   in
   gui
@@ -138,16 +162,5 @@ let init_gui cells player_params =
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
-
-let update_cells = draw_cells "cells"
-
-let update_sun dir gui = gui
-
-let update_cursor color coord gui =
-  let layer_name = "cursor" in
-  gui |> set_blank layer_name |> draw_cursor layer_name color coord
-
-let update_message text color gui =
-  gui |> set_blank "text" |> draw_text { x = 0; y = 0 } text color
 
 let render gui = render gui.rend

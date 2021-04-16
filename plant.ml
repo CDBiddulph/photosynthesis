@@ -28,3 +28,5 @@ let next_stage stage =
   | Small -> Some Medium
   | Medium -> Some Large
   | Large -> None
+
+let all_stages = [ Seed; Small; Medium; Large ]

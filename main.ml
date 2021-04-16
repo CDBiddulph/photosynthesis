@@ -39,6 +39,7 @@ let main () =
        ]
   |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
   |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
+  |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
   |> render;
   let state = init_state gui in
