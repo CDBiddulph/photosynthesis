@@ -10,7 +10,12 @@ type t = {
   color_grid : ANSITerminal.color grid;
 }
 
+(** [p1 +: p2] is the result of elementwise addition of [p1] and [p2]. *)
 val ( +: ) : point2d -> point2d -> point2d
+
+(** [p1 *: p2] is the result of elementwise multiplication of [p1] and
+    [p2]. *)
+val ( *: ) : point2d -> point2d -> point2d
 
 (** [draw top_left graphic layer] is [layer] with [graphic] superimposed
     on top of it, with the top-left corner of [graphic] at [top_left]. *)

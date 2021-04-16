@@ -5,6 +5,8 @@ open HexUtil
 type t = {
   rend : Renderer.t;
   board_offset : point2d;
+  store_offset : point2d;
+  available_offset : point2d;
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
   store_capacities : int list;
@@ -49,9 +51,9 @@ let render_char player_id gui =
 let render_color player_id gui =
   snd (List.assoc player_id gui.player_params)
 
-(** [draw_plant gui point plant layer] returns [layer] with [plant]
-    drawn in the position corresponding to [point] according to the
-    offset and graphics in [gui]. *)
+(** [draw_plant layer_name plant point gui] returns [gui] with [plant]
+    drawn in the position corresponding to [point] in the layer of
+    [layer_name] according to the offset and graphics in [gui]. *)
 let draw_plant layer_name plant point gui =
   let char_name =
     "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
@@ -76,11 +78,13 @@ let draw_cells layer_name cells gui =
   in
   List.fold_left draw_cell gui cells
 
+let update_cells = draw_cells "cells"
+
 let set_blank layer_name gui =
   set_layer layer_name (blank_layer gui.rend) gui
 
-let draw_cursor layer_name color point_opt gui =
-  match point_opt with
+let draw_cursor layer_name color coord_opt gui =
+  match coord_opt with
   | None -> gui
   | Some point ->
       let graphic =
@@ -90,31 +94,73 @@ let draw_cursor layer_name color point_opt gui =
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
+let update_cursor color coord_opt gui =
+  let layer_name = "cursor" in
+  gui |> set_blank layer_name |> draw_cursor layer_name color coord_opt
+
 let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
   draw_at_point layer_name text_graphic gui point
-
-let update_cells = draw_cells "cells"
-
-let update_sun dir gui = gui
-
-let update_cursor color coord gui =
-  let layer_name = "cursor" in
-  gui |> set_blank layer_name |> draw_cursor layer_name color coord
 
 let update_message text color gui =
   gui |> set_blank "message"
   |> draw_text "message" { x = 0; y = 0 } text color
 
+let update_sun dir gui = gui
+
 let update_turn player_id gui = { gui with turn = player_id }
 
-let update_store num_bought gui = failwith "Unimplemented"
+let draw_plant_row
+    layer_name
+    spacing
+    player_id
+    origin
+    nums
+    gui
+    (row_i, stage) =
+  let plant = Plant.init_plant player_id stage in
+  let capacity = List.nth nums row_i in
+  let max_capacity = 4 in
+  List.fold_left
+    (fun g col_i ->
+      let top_left =
+        origin
+        +: (spacing *: { x = max_capacity - 1 - col_i; y = row_i })
+      in
+      draw_plant layer_name plant top_left g)
+    gui
+    (List.init capacity Fun.id)
 
-let update_available num_available gui = failwith "Unimplemented"
+let draw_plant_inventory layer_name offset nums gui =
+  let enumerate_stages =
+    List.mapi (fun i s -> (i, s)) Plant.all_stages
+  in
+  List.fold_left
+    (draw_plant_row layer_name { x = 8; y = 5 } gui.turn offset nums)
+    gui enumerate_stages
+
+let update_store num_bought gui =
+  gui
+  |> draw_plant_inventory "store" gui.store_offset gui.store_capacities
+
+let update_available num_available gui =
+  gui
+  |> draw_plant_inventory "available" gui.available_offset num_available
+
+let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
 let init_gui cells player_params =
   let layer_names =
-    [ "background"; "hexes"; "cursor"; "cells"; "message" ]
+    [
+      "background";
+      "hexes";
+      "cursor";
+      "static text";
+      "cells";
+      "store";
+      "available";
+      "message";
+    ]
   in
   let char_grid_names =
     [
@@ -147,9 +193,11 @@ let init_gui cells player_params =
   let gui =
     {
       rend =
-        init_rend { x = 120; y = 45 } layer_names char_grid_names
+        init_rend { x = 140; y = 45 } layer_names char_grid_names
           color_grid_names;
       board_offset = { x = 5; y = 2 };
+      store_offset = { x = 85; y = 0 };
+      available_offset = { x = 85; y = 20 };
       player_params;
       turn = PlayerId.first;
       store_capacities = [ 4; 4; 3; 2 ];

@@ -39,7 +39,7 @@ let _init_game_test
     setup_rounds_left
     scoring_points
     num_rounds =
-  let player_ids = generate_player_ids num_players in
+  let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
     player_order = player_ids;

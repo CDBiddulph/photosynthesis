@@ -28,10 +28,10 @@ val update_cells : Cell.t list -> t -> t
     will appear to point in direction [dir].*)
 val update_sun : HexUtil.dir -> t -> t
 
-(** [update_cursor gui color coord_opt], if [coord_opt = Some coord],
+(** [update_cursor color coord_opt gui], if [coord_opt = Some coord],
     updates the GUI to create a cursor with color [color] at position
     [coord]. If [coord_opt = None], no cursor is drawn. If there was
-    previously a cursor on display, it is removed. *)
+    previously a cursor displayed, it is removed. *)
 val update_cursor : color -> HexUtil.coord option -> t -> t
 
 (** [update_message text color] updates the message at the top of the
@@ -45,13 +45,25 @@ val update_turn : PlayerId.t -> t -> t
 
 (** [update_store num_bought gui] is [gui] with the number of magenta
     plants in each row updated from top to bottom according to
-    [num_bought], in the order of [Plant.all_stages]. *)
+    [num_bought], in the order of [Plant.all_stages], and the rest of
+    the plants colored according to the current player's turn as stored
+    by [gui]. Requires:
+    [List.length num_bought = List.length Plant.all_stages]. *)
 val update_store : int list -> t -> t
 
 (** [update_available num_available gui] is [gui] with the number of
     plants in each row in the available area updated from top to bottom
     according to [num_available], in the order of [Plant.all_stages]. *)
 val update_available : int list -> t -> t
+
+(** [update_plant_highlight loc_opt gui] removes any plant highlights
+    from gui if [loc_opt = None]. Otherwise, if [loc = is_store, stage]:
+    if [is_store = true], the first unbought plant of [stage] in the
+    store from the left is highlighted; else, the first plant of [stage]
+    in the available area from the left is highlighted. If the plant to
+    highlight does not exist, removes any plant highlights from [gui],
+    as if [loc_opt = None]. *)
+val update_plant_highlight : (bool * Plant.plant_stage) option -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

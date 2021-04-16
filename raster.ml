@@ -10,8 +10,12 @@ type t = {
   color_grid : ANSITerminal.color grid;
 }
 
-(** [p1 + p2] is the result of elementwise addition of [p1] and [p2]. *)
+(** [p1 +: p2] is the result of elementwise addition of [p1] and [p2]. *)
 let ( +: ) p1 p2 = { x = p1.x + p2.x; y = p1.y + p2.y }
+
+(** [p1 *: p2] is the result of elementwise multiplication of [p1] and
+    [p2]. *)
+let ( *: ) p1 p2 = { x = p1.x * p2.x; y = p1.y * p2.y }
 
 (** [map_grid f grid] is a list of lists [result] with the dimensions of
     [grid1], where [result.(i).(j) = f grid1.(i).(j)]. *)
