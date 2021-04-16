@@ -29,6 +29,10 @@ val fill_raster :
 
 val blank_raster : int -> int -> t
 
+(** [text_raster text color] is a raster that contains just one line,
+    with the text of [text] and color [color]. *)
+val text_raster : string -> ANSITerminal.color -> t
+
 val load_char_grids : char -> string list -> (string * char grid) list
 
 val load_color_grids :

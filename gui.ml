@@ -103,6 +103,8 @@ let draw_cells gui cells layer =
   in
   List.fold_left (draw_cell gui) layer cells
 
+let draw_text text color point gui = draw (*TODO*)
+
 (* [update_cells cells gui] is [gui] with the contents of each cell in
    [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
    the space corresponding to [c] will display a marker showing the type
@@ -130,7 +132,7 @@ let update_cursor color coord_opt gui =
     [(init_gui cells).layers] has the same dimensions. *)
 let init_gui cells player_params =
   let w = 120 in
-  let h = 50 in
+  let h = 45 in
   let background =
     fill_raster (Some '.') (Some ANSITerminal.Magenta) w h
   in
@@ -179,7 +181,7 @@ let init_gui cells player_params =
             "soil/";
           ];
       hex_offset = { x = 0; y = 9 };
-      board_offset = { x = 10; y = 5 };
+      board_offset = { x = 5; y = 2 };
       player_params;
     }
   in

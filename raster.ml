@@ -101,20 +101,27 @@ let draw graphic layer top_left =
       map_offset row_draw layer.color_grid graphic.color_grid top_left.y;
   }
 
-let fill_raster ch col w h =
-  let rec fill_grid elem w h =
-    let rec fill_row elem w =
-      match w with 0 -> [] | n -> elem :: fill_row elem (w - 1)
-    in
-    match h with
-    | 0 -> []
-    | n -> fill_row elem w :: fill_grid elem w (h - 1)
+let rec fill_grid elem w h =
+  let rec fill_row elem w =
+    match w with 0 -> [] | n -> elem :: fill_row elem (w - 1)
   in
+  match h with
+  | 0 -> []
+  | n -> fill_row elem w :: fill_grid elem w (h - 1)
+
+let fill_raster ch col w h =
   { char_grid = fill_grid ch w h; color_grid = fill_grid col w h }
 
 (** [blank_raster w h] is a raster with a rectangular grid of [None]
     char options with width [w] and height [h]. *)
 let blank_raster w h = fill_raster None None w h
+
+let text_raster text color =
+  let len = String.length text in
+  {
+    char_grid = [ List.init len (fun i -> Some (String.get text i)) ];
+    color_grid = fill_grid (Some color) len 1;
+  }
 
 (** [load_char_grid none_c filename] is a [char grid] representing the
     file at [filename] relative to the working directory. Each line
