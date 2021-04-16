@@ -12,6 +12,7 @@ type round_phase =
 type t = {
   map : HexMap.t;
   rules : ruleset;
+  touched_cells : HexUtil.coord list;
 }
 
 exception IllegalPlacePlant
@@ -29,7 +30,8 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
-let init_board ruleset = { map = HexMap.init_map (); rules = ruleset }
+let init_board ruleset =
+  { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
 
 let cell_if_empty coord board =
   match cell_at board coord with
@@ -40,11 +42,14 @@ let cell_if_empty coord board =
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
 let can_plant_seed player_id coord board =
-  cell_if_empty board coord <> None
+  (not (List.mem coord board.touched_cells))
+  && cell_if_empty board coord <> None
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
     [coord] in [board] and the cell has soil of type [1]. *)
 let can_plant_small coord board =
+  (not (List.mem coord board.touched_cells))
+  &&
   match cell_if_empty board coord with
   | None -> false
   | Some c -> Cell.soil c = 1
@@ -60,6 +65,7 @@ let place_plant can_place plant coord board =
             HexMap.set_cell board.map
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
+          touched_cells = coord :: board.touched_cells;
         }
   else raise IllegalPlacePlant
 
@@ -76,6 +82,8 @@ let plant_small player_id coord board =
     coord board
 
 let can_grow_plant player_id coord board =
+  (not (List.mem coord board.touched_cells))
+  &&
   match plant_at coord board with
   | None -> false
   | Some old_plant ->
@@ -108,6 +116,7 @@ let grow_plant coord player_id board =
             HexMap.set_cell board.map
               (Some (Cell.set_plant old_cell next_plant))
               coord;
+          touched_cells = coord :: board.touched_cells;
         }
   else raise IllegalGrowPlant
 
@@ -216,6 +225,8 @@ let get_photo_lp sun_dir players board =
   !out
 
 let can_harvest player c board =
+  (not (List.mem c board.touched_cells))
+  &&
   match cell_at c board with
   | None -> false
   | Some cell -> (
@@ -235,12 +246,16 @@ let harvest player_id coord board =
           Some (Cell.init_cell (Cell.soil cell) None coord)
         in
         let new_map = HexMap.set_cell board.map new_cell coord in
-        { board with map = new_map }
+        {
+          board with
+          map = new_map;
+          touched_cells = coord :: board.touched_cells;
+        }
   else raise IllegalHarvest
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
-let end_turn board = failwith "Unimplemented"
+let end_turn board = { board with touched_cells = [] }
 
 (* TODO: some notion of turn to keep track of cells that are touched
    this "turn" *)
