@@ -39,11 +39,56 @@ let cell_if_empty coord board =
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
+(** [neighbors_in_dir board coord sun_dir] is the list of the three
+    neighbors in direction [sun_dir]. If there are fewer than three
+    legal neighbors, return only the legal neighbors. *)
+let neighbors_in_dir board coord sun_dir =
+  match HexMap.neighbor board.map coord sun_dir with
+  | None -> []
+  | Some fst_neigh_coord ->
+      fst_neigh_coord
+      ::
+      (match HexMap.neighbor board.map fst_neigh_coord sun_dir with
+      | None -> []
+      | Some snd_neigh_coord ->
+          snd_neigh_coord
+          ::
+          (match HexMap.neighbor board.map snd_neigh_coord sun_dir with
+          | None -> []
+          | Some thd_neigh_coord -> [ thd_neigh_coord ]))
+
+let within_radius player_id coord board =
+  let valid_dirs = [ 0; 1; 2; 3; 4; 5 ] in
+  let all_neighbors =
+    List.flatten
+      (List.map
+         (fun dir -> neighbors_in_dir board coord dir)
+         valid_dirs)
+  in
+  let open Plant in
+  List.fold_left
+    (* check if has plant owned by player; if not, false; if so, match
+       plant size -> allowed distance *)
+      (fun acc neighbor_coord ->
+      match cell_at neighbor_coord with
+      | None -> failwith "Should never happen"
+      | Some cell -> (
+          match Cell.plant with
+          | None -> acc
+          | Some plant ->
+              if Plant.player_id plant = player_id then
+                acc
+                || HexMap.dist board.map neighbor_coord coord
+                   <= lp_map (plant_stage plant)
+              else acc))
+    false all_neighbors
+
 (* TODO: check that location is within the necessary radius of one of
    the player's trees *)
 let can_plant_seed player_id coord board =
   (not (List.mem coord board.touched_cells))
   && cell_if_empty board coord <> None
+  && within_radius player_id coord board
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
     [coord] in [board] and the cell has soil of type [1]. *)
@@ -257,7 +302,6 @@ let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
 let end_turn board = { board with touched_cells = [] }
 
-(* TODO: some notion of turn to keep track of cells that are touched
-   this "turn" *)
 (* TODO: update shadows/lp to use blocks instead of what's happening now
    (?) *)
+(* TODO: update photo_lp to use neighbors_in_dir *)
