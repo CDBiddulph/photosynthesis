@@ -25,9 +25,9 @@ val replace_color_in_raster :
   ANSITerminal.color -> ANSITerminal.color -> t -> t
 
 val fill_raster :
-  char option -> ANSITerminal.color option -> int -> int -> t
+  point2d -> char option -> ANSITerminal.color option -> t
 
-val blank_raster : int -> int -> t
+val blank_raster : point2d -> t
 
 (** [text_raster text color] is a raster that contains just one line,
     with the text of [text] and color [color]. *)

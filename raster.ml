@@ -101,26 +101,27 @@ let draw graphic layer top_left =
       map_offset row_draw layer.color_grid graphic.color_grid top_left.y;
   }
 
-let rec fill_grid elem w h =
+let rec fill_grid elem size =
   let rec fill_row elem w =
     match w with 0 -> [] | n -> elem :: fill_row elem (w - 1)
   in
-  match h with
+  match size.y with
   | 0 -> []
-  | n -> fill_row elem w :: fill_grid elem w (h - 1)
+  | n ->
+      fill_row elem size.x :: fill_grid elem (size +: { x = 0; y = -1 })
 
-let fill_raster ch col w h =
-  { char_grid = fill_grid ch w h; color_grid = fill_grid col w h }
+let fill_raster size ch col =
+  { char_grid = fill_grid ch size; color_grid = fill_grid col size }
 
 (** [blank_raster w h] is a raster with a rectangular grid of [None]
     char options with width [w] and height [h]. *)
-let blank_raster w h = fill_raster None None w h
+let blank_raster size = fill_raster size None None
 
 let text_raster text color =
   let len = String.length text in
   {
     char_grid = [ List.init len (fun i -> Some (String.get text i)) ];
-    color_grid = fill_grid (Some color) len 1;
+    color_grid = fill_grid (Some color) { x = len; y = 1 };
   }
 
 (** [load_char_grid none_c filename] is a [char grid] representing the
@@ -232,6 +233,6 @@ let merge_rasters raster_order rasters =
           (merge_two_rasters acc (List.assoc h rasters))
   in
   match raster_order with
-  | [] -> blank_raster 0 0
+  | [] -> blank_raster { x = 0; y = 0 }
   | [ h ] -> List.assoc h rasters
   | h :: t -> merge_rasters_helper t rasters (List.assoc h rasters)
