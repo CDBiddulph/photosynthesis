@@ -18,19 +18,13 @@ let apply_to_layer layer_name f rend =
       :: List.remove_assoc layer_name rend.layers;
   }
 
-(** [get_graphic rend char_name color_name] is the combined char-color
-    graphic with [char_name] from [rend.char_graphics] and [color_name]
-    from [rend.color_graphics]. *)
 let get_graphic char_name color_name rend =
   {
     char_grid = List.assoc char_name rend.char_graphics;
     color_grid = List.assoc color_name rend.color_graphics;
   }
 
-(** [init_rend cells] is a Renderer with the layers of rasters necessary
-    to run the game. Postcondition: Each raster in
-    [(init_rend cells).layers] has the same dimensions. *)
-let init_rend cells size layer_names char_grid_names color_grid_names =
+let init_rend size layer_names char_grid_names color_grid_names =
   (* layers must be in order from back to front, since it will be used
      to make layer_order *)
   let layers = List.map (fun n -> (n, blank_raster size)) layer_names in

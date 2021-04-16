@@ -141,7 +141,7 @@ let init_gui cells player_params =
   let gui =
     {
       rend =
-        init_rend cells { x = 120; y = 45 } layer_names char_grid_names
+        init_rend { x = 120; y = 45 } layer_names char_grid_names
           color_grid_names;
       hex_offset = { x = 0; y = 9 };
       board_offset = { x = 5; y = 2 };
