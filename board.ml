@@ -203,3 +203,5 @@ let remove_plant board c =
         let new_map = HexMap.set_cell board.map new_cell c in
         { board with map = new_map }
   else board
+
+let end_turn board = failwith "Unimplemented"
