@@ -1,5 +1,6 @@
 (** Takes data for various rendered components and re-renders them on
     command. *)
+open ANSITerminal
 
 (** Type representing the GUI state *)
 type t
@@ -10,8 +11,7 @@ type t
     [update_cells cells] will be called. The colors and chars of
     [player_params] will be used to render the trees of each individual
     player. *)
-val init_gui :
-  Cell.t list -> (PlayerId.t * (char * ANSITerminal.color)) list -> t
+val init_gui : Cell.t list -> (PlayerId.t * (char * color)) list -> t
 
 (** [update_cells cells gui] is [gui] with the contents of each cell in
     [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
@@ -29,7 +29,11 @@ val update_sun : HexUtil.dir -> t -> t
     updates the GUI to create a cursor with color [color] at position
     [coord]. If [coord_opt = None], no cursor is drawn. If there was
     previously a cursor on display, it is removed. *)
-val update_cursor : ANSITerminal.color -> HexUtil.coord option -> t -> t
+val update_cursor : color -> HexUtil.coord option -> t -> t
+
+(** [update_message text color] updates the message at the top of the
+    screen with [text] and [color]. *)
+val update_message : string -> color -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

@@ -37,7 +37,9 @@ let main () =
          basic_cell3 { diag = 3; col = 3 };
          basic_cell4 { diag = 0; col = 0 };
        ]
+  |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
   |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
+  |> update_message "(P) Plant small tree" ANSITerminal.White
   |> render;
   let state = init_state gui in
   read_char state
