@@ -7,9 +7,10 @@ type t = {
   board_offset : point2d;
   store_offset : point2d;
   available_offset : point2d;
+  plant_num_offset : point2d;
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
-  store_capacities : int list;
+  store_costs : int list list;
   store_num_bought : int list;
 }
 
@@ -110,42 +111,78 @@ let update_sun dir gui = gui
 
 let update_turn player_id gui = { gui with turn = player_id }
 
+let draw_plant_num layer_name point color num gui =
+  gui
+  |> draw_text layer_name
+       (point +: gui.plant_num_offset)
+       (string_of_int num) color
+
+let plant_inv_point max_capacity origin row_i col_i =
+  let x = 8 * (max_capacity - 1 - col_i) in
+  (* Equivalent to taking the sum from 4 to row_i + 4 *)
+  let y = ((row_i * row_i) + (7 * row_i)) / 2 in
+  origin +: { x; y }
+
 let draw_plant_row
-    layer_name
-    spacing
+    plant_layer_name
+    cost_layer_name
     player_id
     origin
     nums
+    costs_opt
     gui
     (row_i, stage) =
   let plant = Plant.init_plant player_id stage in
   let capacity = List.nth nums row_i in
-  let max_capacity = 4 in
+  let row_costs_opt =
+    match costs_opt with
+    | None -> None
+    | Some costs -> Some (List.nth costs row_i)
+  in
+  let color = render_color player_id gui in
+  let num_draw_f top_left col_i g =
+    match row_costs_opt with
+    | None -> g
+    | Some cost ->
+        draw_plant_num cost_layer_name top_left color
+          (List.nth cost col_i) g
+  in
   List.fold_left
     (fun g col_i ->
-      let top_left =
-        origin
-        +: (spacing *: { x = max_capacity - 1 - col_i; y = row_i })
-      in
-      draw_plant layer_name plant top_left g)
+      let top_left = plant_inv_point 4 origin row_i col_i in
+      g
+      |> draw_plant plant_layer_name plant top_left
+      |> num_draw_f top_left col_i)
     gui
-    (List.init capacity Fun.id)
+    (List.rev (List.init capacity Fun.id))
 
-let draw_plant_inventory layer_name offset nums gui =
+let draw_plant_inventory
+    plant_layer_name
+    cost_layer_name
+    offset
+    nums
+    costs
+    gui =
   let enumerate_stages =
     List.mapi (fun i s -> (i, s)) Plant.all_stages
   in
   List.fold_left
-    (draw_plant_row layer_name { x = 8; y = 5 } gui.turn offset nums)
-    gui enumerate_stages
+    (draw_plant_row plant_layer_name cost_layer_name gui.turn offset
+       nums costs)
+    gui
+    (List.rev enumerate_stages)
 
 let update_store num_bought gui =
+  let capacities = List.map List.length gui.store_costs in
   gui
-  |> draw_plant_inventory "store" gui.store_offset gui.store_capacities
+  |> draw_plant_inventory "store_plants" "store_costs" gui.store_offset
+       capacities (Some gui.store_costs)
 
 let update_available num_available gui =
+  (* cost_layer_name is not used since costs is None, so set it to "" *)
   gui
-  |> draw_plant_inventory "available" gui.available_offset num_available
+  |> draw_plant_inventory "available" "" gui.available_offset
+       num_available None
 
 let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
@@ -155,9 +192,10 @@ let init_gui cells player_params =
       "background";
       "hexes";
       "cursor";
-      "static text";
       "cells";
-      "store";
+      "static text";
+      "store_plants";
+      "store_costs";
       "available";
       "message";
     ]
@@ -198,9 +236,11 @@ let init_gui cells player_params =
       board_offset = { x = 5; y = 2 };
       store_offset = { x = 85; y = 0 };
       available_offset = { x = 85; y = 20 };
+      plant_num_offset = { x = 5; y = 5 };
       player_params;
       turn = PlayerId.first;
-      store_capacities = [ 4; 4; 3; 2 ];
+      store_costs =
+        [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ];
       store_num_bought = List.map (fun _ -> 0) Plant.all_stages;
     }
   in
