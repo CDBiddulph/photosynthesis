@@ -2,6 +2,8 @@ B _build
 PKG ounit2
 PKG yojson
 PKG graphics
+PKG qcheck
+PKG ocamlbuild
 PKG ANSITerminal
 PKG qcheck
 PKG ocamlbuild

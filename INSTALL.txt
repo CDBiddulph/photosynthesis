@@ -1,2 +1,10 @@
-There should not be anything to install besides the standard CS 3110 required modules.
-run [make play] to see the GUI with a sample board layout.
+Run the following commands to install the graphics package:
+opam install graphics
+
+You may need to run the following in order to install the graphics package:
+brew install pkg-config
+
+Run the following command in the parent directory (the directory with the Makefile)
+to run our program:
+make build
+make play
