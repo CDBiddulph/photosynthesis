@@ -86,3 +86,11 @@ val valid_coord : HexUtil.coord -> t -> bool
 (** [plant_at board coord] is the plant at [coord] on [board], if it
     exists. *)
 val plant_at : HexUtil.coord -> t -> Plant.t option
+
+(** [end_turn board] resets the cells touched in the current turn,
+    allowing the next player to execute their actions. *)
+val end_turn : t -> t
+
+(** [actionable_cells board] is a list of cells that can have operations
+    performed on them. *)
+val actionable_cells : t -> HexUtil.coord list

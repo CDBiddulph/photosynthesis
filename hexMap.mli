@@ -36,7 +36,3 @@ val neighbor : t -> HexUtil.coord -> HexUtil.dir -> HexUtil.coord option
 
 (** [flatten map] is the list of all valid [Cell]s in the [map]. *)
 val flatten : t -> Cell.t list
-
-(** [end_turn board] resets the cells touched in the current turn,
-    allowing the next player to execute their actions. *)
-val end_turn : t -> t
