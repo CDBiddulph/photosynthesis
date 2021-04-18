@@ -18,6 +18,10 @@ exception IllegalHarvest
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
 
+(** [testing_init_board ruleset cells] initializes a board with the
+    given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
+val testing_init_board : ruleset -> Cell.t list -> t
+
 (** [plant_seed stage board coord player_id] places a seed belonging to
     [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
     placing a seed as [player] in [coord] on [board] is not a legal

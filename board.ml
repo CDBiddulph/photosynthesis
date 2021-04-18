@@ -39,6 +39,16 @@ let plant_at board coord =
 let init_board ruleset =
   { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
 
+let testing_init_board ruleset cells =
+  let board = init_board ruleset in
+  let new_map =
+    List.fold_left
+      (fun map cell ->
+        HexMap.set_cell map (Some cell) (Cell.coord cell))
+      board.map cells
+  in
+  { board with map = new_map }
+
 let cell_if_empty coord board =
   match cell_at board coord with
   | None -> None
