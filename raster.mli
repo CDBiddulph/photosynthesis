@@ -28,8 +28,15 @@ val map2_grid :
 
 val replace_char_in_raster : char -> char -> t -> t
 
+(** [replace_color_in_raster find_color replace_color raster] is
+    [raster] with all instances of [find_color] replaced by
+    [replace_color]. *)
 val replace_color_in_raster :
   ANSITerminal.color -> ANSITerminal.color -> t -> t
+
+(** [fill_color_in_raster fill_color raster] is [raster] with all colors
+    in the color grid of raster replaced by [fill_color]. *)
+val fill_color_in_raster : ANSITerminal.color -> t -> t
 
 val fill_raster :
   point2d -> char option -> ANSITerminal.color option -> t

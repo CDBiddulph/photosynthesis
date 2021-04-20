@@ -205,6 +205,12 @@ let replace_color_in_raster find_color replace_color raster =
         raster.color_grid;
   }
 
+let fill_color_in_raster fill_color raster =
+  {
+    raster with
+    color_grid = map_grid (fun _ -> Some fill_color) raster.color_grid;
+  }
+
 let replace_char_in_raster find_char replace_char raster =
   {
     raster with

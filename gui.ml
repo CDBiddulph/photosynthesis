@@ -33,7 +33,7 @@ let draw_at_point layer_name graphic gui point =
 let draw_hexes layer_name points gui =
   let hex_graphic =
     gui.rend |> get_graphic "hex" "hex"
-    |> ANSITerminal.(replace_color_in_raster Default White)
+    |> ANSITerminal.(fill_color_in_raster White)
   in
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
@@ -58,7 +58,11 @@ let draw_plant layer_name plant point gui =
   let char_name =
     "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
   in
-  let color_name = "plants/tree" in
+  let color_name =
+    match Plant.plant_stage plant with
+    | Seed -> "plants/seed"
+    | Small | Medium | Large -> "plants/tree"
+  in
   let graphic =
     let player_id = Plant.player_id plant in
     gui.rend
@@ -89,7 +93,7 @@ let draw_cursor layer_name color coord_opt gui =
   | Some point ->
       let graphic =
         gui.rend |> get_graphic "hex" "hex"
-        |> replace_color_in_raster ANSITerminal.Default color
+        |> fill_color_in_raster color
       in
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
@@ -213,8 +217,8 @@ let init_gui cells player_params =
       "hexes";
       "cursor";
       "cells";
-      "static text";
       "store_plants";
+      "store_bought";
       "store_costs";
       "available";
       "static text";
@@ -245,6 +249,7 @@ let init_gui cells player_params =
       "miscellaneous/empty";
       "miscellaneous/vert";
       "miscellaneous/horiz";
+      "plants/seed";
       "plants/tree";
       "soil/";
     ]
