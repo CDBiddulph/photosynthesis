@@ -4,10 +4,7 @@ open HexUtil
 
 type t = {
   rend : Renderer.t;
-  board_offset : point2d;
-  store_offset : point2d;
-  available_offset : point2d;
-  plant_num_offset : point2d;
+  offsets : (string * point2d) list;
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
@@ -17,9 +14,11 @@ type t = {
 let set_layer layer_name new_layer gui =
   { gui with rend = set_layer layer_name new_layer gui.rend }
 
+let get_offset name gui = List.assoc name gui.offsets
+
 let point2d_of_hex_coord gui coord =
   { x = coord.col * 11; y = (coord.diag * 6) - (coord.col * 3) + 9 }
-  +: gui.board_offset
+  +: get_offset "board" gui
 
 (** [draw_at_point gui graphic_name layer point] returns [layer] with
     the graphic with name [graphic_name] of [gui] drawn in the position
@@ -103,6 +102,14 @@ let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
   draw_at_point layer_name text_graphic gui point
 
+let rec draw_text_lines layer_name point lines color gui =
+  match lines with
+  | [] -> gui
+  | h :: t ->
+      gui
+      |> draw_text layer_name point h color
+      |> draw_text_lines layer_name (point +: { x = 0; y = 1 }) t color
+
 let update_message text color gui =
   gui |> set_blank "message"
   |> draw_text "message" { x = 0; y = 0 } text color
@@ -114,7 +121,7 @@ let update_turn player_id gui = { gui with turn = player_id }
 let draw_plant_num layer_name point color num gui =
   gui
   |> draw_text layer_name
-       (point +: gui.plant_num_offset)
+       (point +: get_offset "plant_num" gui)
        (string_of_int num) color
 
 let plant_inv_point max_capacity origin row_i col_i =
@@ -175,14 +182,27 @@ let draw_plant_inventory
 let update_store num_bought gui =
   let capacities = List.map List.length gui.store_costs in
   gui
-  |> draw_plant_inventory "store_plants" "store_costs" gui.store_offset
+  |> draw_plant_inventory "store_plants" "store_costs"
+       (get_offset "store" gui)
        capacities (Some gui.store_costs)
 
 let update_available num_available gui =
   (* cost_layer_name is not used since costs is None, so set it to "" *)
   gui
-  |> draw_plant_inventory "available" "" gui.available_offset
+  |> draw_plant_inventory "available" ""
+       (get_offset "available" gui)
        num_available None
+
+let draw_static_text layer_name gui =
+  let draw_plant_inventory_static_text offset_name title =
+    draw_text_lines layer_name
+      (get_offset offset_name gui +: { x = 2; y = 1 })
+      [ title; "-----------------------------" ]
+      ANSITerminal.White
+  in
+  gui
+  |> draw_plant_inventory_static_text "store" "Store"
+  |> draw_plant_inventory_static_text "available" "Available"
 
 let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
@@ -197,6 +217,7 @@ let init_gui cells player_params =
       "store_plants";
       "store_costs";
       "available";
+      "static text";
       "message";
     ]
   in
@@ -233,10 +254,13 @@ let init_gui cells player_params =
       rend =
         init_rend { x = 140; y = 45 } layer_names char_grid_names
           color_grid_names;
-      board_offset = { x = 5; y = 2 };
-      store_offset = { x = 85; y = 0 };
-      available_offset = { x = 85; y = 20 };
-      plant_num_offset = { x = 5; y = 5 };
+      offsets =
+        [
+          ("board", { x = 5; y = 2 });
+          ("store", { x = 85; y = 0 });
+          ("available", { x = 85; y = 23 });
+          ("plant_num", { x = 5; y = 5 });
+        ];
       player_params;
       turn = PlayerId.first;
       store_costs =
@@ -250,5 +274,6 @@ let init_gui cells player_params =
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
+  |> draw_static_text "static text"
 
 let render gui = render gui.rend
