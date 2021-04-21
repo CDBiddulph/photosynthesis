@@ -1,5 +1,4 @@
-open Cell
-open Game
+open Plant
 
 exception OutOfPlant of Plant.plant_stage
 
