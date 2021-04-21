@@ -82,6 +82,9 @@ let cell_at (map : t) coord : Cell.t option =
 
 let valid_coord (map : t) c = cell_at map c <> None
 
+(* TODO: should prevent None set? Shouldn't ever happen, but would
+   permanently reduce the board *)
+
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
 let set_cell (map : t) cell coord : t =

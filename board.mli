@@ -22,6 +22,9 @@ val init_board : ruleset -> t
     given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
 val testing_init_board : ruleset -> Cell.t list -> t
 
+(** [ruleset board] is the ruleset used for [board]. *)
+val ruleset : t -> ruleset
+
 (** [plant_seed stage board coord player_id] places a seed belonging to
     [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
     placing a seed as [player] in [coord] on [board] is not a legal

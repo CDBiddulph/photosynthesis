@@ -1,3 +1,4 @@
+(** TODO: Documentation for t *)
 type t = {
   players : (PlayerId.t * Player.t) list;
   player_order : PlayerId.t list;
@@ -221,7 +222,7 @@ let can_plant_seed coord player_id game =
   && Board.can_plant_seed player_id coord game.board
 
 let can_plant_small coord player_id game =
-  is_setup game && Board.can_plant_seed player_id coord game.board
+  is_setup game && Board.can_plant_small coord game.board
 
 let can_grow_plant coord player_id game =
   Board.can_grow_plant player_id coord game.board
@@ -231,3 +232,6 @@ let next_scoring_points game soil = fst (get_scoring_points game soil)
 let cells game = Board.cells game.board
 
 let scoring_points game = game.scoring_points
+
+(* TODO: End game mechanism; potentially add game_over bool and getter
+   to game struct for ui/gui to access, and prevent further moves *)

@@ -27,15 +27,6 @@ let plant_to_int (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-let cell_at coord board = HexMap.cell_at board.map coord
-
-let valid_coord coord board = HexMap.valid_coord board.map coord
-
-let plant_at board coord =
-  match cell_at board coord with
-  | None -> None
-  | Some cell -> Cell.plant cell
-
 let init_board ruleset =
   { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
 
@@ -48,6 +39,17 @@ let testing_init_board ruleset cells =
       board.map cells
   in
   { board with map = new_map }
+
+let ruleset board = board.rules
+
+let cell_at coord board = HexMap.cell_at board.map coord
+
+let valid_coord coord board = HexMap.valid_coord board.map coord
+
+let plant_at board coord =
+  match cell_at board coord with
+  | None -> None
+  | Some cell -> Cell.plant cell
 
 let cell_if_empty coord board =
   match cell_at board coord with
