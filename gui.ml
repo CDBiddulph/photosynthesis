@@ -156,13 +156,19 @@ let draw_plant_inventory layer_name offset nums gui =
     gui
     (List.rev enumerate_graphics)
 
-let draw_costs layer_name offset color gui =
+let draw_costs layer_name offset color limit_opt gui =
   let indexed_costs =
     List.mapi
       (fun row_i cost_row ->
         List.mapi (fun col_i cost -> (row_i, col_i, cost)) cost_row)
       gui.store_costs
     |> List.flatten
+    |>
+    match limit_opt with
+    | None -> Fun.id
+    | Some limits ->
+        List.filter (fun (row_i, col_i, _) ->
+            List.nth limits row_i > col_i)
   in
   List.fold_left
     (fun g (row_i, col_i, cost) ->
@@ -174,17 +180,22 @@ let draw_costs layer_name offset color gui =
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
 
+let draw_bought layer_name offset color num_bought gui =
+  gui |> set_blank layer_name
+  |> draw_costs layer_name offset color (Some num_bought)
+
 let update_store num_bought gui =
   (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
      g *)
   let capacities = List.map List.length gui.store_costs in
+  let store_offset = get_offset "store" gui in
   gui
-  |> draw_plant_inventory "store_plants"
-       (get_offset "store" gui)
-       capacities
-  |> draw_costs "store_plants"
-       (get_offset "store" gui)
+  |> draw_plant_inventory "store_plants" store_offset capacities
+  |> draw_costs "store_plants" store_offset
        (render_color gui.turn gui)
+       None
+  |> draw_bought "store_bought" store_offset ANSITerminal.Magenta
+       num_bought
 
 let update_available num_available gui =
   gui

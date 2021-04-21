@@ -49,7 +49,7 @@ let main () =
   |> update_store [ 1; 0; 0; 0 ]
   |> update_available [ 2; 1; 1; 1 ]
   |> update_turn 4
-  |> update_store [ 0; 1; 2; 0 ]
+  |> update_store [ 2; 0; 1; 0 ]
   |> update_available [ 2; 1; 1; 1 ]
   |> render;
   let state = init_state gui in
