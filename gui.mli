@@ -5,19 +5,21 @@ open ANSITerminal
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui store_costs cells player_params] is the GUI for a board of
-    cells, constructed from the ground up. A hexagon will be created in
-    every place corresponding to a Some value in [cells]. Then,
-    [update_cells cells] will be called. The colors and chars of
+(** [init_gui store_costs init_available cells player_params] is the GUI
+    for a board of cells, constructed from the ground up. A hexagon will
+    be created in every place corresponding to a Some value in [cells].
+    Then, [update_cells cells] will be called. The colors and chars of
     [player_params] will be used to render the trees of each individual
     player. The store and available area, when they are updated, will
     render according to the player id that equals 1 in [player_params].
     The store will have capacities according to length of each list in
-    [store_costs], in order of the plant stages in type
-    [Plant.plant_stage]. The cost of each plant in the store will
-    correspond to the costs in [store_costs]. *)
+    [store_costs], in order of [Plant.all_stages]. The cost of each
+    plant in the store will correspond to the costs in [store_costs].
+    The available area will have [init_available] numbers of plants in
+    each row, in order of [Plant.all_stages] *)
 val init_gui :
   int list list ->
+  int list ->
   Cell.t list ->
   (PlayerId.t * (char * color)) list ->
   t
@@ -40,8 +42,8 @@ val update_sun : HexUtil.dir -> t -> t
     previously a cursor displayed, it is removed. *)
 val update_cursor : color -> HexUtil.coord option -> t -> t
 
-(** [update_message text color] updates the message at the top of the
-    screen with [text] and [color]. *)
+(** [update_message text color gui] updates the message at the top of
+    [gui] with [text] and [color]. *)
 val update_message : string -> color -> t -> t
 
 (** [update_turn player_id num_bought num_available highlight_loc_opt gui]

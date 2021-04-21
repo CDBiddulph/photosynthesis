@@ -8,7 +8,8 @@ type t = {
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
-  store_num_bought : int list;
+  num_bought : int list;
+  num_available : int list;
 }
 
 let set_layer layer_name new_layer gui =
@@ -185,13 +186,13 @@ let draw_bought layer_name offset color num_bought gui =
 let update_bought num_bought gui =
   (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
      g *)
-  gui
+  { gui with num_bought }
   |> draw_bought "store_bought"
        (get_offset "store" gui)
        ANSITerminal.Magenta num_bought
 
 let update_available num_available gui =
-  gui
+  gui |> set_blank "available"
   |> draw_plant_inventory "available"
        (get_offset "available" gui)
        num_available
@@ -223,7 +224,7 @@ let update_turn player_id num_bought num_available highlight_loc_opt gui
   |> update_available num_available
 (* |> update_plant_highlight highlight_loc_opt gui *)
 
-let init_gui store_costs cells player_params =
+let init_gui store_costs init_available cells player_params =
   let layer_names =
     [
       "background";
@@ -281,7 +282,8 @@ let init_gui store_costs cells player_params =
       player_params;
       turn = PlayerId.first;
       store_costs;
-      store_num_bought = List.map (fun _ -> 0) Plant.all_stages;
+      num_bought = List.map (fun _ -> 0) Plant.all_stages;
+      num_available = init_available;
     }
   in
   gui
@@ -291,5 +293,6 @@ let init_gui store_costs cells player_params =
           cells)
   |> draw_cells "cells" cells
   |> draw_static_text "static text"
+  |> update_turn gui.turn gui.num_bought gui.num_available None
 
 let render gui = render gui.rend
