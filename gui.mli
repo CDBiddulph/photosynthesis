@@ -4,11 +4,14 @@
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui cells] is the GUI for a board of cells, constructed from
-    the ground up. A hexagon will be created in every place
-    corresponding to a Some value in [cells]. Then, [update_cells cells]
-    will be called. *)
-val init_gui : Cell.t list -> t
+(** [init_gui cells player_params] is the GUI for a board of cells,
+    constructed from the ground up. A hexagon will be created in every
+    place corresponding to a Some value in [cells]. Then,
+    [update_cells cells] will be called. The colors and chars of
+    [player_params] will be used to render the trees of each individual
+    player. *)
+val init_gui :
+  Cell.t list -> (PlayerId.t * (char * ANSITerminal.color)) list -> t
 
 (** [update_board gui cells] updates the GUI with all of the data in the
     cells, while leaving any cells that are not in cells. Precondition:

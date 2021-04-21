@@ -3,16 +3,16 @@ open Gui
 open Ui
 
 let basic_cell1 =
-  Cell.init_cell 1 (Some (Plant.init_plant 1 'x' Cyan Plant.Small))
+  Cell.init_cell 1 (Some (Plant.init_plant 1 Plant.Seed))
 
 let basic_cell2 =
-  Cell.init_cell 2 (Some (Plant.init_plant 2 'c' Red Plant.Medium))
+  Cell.init_cell 2 (Some (Plant.init_plant 2 Plant.Small))
 
 let basic_cell3 =
-  Cell.init_cell 3 (Some (Plant.init_plant 3 's' Green Plant.Large))
+  Cell.init_cell 3 (Some (Plant.init_plant 3 Plant.Medium))
 
 let basic_cell4 =
-  Cell.init_cell 4 (Some (Plant.init_plant 4 'o' Yellow Plant.Small))
+  Cell.init_cell 4 (Some (Plant.init_plant 4 Plant.Small))
 
 let soil_cell1 = Cell.init_cell 1 None
 
@@ -37,6 +37,12 @@ let main1 () =
         basic_cell1 { diag = 6; col = 6 };
         basic_cell2 { diag = 3; col = 6 };
       ]
+      [
+        (1, ('o', Green));
+        (2, ('s', Yellow));
+        (3, ('c', Red));
+        (4, ('x', Blue));
+      ]
   in
   gui
   |> update_cells [ soil_cell1 { diag = 6; col = 6 } ]
@@ -46,7 +52,16 @@ let main1 () =
 
 let main2 () =
   let hex_map = HexMap.init_map () in
-  let gui = init_gui (HexMap.flatten hex_map) in
+  let gui =
+    init_gui
+      (HexMap.flatten hex_map)
+      [
+        (1, ('o', Green));
+        (2, ('s', Yellow));
+        (3, ('c', Red));
+        (4, ('x', Blue));
+      ]
+  in
   gui
   |> update_cells
        [
