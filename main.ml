@@ -46,11 +46,10 @@ let main () =
   |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
-  |> update_store [ 1; 0; 0; 0 ]
+  |> update_bought [ 3; 2; 1; 0 ]
   |> update_available [ 2; 1; 1; 1 ]
-  |> update_turn 4
-  |> update_store [ 2; 0; 1; 0 ]
-  |> update_available [ 2; 1; 1; 1 ]
+  |> update_turn 4 [ 2; 4; 1; 0 ] [ 2; 1; 1; 1 ]
+       (Some (true, Plant.Medium))
   |> render;
   let state = init_state gui in
   read_char state

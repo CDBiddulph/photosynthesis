@@ -121,8 +121,6 @@ let update_message text color gui =
 
 let update_sun dir gui = gui
 
-let update_turn player_id gui = { gui with turn = player_id }
-
 let draw_plant_num layer_name point color num gui =
   gui
   |> draw_text layer_name
@@ -184,18 +182,13 @@ let draw_bought layer_name offset color num_bought gui =
   gui |> set_blank layer_name
   |> draw_costs layer_name offset color (Some num_bought)
 
-let update_store num_bought gui =
+let update_bought num_bought gui =
   (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
      g *)
-  let capacities = List.map List.length gui.store_costs in
-  let store_offset = get_offset "store" gui in
   gui
-  |> draw_plant_inventory "store_plants" store_offset capacities
-  |> draw_costs "store_plants" store_offset
-       (render_color gui.turn gui)
-       None
-  |> draw_bought "store_bought" store_offset ANSITerminal.Magenta
-       num_bought
+  |> draw_bought "store_bought"
+       (get_offset "store" gui)
+       ANSITerminal.Magenta num_bought
 
 let update_available num_available gui =
   gui
@@ -215,6 +208,20 @@ let draw_static_text layer_name gui =
   |> draw_plant_inventory_static_text "available" "Available"
 
 let update_plant_highlight loc_opt gui = failwith "Unimplemented"
+
+let update_turn player_id num_bought num_available highlight_loc_opt gui
+    =
+  let capacities = List.map List.length gui.store_costs in
+  let store_offset = get_offset "store" gui in
+  let new_turn_gui = { gui with turn = player_id } in
+  new_turn_gui
+  |> draw_plant_inventory "store_plants" store_offset capacities
+  |> draw_costs "store_plants" store_offset
+       (render_color new_turn_gui.turn new_turn_gui)
+       None
+  |> update_bought num_bought
+  |> update_available num_available
+(* |> update_plant_highlight highlight_loc_opt gui *)
 
 let init_gui store_costs cells player_params =
   let layer_names =
