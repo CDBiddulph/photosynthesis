@@ -128,8 +128,9 @@ let draw_plant_num layer_name point color num gui =
        (point +: get_offset "plant_num" gui)
        (string_of_int num) color
 
-let plant_inv_point max_capacity origin row_i col_i =
-  let x = 8 * (max_capacity - 1 - col_i) in
+let plant_inv_point capacity origin row_i col_i =
+  let max_capacity = 4 in
+  let x = 8 * (max_capacity - capacity + col_i) in
   (* Equivalent to taking the sum from 4 to row_i + 4 *)
   let y = ((row_i * row_i) + (7 * row_i)) / 2 in
   origin +: { x; y }
@@ -160,7 +161,7 @@ let draw_plant_row
   in
   List.fold_left
     (fun g col_i ->
-      let top_left = plant_inv_point 4 origin row_i col_i in
+      let top_left = plant_inv_point capacity origin row_i col_i in
       g
       |> draw_plant plant_layer_name plant top_left
       |> num_draw_f top_left col_i)
@@ -210,7 +211,7 @@ let draw_static_text layer_name gui =
 
 let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
-let init_gui cells player_params =
+let init_gui store_costs cells player_params =
   let layer_names =
     [
       "background";
@@ -268,8 +269,7 @@ let init_gui cells player_params =
         ];
       player_params;
       turn = PlayerId.first;
-      store_costs =
-        [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ];
+      store_costs;
       store_num_bought = List.map (fun _ -> 0) Plant.all_stages;
     }
   in

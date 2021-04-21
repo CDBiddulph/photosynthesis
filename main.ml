@@ -24,7 +24,12 @@ let player_params =
 
 let main () =
   let hex_map = HexMap.init_map () in
-  let gui = init_gui (HexMap.flatten hex_map) player_params in
+  let gui =
+    init_gui
+      [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
+      (HexMap.flatten hex_map)
+      player_params
+  in
   gui
   |> update_cells
        [
@@ -41,7 +46,10 @@ let main () =
   |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
-  |> update_store [ 0; 0; 0; 0 ]
+  |> update_store [ 1; 0; 0; 0 ]
+  |> update_available [ 2; 1; 1; 1 ]
+  |> update_turn 4
+  |> update_store [ 0; 1; 2; 0 ]
   |> update_available [ 2; 1; 1; 1 ]
   |> render;
   let state = init_state gui in

@@ -5,16 +5,22 @@ open ANSITerminal
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui cells player_params] is the GUI for a board of cells,
-    constructed from the ground up. A hexagon will be created in every
-    place corresponding to a Some value in [cells]. Then,
+(** [init_gui store_costs cells player_params] is the GUI for a board of
+    cells, constructed from the ground up. A hexagon will be created in
+    every place corresponding to a Some value in [cells]. Then,
     [update_cells cells] will be called. The colors and chars of
     [player_params] will be used to render the trees of each individual
     player. The store and available area, when they are updated, will
     render according to the player id that equals 1 in [player_params].
-    The store will have capacities according to the defaults, in order
-    of the plant stages in type [Plant.plant_stage]. *)
-val init_gui : Cell.t list -> (PlayerId.t * (char * color)) list -> t
+    The store will have capacities according to length of each list in
+    [store_costs], in order of the plant stages in type
+    [Plant.plant_stage]. The cost of each plant in the store will
+    correspond to the costs in [store_costs]. *)
+val init_gui :
+  int list list ->
+  Cell.t list ->
+  (PlayerId.t * (char * color)) list ->
+  t
 
 (** [update_cells cells gui] is [gui] with the contents of each cell in
     [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
