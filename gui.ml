@@ -32,10 +32,7 @@ let draw_at_point layer_name graphic gui point =
     in the positions corresponding to [points] with an offset of
     [gui.hex_offset] + [gui.board_offset]. *)
 let draw_hexes layer_name color points gui =
-  let hex_graphic =
-    gui.rend |> get_graphic "hex" "hex"
-    |> ANSITerminal.(replace_all_color color)
-  in
+  let hex_graphic = gui.rend |> get_graphic_fill_color "hex" color in
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
 (** [draw_soil gui point soil layer] returns [layer] with a soil marker
@@ -43,7 +40,9 @@ let draw_hexes layer_name color points gui =
     an offset of [gui.hex_offset] + [gui.board_offset]. *)
 let draw_soil layer_name soil point gui =
   let char_grid_name = "soil/" ^ string_of_int soil in
-  let soil_graphic = get_graphic char_grid_name "soil/" gui.rend in
+  let soil_graphic =
+    get_graphic_fill_color char_grid_name ANSITerminal.Green gui.rend
+  in
   draw_at_point layer_name soil_graphic gui point
 
 let render_char player_id gui =
@@ -63,7 +62,7 @@ let plant_graphic plant gui =
   in
   let player_id = Plant.player_id plant in
   gui.rend
-  |> get_graphic char_name color_name
+  |> get_graphic_with_color_grid char_name color_name
   |> replace_char 'x' (render_char player_id gui)
   |> replace_color ANSITerminal.Default (render_color player_id gui)
 
@@ -93,7 +92,7 @@ let draw_cursor layer_name color coord_opt gui =
   | None -> gui
   | Some point ->
       let graphic =
-        gui.rend |> get_graphic "hex" "hex" |> replace_all_color color
+        gui.rend |> get_graphic_fill_color "hex" ANSITerminal.White
       in
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
@@ -119,7 +118,10 @@ let update_message text color gui =
   gui |> set_blank "message"
   |> draw_text "message" { x = 0; y = 0 } text color
 
-let update_sun dir gui = gui
+let update_sun dir gui =
+  draw_at_point "sun"
+    (get_graphic_fill_color "sun" ANSITerminal.Yellow gui.rend)
+    gui { x = 0; y = 0 }
 
 let draw_plant_num layer_name point color num gui =
   gui
@@ -308,6 +310,7 @@ let init_gui store_costs init_available cells player_params =
   let layer_names =
     [
       "background";
+      "sun";
       "hexes";
       "cell_highlight";
       "cursor";
@@ -321,40 +324,9 @@ let init_gui store_costs init_available cells player_params =
       "message";
     ]
   in
-  let char_grid_names =
-    [
-      "hex";
-      "miscellaneous/dot";
-      "miscellaneous/empty";
-      "miscellaneous/vert";
-      "miscellaneous/horiz";
-      "plants/seed";
-      "plants/small";
-      "plants/medium";
-      "plants/large";
-      "soil/1";
-      "soil/2";
-      "soil/3";
-      "soil/4";
-    ]
-  in
-  let color_grid_names =
-    [
-      "hex";
-      "miscellaneous/dot";
-      "miscellaneous/empty";
-      "miscellaneous/vert";
-      "miscellaneous/horiz";
-      "plants/seed";
-      "plants/tree";
-      "soil/";
-    ]
-  in
   let gui =
     {
-      rend =
-        init_rend { x = 119; y = 44 } layer_names char_grid_names
-          color_grid_names;
+      rend = init_rend layer_names { x = 119; y = 44 };
       offsets =
         [
           ("board", { x = 5; y = 2 });
