@@ -127,19 +127,22 @@ let draw_plant_num layer_name point color num gui =
        (string_of_int num) color
 
 let plant_inv_point capacity origin row_i col_i =
-  let max_capacity = 4 in
-  let x = 8 * (max_capacity - capacity + col_i) in
-  (* Equivalent to taking the sum from 4 to row_i + 4 *)
-  let y = ((row_i * row_i) + (7 * row_i)) / 2 in
-  origin +: { x; y }
+  if col_i >= capacity || col_i < 0 then None
+  else
+    let max_capacity = 4 in
+    let x = 8 * (max_capacity - capacity + col_i) in
+    (* Equivalent to taking the sum from 4 to row_i + 4 *)
+    let y = ((row_i * row_i) + (7 * row_i)) / 2 in
+    Some (origin +: { x; y })
 
 let draw_row layer_name origin nums capacities gui (row_i, graphic) =
   let capacity = List.nth capacities row_i in
   let num = List.nth nums row_i in
   List.fold_left
     (fun g col_i ->
-      let top_left = plant_inv_point capacity origin row_i col_i in
-      draw_at_point layer_name graphic g top_left)
+      match plant_inv_point capacity origin row_i col_i with
+      | None -> failwith "Invalid args to plant_inv_point"
+      | Some top_left -> draw_at_point layer_name graphic g top_left)
     gui
     (List.rev (List.init num Fun.id))
 
@@ -184,9 +187,13 @@ let draw_costs layer_name offset color gone_opt gui =
   List.fold_left
     (fun g (row_i, col_i, cost) ->
       let point =
-        plant_inv_point
-          (List.nth gui.store_costs row_i |> List.length)
-          offset row_i col_i
+        match
+          plant_inv_point
+            (List.nth gui.store_costs row_i |> List.length)
+            offset row_i col_i
+        with
+        | None -> failwith "Invalid args to plant_inv_point"
+        | Some p -> p
       in
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
@@ -223,7 +230,44 @@ let draw_static_text layer_name gui =
   |> draw_plant_inventory_static_text "store" "Store"
   |> draw_plant_inventory_static_text "available" "Available"
 
-let update_plant_highlight loc_opt gui = failwith "Unimplemented"
+let draw_plant_highlight layer_name color loc_opt gui =
+  match loc_opt with
+  | None -> gui
+  | Some (is_store, stage) -> (
+      let top_left =
+        get_offset (if is_store then "store" else "available") gui
+      in
+      let row_i = Plant.int_of_plant_stage stage in
+      let capacity =
+        List.nth
+          (if is_store then get_capacities gui else gui.num_available)
+          row_i
+      in
+      let col_i =
+        if is_store then
+          capacity - List.nth gui.num_store_remaining row_i
+        else 0
+      in
+      match plant_inv_point capacity top_left row_i col_i with
+      | None -> gui (* Don't update gui if this row has no plants *)
+      | Some point ->
+          let graphic =
+            plant_graphic (Plant.init_plant gui.turn stage) gui
+            |> replace_all_color color
+            |> replace_char_with_none ' '
+          in
+          let gui' = draw_at_point layer_name graphic gui point in
+          if is_store then
+            let cost =
+              List.nth (List.nth gui.store_costs row_i) col_i
+            in
+            draw_plant_num layer_name point color cost gui'
+          else gui')
+
+let update_plant_highlight loc_opt gui =
+  let layer_name = "plant_highlight" in
+  gui |> set_blank layer_name
+  |> draw_plant_highlight layer_name ANSITerminal.White loc_opt
 
 let update_turn
     player_id
@@ -241,7 +285,7 @@ let update_turn
        None
   |> update_store_remaining num_store_remaining
   |> update_available num_available
-(* |> update_plant_highlight highlight_loc_opt gui *)
+  |> update_plant_highlight highlight_loc_opt
 
 let init_gui store_costs init_available cells player_params =
   let layer_names =
@@ -253,6 +297,7 @@ let init_gui store_costs init_available cells player_params =
       "store_plants";
       "store_bought";
       "available";
+      "plant_highlight";
       "static text";
       "message";
     ]
