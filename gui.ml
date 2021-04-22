@@ -225,7 +225,7 @@ let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
     draw_text_lines layer_name
       (get_offset offset_name gui +: { x = 2; y = 1 })
-      [ title; "-----------------------------" ]
+      [ title; "------------------------------" ]
       ANSITerminal.White
   in
   gui
@@ -277,6 +277,13 @@ let update_cell_highlight coords gui =
   |> draw_hexes layer_name ANSITerminal.Yellow
        (List.map (point2d_of_hex_coord gui) coords)
 
+let draw_player_sign layer_name player_id gui =
+  draw_text layer_name
+    (get_offset "player_sign" gui)
+    ("Player " ^ string_of_int player_id)
+    (render_color player_id gui)
+    gui
+
 let update_turn
     player_id
     num_store_remaining
@@ -292,6 +299,7 @@ let update_turn
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
+  |> draw_player_sign "player_sign" player_id
   |> update_store_remaining num_store_remaining
   |> update_available num_available
   |> update_plant_highlight highlight_loc_opt
@@ -309,6 +317,7 @@ let init_gui store_costs init_available cells player_params =
       "available";
       "plant_highlight";
       "static text";
+      "player_sign";
       "message";
     ]
   in
@@ -344,14 +353,15 @@ let init_gui store_costs init_available cells player_params =
   let gui =
     {
       rend =
-        init_rend { x = 119; y = 45 } layer_names char_grid_names
+        init_rend { x = 119; y = 44 } layer_names char_grid_names
           color_grid_names;
       offsets =
         [
           ("board", { x = 5; y = 2 });
-          ("store", { x = 85; y = 0 });
-          ("available", { x = 85; y = 23 });
+          ("store", { x = 85; y = 3 });
+          ("available", { x = 85; y = 24 });
           ("plant_num", { x = 5; y = 5 });
+          ("player_sign", { x = 109; y = 2 });
         ];
       player_params;
       turn = PlayerId.first;
