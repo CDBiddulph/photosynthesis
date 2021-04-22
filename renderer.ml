@@ -64,7 +64,12 @@ let init_rend layer_names size =
       "soil/2";
       "soil/3";
       "soil/4";
-      "sun";
+      "sun/0";
+      "sun/1";
+      "sun/2";
+      "sun/3";
+      "sun/4";
+      "sun/5";
     ]
   in
   let color_grid_names =

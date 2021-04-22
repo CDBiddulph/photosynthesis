@@ -117,9 +117,12 @@ let update_message text color gui =
   |> draw_text "message" { x = 0; y = 0 } text color
 
 let update_sun dir gui =
+  let gui' = set_blank "sun" gui in
   draw_at_point "sun"
-    (get_graphic_fill_color "sun" ANSITerminal.Yellow gui.rend)
-    gui (get_offset "sun" gui)
+    (get_graphic_fill_color
+       ("sun/" ^ string_of_int dir)
+       ANSITerminal.Yellow gui'.rend)
+    gui' (get_offset "sun" gui')
 
 let draw_plant_num layer_name point color num gui =
   gui

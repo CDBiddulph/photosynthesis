@@ -43,7 +43,7 @@ let main () =
          basic_cell3 { diag = 3; col = 3 };
          basic_cell4 { diag = 0; col = 0 };
        ]
-  |> update_sun 0
+  |> update_sun 5 |> update_sun 0
   |> update_cursor (Some { diag = 0; col = 0 })
   |> update_cursor (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
