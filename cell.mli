@@ -18,3 +18,6 @@ val soil : t -> soil
 (** [plant cell] (is [Some Plant.t] in [cell] if [cell] contains a
     plant. Otherwise, it is [None]. ) *)
 val plant : t -> Plant.t option
+
+(** [set_plant cell plant] is [cell] with plant [plant]. *)
+val set_plant : t -> Plant.t option -> t

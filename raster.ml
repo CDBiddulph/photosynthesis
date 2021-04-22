@@ -10,6 +10,13 @@ type t = {
   color_grid : ANSITerminal.color grid;
 }
 
+(** [p1 +: p2] is the result of elementwise addition of [p1] and [p2]. *)
+let ( +: ) p1 p2 = { x = p1.x + p2.x; y = p1.y + p2.y }
+
+(** [p1 *: p2] is the result of elementwise multiplication of [p1] and
+    [p2]. *)
+let ( *: ) p1 p2 = { x = p1.x * p2.x; y = p1.y * p2.y }
+
 (** [map_grid f grid] is a list of lists [result] with the dimensions of
     [grid1], where [result.(i).(j) = f grid1.(i).(j)]. *)
 let map_grid f grid = List.map (fun row -> List.map f row) grid
@@ -84,7 +91,7 @@ let char_of_color ch =
   ANSITerminal.(
     match ch with Black -> 'k' | other -> (string_of_color other).[0])
 
-let draw graphic layer top_left =
+let draw top_left graphic layer =
   let row_draw layer_r graphic_r =
     map_offset
       (* At least for now, ignore the layer beneath completely *)
@@ -98,20 +105,28 @@ let draw graphic layer top_left =
       map_offset row_draw layer.color_grid graphic.color_grid top_left.y;
   }
 
-let fill_raster ch col w h =
-  let rec fill_grid elem w h =
-    let rec fill_row elem w =
-      match w with 0 -> [] | n -> elem :: fill_row elem (w - 1)
-    in
-    match h with
-    | 0 -> []
-    | n -> fill_row elem w :: fill_grid elem w (h - 1)
+let rec fill_grid elem size =
+  let rec fill_row elem w =
+    match w with 0 -> [] | n -> elem :: fill_row elem (w - 1)
   in
-  { char_grid = fill_grid ch w h; color_grid = fill_grid col w h }
+  match size.y with
+  | 0 -> []
+  | n ->
+      fill_row elem size.x :: fill_grid elem (size +: { x = 0; y = -1 })
+
+let fill_raster size ch col =
+  { char_grid = fill_grid ch size; color_grid = fill_grid col size }
 
 (** [blank_raster w h] is a raster with a rectangular grid of [None]
     char options with width [w] and height [h]. *)
-let blank_raster w h = fill_raster None None w h
+let blank_raster size = fill_raster size None None
+
+let text_raster text color =
+  let len = String.length text in
+  {
+    char_grid = [ List.init len (fun i -> Some (String.get text i)) ];
+    color_grid = fill_grid (Some color) { x = len; y = 1 };
+  }
 
 (** [load_char_grid none_c filename] is a [char grid] representing the
     file at [filename] relative to the working directory. Each line
@@ -181,7 +196,7 @@ let replace_case_sens find_char replace_char input_char =
 let replace find_e replace_e input_e =
   if input_e = find_e then replace_e else input_e
 
-let replace_color_in_raster find_color replace_color raster =
+let replace_color find_color replace_color raster =
   {
     raster with
     color_grid =
@@ -190,13 +205,26 @@ let replace_color_in_raster find_color replace_color raster =
         raster.color_grid;
   }
 
-let replace_char_in_raster find_char replace_char raster =
+let replace_all_color fill_color raster =
+  {
+    raster with
+    color_grid = map_grid (fun _ -> Some fill_color) raster.color_grid;
+  }
+
+let replace_char find_char replace_char raster =
   {
     raster with
     char_grid =
       map_grid
         (double_ended_opt (replace_case_sens find_char replace_char))
         raster.char_grid;
+  }
+
+let replace_char_with_none find_char raster =
+  {
+    raster with
+    char_grid =
+      map_grid (replace (Some find_char) None) raster.char_grid;
   }
 
 let merge_two_rasters under over =
@@ -222,6 +250,6 @@ let merge_rasters raster_order rasters =
           (merge_two_rasters acc (List.assoc h rasters))
   in
   match raster_order with
-  | [] -> blank_raster 0 0
+  | [] -> blank_raster { x = 0; y = 0 }
   | [ h ] -> List.assoc h rasters
   | h :: t -> merge_rasters_helper t rasters (List.assoc h rasters)

@@ -15,3 +15,5 @@ let coord c = c.location
 let soil c = c.soil
 
 let plant c = c.plant
+
+let set_plant cell plant_opt = { cell with plant = plant_opt }

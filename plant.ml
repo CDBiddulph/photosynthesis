@@ -1,3 +1,5 @@
+open PlayerId
+
 type plant_stage =
   | Seed
   | Small
@@ -5,20 +7,13 @@ type plant_stage =
   | Large
 
 type t = {
-  id : Player.player_id;
-  render_char : char;
-  render_color : ANSITerminal.color;
+  id : PlayerId.t;
   stage : plant_stage;
 }
 
-let init_plant p_id ch col plnt_st =
-  { id = p_id; render_char = ch; render_color = col; stage = plnt_st }
+let init_plant p_id plnt_st = { id = p_id; stage = plnt_st }
 
 let player_id p = p.id
-
-let render_char p = p.render_char
-
-let render_color p = p.render_color
 
 let plant_stage p = p.stage
 
@@ -28,3 +23,12 @@ let string_of_plant_stage stage =
   | Small -> "small"
   | Medium -> "medium"
   | Large -> "large"
+
+let next_stage stage =
+  match stage with
+  | Seed -> Some Small
+  | Small -> Some Medium
+  | Medium -> Some Large
+  | Large -> None
+
+let all_stages = [ Seed; Small; Medium; Large ]
