@@ -121,7 +121,7 @@ let update_message text color gui =
 let update_sun dir gui =
   draw_at_point "sun"
     (get_graphic_fill_color "sun" ANSITerminal.Yellow gui.rend)
-    gui { x = 0; y = 0 }
+    gui { x = 0; y = 1 }
 
 let draw_plant_num layer_name point color num gui =
   gui
@@ -343,8 +343,8 @@ let init_gui store_costs init_available cells player_params =
     }
   in
   gui
-  (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
-     ANSITerminal.Magenta)) *)
+  |> set_layer "background"
+       (fill_layer gui.rend (Some '.') (Some ANSITerminal.Magenta))
   |> draw_hexes "hexes" ANSITerminal.White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
