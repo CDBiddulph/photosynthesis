@@ -301,7 +301,7 @@ let init_gui store_costs init_available cells player_params =
       player_params;
       turn = PlayerId.first;
       store_costs;
-      num_store_remaining = List.map (fun _ -> 0) Plant.all_stages;
+      num_store_remaining = List.map List.length store_costs;
       num_available = init_available;
     }
   in
