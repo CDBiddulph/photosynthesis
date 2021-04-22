@@ -31,10 +31,10 @@ let draw_at_point layer_name graphic gui point =
 (** [draw_hexes gui points layer] returns [layer] with hexes drawn on it
     in the positions corresponding to [points] with an offset of
     [gui.hex_offset] + [gui.board_offset]. *)
-let draw_hexes layer_name points gui =
+let draw_hexes layer_name color points gui =
   let hex_graphic =
     gui.rend |> get_graphic "hex" "hex"
-    |> ANSITerminal.(replace_all_color White)
+    |> ANSITerminal.(replace_all_color color)
   in
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
@@ -98,9 +98,10 @@ let draw_cursor layer_name color coord_opt gui =
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
-let update_cursor color coord_opt gui =
+let update_cursor coord_opt gui =
   let layer_name = "cursor" in
-  gui |> set_blank layer_name |> draw_cursor layer_name color coord_opt
+  gui |> set_blank layer_name
+  |> draw_cursor layer_name ANSITerminal.Red coord_opt
 
 let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
@@ -217,7 +218,8 @@ let update_available num_available gui =
   new_gui |> set_blank "available"
   |> draw_plant_inventory "available"
        (get_offset "available" new_gui)
-       num_available None Fun.id
+       num_available None
+       (replace_char_with_none ' ')
 
 let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
@@ -269,6 +271,12 @@ let update_plant_highlight loc_opt gui =
   gui |> set_blank layer_name
   |> draw_plant_highlight layer_name ANSITerminal.White loc_opt
 
+let update_cell_highlight coords gui =
+  let layer_name = "cell_highlight" in
+  gui |> set_blank layer_name
+  |> draw_hexes layer_name ANSITerminal.Yellow
+       (List.map (point2d_of_hex_coord gui) coords)
+
 let update_turn
     player_id
     num_store_remaining
@@ -279,7 +287,8 @@ let update_turn
   let new_turn_gui = { gui with turn = player_id } in
   new_turn_gui
   |> draw_plant_inventory "store_plants" store_offset
-       (get_capacities gui) None Fun.id
+       (get_capacities gui) None
+       (replace_char_with_none ' ')
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
@@ -292,6 +301,7 @@ let init_gui store_costs init_available cells player_params =
     [
       "background";
       "hexes";
+      "cell_highlight";
       "cursor";
       "cells";
       "store_plants";
@@ -334,7 +344,7 @@ let init_gui store_costs init_available cells player_params =
   let gui =
     {
       rend =
-        init_rend { x = 140; y = 45 } layer_names char_grid_names
+        init_rend { x = 119; y = 45 } layer_names char_grid_names
           color_grid_names;
       offsets =
         [
@@ -351,7 +361,9 @@ let init_gui store_costs init_available cells player_params =
     }
   in
   gui
-  |> draw_hexes "hexes"
+  (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
+     ANSITerminal.Magenta)) *)
+  |> draw_hexes "hexes" ANSITerminal.White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)

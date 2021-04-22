@@ -36,11 +36,11 @@ val update_cells : Cell.t list -> t -> t
     will appear to point in direction [dir].*)
 val update_sun : HexUtil.dir -> t -> t
 
-(** [update_cursor color coord_opt gui], if [coord_opt = Some coord],
-    updates the GUI to create a cursor with color [color] at position
-    [coord]. If [coord_opt = None], no cursor is drawn. If there was
-    previously a cursor displayed, it is removed. *)
-val update_cursor : color -> HexUtil.coord option -> t -> t
+(** [update_cursor coord_opt gui], if [coord_opt = Some coord], updates
+    the GUI to create a red cursor at position [coord]. If
+    [coord_opt = None], no cursor is drawn. If there was previously a
+    cursor displayed, it is removed. *)
+val update_cursor : HexUtil.coord option -> t -> t
 
 (** [update_message text color gui] updates the message at the top of
     [gui] with [text] and [color]. *)
@@ -76,11 +76,17 @@ val update_available : int list -> t -> t
 (** [update_plant_highlight loc_opt gui] removes any plant highlights
     from gui if [loc_opt = None]. Otherwise, if [loc = is_store, stage]:
     if [is_store = true], the first unbought plant of [stage] in the
-    store from the left is highlighted; else, the first plant of [stage]
-    in the available area from the left is highlighted. If the plant to
-    highlight does not exist, removes any plant highlights from [gui],
-    as if [loc_opt = None]. *)
+    store from the left is highlighted in white; else, the first plant
+    of [stage] in the available area from the left is highlighted in
+    white. If the plant to highlight does not exist, removes any plant
+    highlights from [gui], as if [loc_opt = None]. *)
 val update_plant_highlight : (bool * Plant.plant_stage) option -> t -> t
+
+(** [update_cell_highlight coords gui] is gui with all of its existing
+    highlights cleared, then all of the cells at each coordinate in
+    [coords] highlighted in yellow. If [coords = \[\]], there will be no
+    highlighted cells. *)
+val update_cell_highlight : HexUtil.coord list -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

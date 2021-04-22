@@ -26,7 +26,7 @@ let extract (c : HexUtil.coord option) : HexUtil.coord =
 
 let scroll s d =
   let new_gui =
-    Gui.update_cursor Red
+    Gui.update_cursor
       (HexMap.neighbor s.hexMap s.current_position d)
       s.gui
   in

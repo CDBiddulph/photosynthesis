@@ -43,14 +43,21 @@ let main () =
          basic_cell3 { diag = 3; col = 3 };
          basic_cell4 { diag = 0; col = 0 };
        ]
-  |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
-  |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
+  |> update_cursor (Some { diag = 0; col = 0 })
+  |> update_cursor (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
   |> update_turn 4 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
-       (Some (true, Plant.Medium))
+       (Some (false, Plant.Small))
   |> update_turn 3 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
        (Some (true, Plant.Seed))
+  |> update_cell_highlight [ { diag = 2; col = 4 } ]
+  |> update_cell_highlight
+       [
+         { diag = 6; col = 6 };
+         { diag = 4; col = 2 };
+         { diag = 0; col = 3 };
+       ]
   |> render;
   let state = init_state gui in
   read_char state
