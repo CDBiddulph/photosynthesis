@@ -91,9 +91,7 @@ let draw_cursor layer_name color coord_opt gui =
   match coord_opt with
   | None -> gui
   | Some point ->
-      let graphic =
-        gui.rend |> get_graphic_fill_color "hex" ANSITerminal.White
-      in
+      let graphic = gui.rend |> get_graphic_fill_color "hex" color in
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
@@ -121,7 +119,7 @@ let update_message text color gui =
 let update_sun dir gui =
   draw_at_point "sun"
     (get_graphic_fill_color "sun" ANSITerminal.Yellow gui.rend)
-    gui { x = 0; y = 1 }
+    gui (get_offset "sun" gui)
 
 let draw_plant_num layer_name point color num gui =
   gui
@@ -276,7 +274,7 @@ let update_plant_highlight loc_opt gui =
 let update_cell_highlight coords gui =
   let layer_name = "cell_highlight" in
   gui |> set_blank layer_name
-  |> draw_hexes layer_name ANSITerminal.Yellow
+  |> draw_hexes layer_name ANSITerminal.Green
        (List.map (point2d_of_hex_coord gui) coords)
 
 let draw_player_sign layer_name player_id gui =
@@ -334,6 +332,7 @@ let init_gui store_costs init_available cells player_params =
           ("available", { x = 85; y = 24 });
           ("plant_num", { x = 5; y = 5 });
           ("player_sign", { x = 109; y = 2 });
+          ("sun", { x = 3; y = 1 });
         ];
       player_params;
       turn = PlayerId.first;
@@ -343,8 +342,8 @@ let init_gui store_costs init_available cells player_params =
     }
   in
   gui
-  |> set_layer "background"
-       (fill_layer gui.rend (Some '.') (Some ANSITerminal.Magenta))
+  (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
+     ANSITerminal.Magenta)) *)
   |> draw_hexes "hexes" ANSITerminal.White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)

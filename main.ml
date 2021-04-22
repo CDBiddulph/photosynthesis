@@ -18,7 +18,7 @@ let player_params =
   [
     (1, ('s', ANSITerminal.Green));
     (2, ('c', ANSITerminal.Red));
-    (3, ('x', ANSITerminal.Blue));
+    (3, ('x', ANSITerminal.Cyan));
     (4, ('o', ANSITerminal.Yellow));
   ]
 

@@ -108,9 +108,7 @@ let render rend =
         print_newline ())
       raster.char_grid raster.color_grid
   in
-  let render_raster =
-    merge_rasters [ "background"; "sun" ] rend.layers
-  in
+  let render_raster = merge_rasters rend.layer_order rend.layers in
   ignore (Sys.command "clear");
   print_raster render_raster
 

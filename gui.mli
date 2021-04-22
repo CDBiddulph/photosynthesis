@@ -84,7 +84,7 @@ val update_plant_highlight : (bool * Plant.plant_stage) option -> t -> t
 
 (** [update_cell_highlight coords gui] is gui with all of its existing
     highlights cleared, then all of the cells at each coordinate in
-    [coords] highlighted in yellow. If [coords = \[\]], there will be no
+    [coords] highlighted in green. If [coords = \[\]], there will be no
     highlighted cells. *)
 val update_cell_highlight : HexUtil.coord list -> t -> t
 
