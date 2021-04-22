@@ -50,7 +50,7 @@ let main () =
   |> update_turn 4 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
        (Some (true, Plant.Medium))
   |> update_turn 3 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
-       (Some (true, Plant.Medium))
+       (Some (false, Plant.Small))
   |> render;
   let state = init_state gui in
   read_char state

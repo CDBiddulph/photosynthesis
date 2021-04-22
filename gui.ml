@@ -133,23 +133,34 @@ let plant_inv_point capacity origin row_i col_i =
   let y = ((row_i * row_i) + (7 * row_i)) / 2 in
   origin +: { x; y }
 
-let draw_row layer_name origin nums gui (row_i, graphic) =
-  let capacity = List.nth nums row_i in
+let draw_row layer_name origin nums capacities gui (row_i, graphic) =
+  let capacity = List.nth capacities row_i in
+  let num = List.nth nums row_i in
   List.fold_left
     (fun g col_i ->
       let top_left = plant_inv_point capacity origin row_i col_i in
       draw_at_point layer_name graphic g top_left)
     gui
-    (List.rev (List.init capacity Fun.id))
+    (List.rev (List.init num Fun.id))
 
-let draw_plant_inventory layer_name offset nums gui =
+let get_capacities gui = List.map List.length gui.store_costs
+
+let draw_plant_inventory
+    layer_name
+    offset
+    capacities
+    nums_opt
+    graphic_f
+    gui =
+  let nums = match nums_opt with None -> capacities | Some n -> n in
   let enumerate_graphics =
     List.mapi
-      (fun i s -> (i, plant_graphic (Plant.init_plant gui.turn s) gui))
+      (fun i s ->
+        (i, plant_graphic (Plant.init_plant gui.turn s) gui |> graphic_f))
       Plant.all_stages
   in
   List.fold_left
-    (draw_row layer_name offset nums)
+    (draw_row layer_name offset nums capacities)
     gui
     (List.rev enumerate_graphics)
 
@@ -177,37 +188,26 @@ let draw_costs layer_name offset color limit_opt gui =
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
 
-let draw_bought_plants layer_name offset color gui =
-  let enumerate_graphics =
-    List.mapi
-      (fun i s ->
-        ( i,
-          plant_graphic (Plant.init_plant gui.turn s) gui
-          |> Raster.replace_all_color color
-          |> Raster.replace_char_with_none ' ' ))
-      Plant.all_stages
-  in
-  List.fold_left
-    (draw_row layer_name offset gui.num_bought)
-    gui
-    (List.rev enumerate_graphics)
-
 let draw_bought layer_name offset color num_bought gui =
   gui |> set_blank layer_name
-  |> draw_bought_plants layer_name offset color
+  |> draw_plant_inventory layer_name offset (get_capacities gui)
+       (Some num_bought) (fun g ->
+         g |> replace_all_color color |> replace_char_with_none ' ')
   |> draw_costs layer_name offset color (Some num_bought)
 
 let update_bought num_bought gui =
-  { gui with num_bought }
+  let new_gui = { gui with num_bought } in
+  new_gui
   |> draw_bought "store_bought"
-       (get_offset "store" gui)
+       (get_offset "store" new_gui)
        ANSITerminal.Magenta num_bought
 
 let update_available num_available gui =
-  gui |> set_blank "available"
+  let new_gui = { gui with num_available } in
+  new_gui |> set_blank "available"
   |> draw_plant_inventory "available"
-       (get_offset "available" gui)
-       num_available
+       (get_offset "available" new_gui)
+       num_available None Fun.id
 
 let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
@@ -224,11 +224,11 @@ let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
 let update_turn player_id num_bought num_available highlight_loc_opt gui
     =
-  let capacities = List.map List.length gui.store_costs in
   let store_offset = get_offset "store" gui in
   let new_turn_gui = { gui with turn = player_id } in
   new_turn_gui
-  |> draw_plant_inventory "store_plants" store_offset capacities
+  |> draw_plant_inventory "store_plants" store_offset
+       (get_capacities gui) None Fun.id
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
