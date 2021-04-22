@@ -8,7 +8,7 @@ type t = {
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
-  num_bought : int list;
+  num_store_remaining : int list;
   num_available : int list;
 }
 
@@ -145,14 +145,19 @@ let draw_row layer_name origin nums capacities gui (row_i, graphic) =
 
 let get_capacities gui = List.map List.length gui.store_costs
 
+let get_diffs_opt gone_opt capacities =
+  match gone_opt with
+  | None -> capacities
+  | Some gone -> List.map2 ( - ) capacities gone
+
 let draw_plant_inventory
     layer_name
     offset
     capacities
-    nums_opt
+    gone_opt
     graphic_f
     gui =
-  let nums = match nums_opt with None -> capacities | Some n -> n in
+  let nums = get_diffs_opt gone_opt capacities in
   let enumerate_graphics =
     List.mapi
       (fun i s ->
@@ -164,19 +169,17 @@ let draw_plant_inventory
     gui
     (List.rev enumerate_graphics)
 
-let draw_costs layer_name offset color limit_opt gui =
+let draw_costs layer_name offset color gone_opt gui =
+  let capacities = get_capacities gui in
+  let nums = get_diffs_opt gone_opt capacities in
   let indexed_costs =
     List.mapi
       (fun row_i cost_row ->
         List.mapi (fun col_i cost -> (row_i, col_i, cost)) cost_row)
       gui.store_costs
     |> List.flatten
-    |>
-    match limit_opt with
-    | None -> Fun.id
-    | Some limits ->
-        List.filter (fun (row_i, col_i, _) ->
-            List.nth limits row_i > col_i)
+    |> List.filter (fun (row_i, col_i, _) ->
+           List.nth nums row_i > col_i)
   in
   List.fold_left
     (fun g (row_i, col_i, cost) ->
@@ -188,19 +191,19 @@ let draw_costs layer_name offset color limit_opt gui =
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
 
-let draw_bought layer_name offset color num_bought gui =
+let draw_bought layer_name offset color num_remaining gui =
   gui |> set_blank layer_name
   |> draw_plant_inventory layer_name offset (get_capacities gui)
-       (Some num_bought) (fun g ->
+       (Some num_remaining) (fun g ->
          g |> replace_all_color color |> replace_char_with_none ' ')
-  |> draw_costs layer_name offset color (Some num_bought)
+  |> draw_costs layer_name offset color (Some num_remaining)
 
-let update_bought num_bought gui =
-  let new_gui = { gui with num_bought } in
+let update_store_remaining num_remaining gui =
+  let new_gui = { gui with num_store_remaining = num_remaining } in
   new_gui
   |> draw_bought "store_bought"
        (get_offset "store" new_gui)
-       ANSITerminal.Magenta num_bought
+       ANSITerminal.Magenta num_remaining
 
 let update_available num_available gui =
   let new_gui = { gui with num_available } in
@@ -222,8 +225,12 @@ let draw_static_text layer_name gui =
 
 let update_plant_highlight loc_opt gui = failwith "Unimplemented"
 
-let update_turn player_id num_bought num_available highlight_loc_opt gui
-    =
+let update_turn
+    player_id
+    num_store_remaining
+    num_available
+    highlight_loc_opt
+    gui =
   let store_offset = get_offset "store" gui in
   let new_turn_gui = { gui with turn = player_id } in
   new_turn_gui
@@ -232,7 +239,7 @@ let update_turn player_id num_bought num_available highlight_loc_opt gui
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
-  |> update_bought num_bought
+  |> update_store_remaining num_store_remaining
   |> update_available num_available
 (* |> update_plant_highlight highlight_loc_opt gui *)
 
@@ -294,7 +301,7 @@ let init_gui store_costs init_available cells player_params =
       player_params;
       turn = PlayerId.first;
       store_costs;
-      num_bought = List.map (fun _ -> 0) Plant.all_stages;
+      num_store_remaining = List.map (fun _ -> 0) Plant.all_stages;
       num_available = init_available;
     }
   in
@@ -305,6 +312,6 @@ let init_gui store_costs init_available cells player_params =
           cells)
   |> draw_cells "cells" cells
   |> draw_static_text "static text"
-  |> update_turn gui.turn gui.num_bought gui.num_available None
+  |> update_turn gui.turn gui.num_store_remaining gui.num_available None
 
 let render gui = render gui.rend

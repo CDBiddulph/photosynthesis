@@ -46,9 +46,9 @@ val update_cursor : color -> HexUtil.coord option -> t -> t
     [gui] with [text] and [color]. *)
 val update_message : string -> color -> t -> t
 
-(** [update_turn player_id num_bought num_available highlight_loc_opt gui]
+(** [update_turn player_id num_store_remaining num_available highlight_loc_opt gui]
     configures [gui] to render its store and available area according to
-    [player_id]; performs [update_bought num_bought gui],
+    [player_id]; performs [update_bought num_store_remaining gui],
     [update_available num_available gui],
     [update_plant_highlight highlight_loc_opt gui]; and updates the sign
     displaying whose turn it is. *)
@@ -60,13 +60,13 @@ val update_turn :
   t ->
   t
 
-(** [update_bought num_bought gui] is [gui] with the number of magenta
-    plants in each row updated from top to bottom according to
-    [num_bought], in the order of [Plant.all_stages], and the rest of
-    the plants colored according to the current player's turn as stored
-    by [gui]. Requires:
-    [List.length num_bought = List.length Plant.all_stages]. *)
-val update_bought : int list -> t -> t
+(** [update_store_remaining num_remaining gui] is [gui] with the number
+    of plants colored according to the current player's turn as stored
+    by [gui] in each row updated from top to bottom according to
+    [num_remaining], in the order of [Plant.all_stages], and the rest of
+    the plants colored magenta. Requires:
+    [List.length num_remaining = List.length Plant.all_stages]. *)
+val update_store_remaining : int list -> t -> t
 
 (** [update_available num_available gui] is [gui] with the number of
     plants in each row in the available area updated from top to bottom
