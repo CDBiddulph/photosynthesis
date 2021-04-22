@@ -129,7 +129,7 @@ let player_params =
     (4, ('o', ANSITerminal.Yellow));
   ]
 
-let gui = Gui.init_gui (Game.cells game4) player_params
+let gui = Gui.init_gui [] [] (Game.cells game4) player_params
 
 let to_render = false
 

@@ -34,7 +34,7 @@ let draw_at_point layer_name graphic gui point =
 let draw_hexes layer_name points gui =
   let hex_graphic =
     gui.rend |> get_graphic "hex" "hex"
-    |> ANSITerminal.(fill_color_in_raster White)
+    |> ANSITerminal.(replace_all_color White)
   in
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
@@ -64,9 +64,8 @@ let plant_graphic plant gui =
   let player_id = Plant.player_id plant in
   gui.rend
   |> get_graphic char_name color_name
-  |> replace_char_in_raster 'x' (render_char player_id gui)
-  |> replace_color_in_raster ANSITerminal.Default
-       (render_color player_id gui)
+  |> replace_char 'x' (render_char player_id gui)
+  |> replace_color ANSITerminal.Default (render_color player_id gui)
 
 (** [draw_plant layer_name plant point gui] returns [gui] with [plant]
     drawn in the position corresponding to [point] in the layer of
@@ -94,8 +93,7 @@ let draw_cursor layer_name color coord_opt gui =
   | None -> gui
   | Some point ->
       let graphic =
-        gui.rend |> get_graphic "hex" "hex"
-        |> fill_color_in_raster color
+        gui.rend |> get_graphic "hex" "hex" |> replace_all_color color
       in
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
@@ -179,13 +177,27 @@ let draw_costs layer_name offset color limit_opt gui =
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
 
+let draw_bought_plants layer_name offset color gui =
+  let enumerate_graphics =
+    List.mapi
+      (fun i s ->
+        ( i,
+          plant_graphic (Plant.init_plant gui.turn s) gui
+          |> Raster.replace_all_color color
+          |> Raster.replace_char_with_none ' ' ))
+      Plant.all_stages
+  in
+  List.fold_left
+    (draw_row layer_name offset gui.num_bought)
+    gui
+    (List.rev enumerate_graphics)
+
 let draw_bought layer_name offset color num_bought gui =
   gui |> set_blank layer_name
+  |> draw_bought_plants layer_name offset color
   |> draw_costs layer_name offset color (Some num_bought)
 
 let update_bought num_bought gui =
-  (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
-     g *)
   { gui with num_bought }
   |> draw_bought "store_bought"
        (get_offset "store" gui)
