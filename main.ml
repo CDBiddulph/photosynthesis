@@ -27,7 +27,7 @@ let main () =
   let gui =
     init_gui
       [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-      [ 2; 4; 1; 0 ]
+      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ]
       (HexMap.flatten hex_map)
       player_params
   in
@@ -59,6 +59,7 @@ let main () =
          { diag = 4; col = 2 };
          { diag = 0; col = 3 };
        ]
+  |> update_next_sp 1 1 |> update_next_sp 2 9 |> update_next_sp 3 10
   |> render;
   let state = init_state gui in
   read_char state

@@ -280,6 +280,24 @@ let update_cell_highlight coords gui =
   |> draw_hexes layer_name ANSITerminal.Green
        (List.map (point2d_of_hex_coord gui) coords)
 
+let draw_next_sp layer_name soil sp gui =
+  draw_text layer_name
+    (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
+    (string_of_int sp ^ if sp < 10 then " " else "")
+    ANSITerminal.Green gui
+
+let draw_init_next_sp layer_name sps gui =
+  let enumerate_sps = List.mapi (fun i sp -> (i + 1, sp)) sps in
+  List.fold_left
+    (fun g (soil, sp) -> draw_next_sp layer_name soil sp g)
+    gui enumerate_sps
+  |> draw_text_lines layer_name
+       (get_offset "next_sp" gui)
+       [ "Next SP:"; "::"; ":."; ":"; "." ]
+       ANSITerminal.Green
+
+let update_next_sp = draw_next_sp "next_sp"
+
 let draw_player_sign layer_name player_id gui =
   draw_text layer_name
     (get_offset "player_sign" gui)
@@ -307,7 +325,8 @@ let update_turn
   |> update_available num_available
   |> update_plant_highlight highlight_loc_opt
 
-let init_gui store_costs init_available cells player_params =
+let init_gui store_costs init_available init_next_sp cells player_params
+    =
   let layer_names =
     [
       "background";
@@ -321,6 +340,7 @@ let init_gui store_costs init_available cells player_params =
       "available";
       "plant_highlight";
       "static text";
+      "next_sp";
       "player_sign";
       "message";
     ]
@@ -331,11 +351,12 @@ let init_gui store_costs init_available cells player_params =
       offsets =
         [
           ("board", { x = 5; y = 2 });
-          ("store", { x = 85; y = 3 });
-          ("available", { x = 85; y = 24 });
+          ("store", { x = 85; y = 2 });
+          ("available", { x = 85; y = 23 });
           ("plant_num", { x = 5; y = 5 });
-          ("player_sign", { x = 109; y = 2 });
+          ("player_sign", { x = 109; y = 1 });
           ("sun", { x = 3; y = 1 });
+          ("next_sp", { x = 7; y = 38 });
         ];
       player_params;
       turn = PlayerId.first;
@@ -352,6 +373,7 @@ let init_gui store_costs init_available cells player_params =
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
+  |> draw_init_next_sp "next_sp" init_next_sp
   |> draw_static_text "static text"
   |> update_turn gui.turn gui.num_store_remaining gui.num_available None
 

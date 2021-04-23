@@ -5,20 +5,25 @@ open ANSITerminal
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui store_costs init_available cells player_params] is the GUI
-    for a board of cells, constructed from the ground up. A hexagon will
-    be created in every place corresponding to a Some value in [cells].
-    Then, [update_cells cells] will be called. The colors and chars of
-    [player_params] will be used to render the trees of each individual
-    player. The store and available area, when they are updated, will
-    render according to the player id that equals 1 in [player_params].
-    The store will have capacities according to length of each list in
-    [store_costs], in order of [Plant.all_stages]. The cost of each
-    plant in the store will correspond to the costs in [store_costs].
-    The available area will have [init_available] numbers of plants in
-    each row, in order of [Plant.all_stages] *)
+(** [init_gui store_costs init_available init_next_sp cells player_params]
+    is the GUI for a board of cells, constructed from the ground up. A
+    hexagon will be created in every place corresponding to a Some value
+    in [cells]. Then, [update_cells cells] will be called. The colors
+    and chars of [player_params] will be used to render the trees of
+    each individual player. The store and available area, when they are
+    updated, will render according to the player id that equals 1 in
+    [player_params]. The store will have capacities according to length
+    of each list in [store_costs], in order of [Plant.all_stages]. The
+    cost of each plant in the store will correspond to the costs in
+    [store_costs]. The available area will have [init_available] numbers
+    of plants in each row, in order of [Plant.all_stages]. The displayed
+    scoring points will be initialized to [init_next_sp], which should
+    be given in the order of the soil types 1, 2, 3, 4, but will be
+    displayed in the order of 4, 3, 2, 1. Precondition: for all values
+    [sp] in [init_next_sp], [sp > 0 && sp < 100] *)
 val init_gui :
   int list list ->
+  int list ->
   int list ->
   Cell.t list ->
   (PlayerId.t * (char * color)) list ->
@@ -87,6 +92,11 @@ val update_plant_highlight : (bool * Plant.plant_stage) option -> t -> t
     [coords] highlighted in green. If [coords = \[\]], there will be no
     highlighted cells. *)
 val update_cell_highlight : HexUtil.coord list -> t -> t
+
+(** [update_next_sp soil sp gui] is [gui] with the scoring points
+    displayed next to [soil] overwritten by [sp]. Precondition:
+    [sp > 0 && sp < 100]*)
+val update_next_sp : Cell.soil -> int -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)
