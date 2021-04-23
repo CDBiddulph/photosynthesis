@@ -20,7 +20,7 @@ type t
     scoring points will be initialized to [init_next_sp], which should
     be given in the order of the soil types 1, 2, 3, 4, but will be
     displayed in the order of 4, 3, 2, 1. Precondition: for all values
-    [sp] in [init_next_sp], [sp > 0 && sp < 100] *)
+    [sp] in [init_next_sp], [sp >= 0 && sp < 100] *)
 val init_gui :
   int list list ->
   int list ->
@@ -51,14 +51,17 @@ val update_cursor : HexUtil.coord option -> t -> t
     [gui] with [text] and [color]. *)
 val update_message : string -> color -> t -> t
 
-(** [update_turn player_id num_store_remaining num_available highlight_loc_opt gui]
+(** [update_turn lp sp player_id num_store_remaining num_available highlight_loc_opt gui]
     configures [gui] to render its store and available area according to
-    [player_id]; performs [update_bought num_store_remaining gui],
-    [update_available num_available gui],
-    [update_plant_highlight highlight_loc_opt gui]; and updates the sign
-    displaying whose turn it is. *)
+    [player_id]; performs [update_player_lp lp], [update_player_sp sp]
+    [update_bought num_store_remaining],
+    [update_available num_available], and
+    [update_plant_highlight highlight_loc_opt] on [gui]; and updates the
+    sign displaying whose turn it is. *)
 val update_turn :
   PlayerId.t ->
+  int ->
+  int ->
   int list ->
   int list ->
   (bool * Plant.plant_stage) option ->
@@ -95,8 +98,16 @@ val update_cell_highlight : HexUtil.coord list -> t -> t
 
 (** [update_next_sp soil sp gui] is [gui] with the scoring points
     displayed next to [soil] overwritten by [sp]. Precondition:
-    [sp > 0 && sp < 100]*)
+    [sp >= 0 && sp < 100]*)
 val update_next_sp : Cell.soil -> int -> t -> t
+
+(** [update_player_lp lp gui] is [gui] with the light points of the
+    current player overwritten with [lp]. *)
+val update_player_lp : int -> t -> t
+
+(** [update_player_sp sp gui] is [gui] with the scoring points of the
+    current player overwritten with [sp]. *)
+val update_player_sp : int -> t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

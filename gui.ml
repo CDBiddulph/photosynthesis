@@ -280,10 +280,13 @@ let update_cell_highlight coords gui =
   |> draw_hexes layer_name ANSITerminal.Green
        (List.map (point2d_of_hex_coord gui) coords)
 
+let pad_to_length str length =
+  str ^ String.make (max 0 (length - String.length str)) ' '
+
 let draw_next_sp layer_name soil sp gui =
   draw_text layer_name
     (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
-    (string_of_int sp ^ if sp < 10 then " " else "")
+    (pad_to_length (string_of_int sp) 2)
     ANSITerminal.Green gui
 
 let draw_init_next_sp layer_name sps gui =
@@ -296,7 +299,19 @@ let draw_init_next_sp layer_name sps gui =
        [ "Next SP:"; "::"; ":."; ":"; "." ]
        ANSITerminal.Green
 
-let update_next_sp = draw_next_sp "next_sp"
+let update_next_sp = draw_next_sp "overwrite_text"
+
+let update_player_lp lp gui =
+  draw_text "overwrite_text"
+    (get_offset "player_lp" gui)
+    ("LP: " ^ pad_to_length (string_of_int lp) 2)
+    ANSITerminal.Yellow gui
+
+let update_player_sp sp gui =
+  draw_text "overwrite_text"
+    (get_offset "player_sp" gui)
+    ("SP: " ^ pad_to_length (string_of_int sp) 3)
+    ANSITerminal.Green gui
 
 let draw_player_sign layer_name player_id gui =
   draw_text layer_name
@@ -307,6 +322,8 @@ let draw_player_sign layer_name player_id gui =
 
 let update_turn
     player_id
+    lp
+    sp
     num_store_remaining
     num_available
     highlight_loc_opt
@@ -324,6 +341,7 @@ let update_turn
   |> update_store_remaining num_store_remaining
   |> update_available num_available
   |> update_plant_highlight highlight_loc_opt
+  |> update_player_lp lp |> update_player_sp sp
 
 let init_gui store_costs init_available init_next_sp cells player_params
     =
@@ -339,8 +357,8 @@ let init_gui store_costs init_available init_next_sp cells player_params
       "store_bought";
       "available";
       "plant_highlight";
-      "static text";
-      "next_sp";
+      "static_text";
+      "overwrite_text";
       "player_sign";
       "message";
     ]
@@ -357,6 +375,8 @@ let init_gui store_costs init_available init_next_sp cells player_params
           ("player_sign", { x = 109; y = 1 });
           ("sun", { x = 3; y = 1 });
           ("next_sp", { x = 7; y = 38 });
+          ("player_lp", { x = 73; y = 4 });
+          ("player_sp", { x = 7; y = 4 });
         ];
       player_params;
       turn = PlayerId.first;
@@ -373,8 +393,9 @@ let init_gui store_costs init_available init_next_sp cells player_params
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
-  |> draw_init_next_sp "next_sp" init_next_sp
-  |> draw_static_text "static text"
-  |> update_turn gui.turn gui.num_store_remaining gui.num_available None
+  |> draw_init_next_sp "overwrite_text" init_next_sp
+  |> draw_static_text "static_text"
+  |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
+       None
 
 let render gui = render gui.rend
