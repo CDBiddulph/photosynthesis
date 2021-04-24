@@ -31,16 +31,11 @@ let draw_at_point layer_name graphic gui point =
 (** [draw_hexes gui points layer] returns [layer] with hexes drawn on it
     in the positions corresponding to [points] with an offset of
     [gui.hex_offset] + [gui.board_offset]. *)
-<<<<<<< HEAD
-let draw_hexes layer_name color points gui =
-  let hex_graphic = gui.rend |> get_graphic_fill_color "hex" color in
-=======
 let draw_hexes layer_name points gui =
   let hex_graphic =
     gui.rend |> get_graphic "hex" "hex"
     |> ANSITerminal.(replace_all_color White)
   in
->>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
 (** [draw_soil gui point soil layer] returns [layer] with a soil marker
@@ -70,11 +65,7 @@ let plant_graphic plant gui =
   in
   let player_id = Plant.player_id plant in
   gui.rend
-<<<<<<< HEAD
-  |> get_graphic_with_color_grid char_name color_name
-=======
   |> get_graphic char_name color_name
->>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
   |> replace_char 'x' (render_char player_id gui)
   |> replace_color ANSITerminal.Default (render_color player_id gui)
 
@@ -103,13 +94,9 @@ let draw_cursor layer_name color coord_opt gui =
   match coord_opt with
   | None -> gui
   | Some point ->
-<<<<<<< HEAD
-      let graphic = gui.rend |> get_graphic_fill_color "hex" color in
-=======
       let graphic =
         gui.rend |> get_graphic "hex" "hex" |> replace_all_color color
       in
->>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
@@ -237,12 +224,7 @@ let update_available num_available gui =
   new_gui |> set_blank "available"
   |> draw_plant_inventory "available"
        (get_offset "available" new_gui)
-<<<<<<< HEAD
-       num_available None
-       (replace_char_with_none ' ')
-=======
        num_available None Fun.id
->>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
 
 let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
