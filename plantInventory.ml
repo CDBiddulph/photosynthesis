@@ -12,6 +12,12 @@ let init_plant_inventory =
     (Plant.Large, 0);
   ]
 
+let init_plant_inventory_gen stage num inv =
+  List.map
+    (fun (inv_stage, count) ->
+      if inv_stage = stage then (inv_stage, num) else (inv_stage, count))
+    inv
+
 let empty =
   [
     (Plant.Seed, 0);
@@ -41,8 +47,10 @@ let add_plant inv stage =
     inv
 
 let num_remaining inv stage =
-  let rem = List.filter (fun (inv_stage, count) -> count) inv in
+  let rem =
+    List.filter (fun (inv_stage, count) -> inv_stage = stage) inv
+  in
   match rem with
   | [] -> failwith "invalid stage"
-  | [ hd ] -> hd
+  | [ (_, count) ] -> count
   | hd :: tl -> failwith "invalid inventory representation"
