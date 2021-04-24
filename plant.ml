@@ -1,3 +1,5 @@
+open PlayerId
+
 type plant_stage =
   | Seed
   | Small
@@ -22,9 +24,14 @@ let string_of_plant_stage stage =
   | Medium -> "medium"
   | Large -> "large"
 
+let int_of_plant_stage stage =
+  match stage with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
+
 let next_stage stage =
   match stage with
   | Seed -> Some Small
   | Small -> Some Medium
   | Medium -> Some Large
   | Large -> None
+
+let all_stages = [ Seed; Small; Medium; Large ]

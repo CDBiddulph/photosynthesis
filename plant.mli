@@ -22,4 +22,8 @@ val plant_stage : t -> plant_stage
     "medium", or "large", depending on [plant_stage]. *)
 val string_of_plant_stage : plant_stage -> string
 
+val int_of_plant_stage : plant_stage -> int
+
 val next_stage : plant_stage -> plant_stage option
+
+val all_stages : plant_stage list
