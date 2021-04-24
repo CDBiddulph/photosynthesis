@@ -2,53 +2,47 @@ open Plant
 
 exception OutOfPlant of Plant.plant_stage
 
-exception InvalidNumber of int
-
-type t = Plant.plant_stage list
+type t = (Plant.plant_stage * int) list
 
 let init_plant_inventory =
-  [ Plant.Seed; Plant.Seed; Plant.Small; Plant.Small; Plant.Medium ]
+  [
+    (Plant.Seed, 2);
+    (Plant.Small, 2);
+    (Plant.Medium, 1);
+    (Plant.Large, 0);
+  ]
 
-let rec init_plant_inventory_gen
-    (stage : Plant.plant_stage)
-    (x : int)
-    (acc : t) =
-  match x with
-  | 0 -> acc
-  | _ ->
-      let acc = stage :: acc in
-      let num = x - 1 in
-      init_plant_inventory_gen stage num acc
+let empty =
+  [
+    (Plant.Seed, 0);
+    (Plant.Small, 0);
+    (Plant.Medium, 0);
+    (Plant.Large, 0);
+  ]
 
-let empty = []
+let size inv = List.fold_left (fun acc (_, count) -> acc + count) 0 inv
 
-let is_empty inv = inv = empty
-
-let size inv = List.length inv
-
-let remove_bool1 (x : Plant.t) (y : Plant.plant_stage) : bool =
-  Plant.plant_stage x <> y
-
-let remove_bool2 (x : int) = match x with 0 -> true | _ -> false
-
-let rec remove_helper inv stage acc x =
-  match inv with
-  | [] -> acc
-  | h :: t ->
-      if h = stage && x = 0 then remove_helper t stage acc x
-      else
-        let acc = h :: acc in
-        let x = 1 in
-        remove_helper t stage acc x
+let is_empty inv = size inv = 0
 
 let remove_plant inv stage =
-  let acc = empty in
-  let x = 0 in
-  if List.mem stage inv then remove_helper inv stage acc x
-  else raise (OutOfPlant stage)
+  List.map
+    (fun (inv_stage, count) ->
+      if inv_stage = stage then
+        if count > 0 then (inv_stage, count - 1)
+        else raise (OutOfPlant inv_stage)
+      else (inv_stage, count))
+    inv
 
-let add_plant inv stage = stage :: inv
+let add_plant inv stage =
+  List.map
+    (fun (inv_stage, count) ->
+      if inv_stage = stage then (inv_stage, count + 1)
+      else (inv_stage, count))
+    inv
 
 let num_remaining inv stage =
-  let new_t = List.filter (fun x -> x = stage) inv in
-  List.length new_t
+  let rem = List.filter (fun (inv_stage, count) -> count) inv in
+  match rem with
+  | [] -> failwith "invalid stage"
+  | [ hd ] -> hd
+  | hd :: tl -> failwith "invalid inventory representation"
