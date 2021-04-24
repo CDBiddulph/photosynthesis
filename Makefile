@@ -27,4 +27,4 @@ play:
 
 clean:
 	ocamlbuild -clean
-	rm -rf _doc.public _doc.private
+	rm -rf search.zip _doc.public _doc.private _coverage bisect*.coverage
