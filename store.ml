@@ -1,5 +1,6 @@
 open PlantInventory
 
+(** TODO *)
 type t = int list
 
 exception InsufficientLightPoints of int
@@ -14,11 +15,12 @@ let init_store =
 
 let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
 
+(** TODO *)
 let stage_to_ind =
   let open Plant in
   function Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-let rec cost store stage =
+let cost store stage =
   let ind = stage_to_ind stage in
   List.nth (List.nth costs ind) (List.nth store ind)
 
@@ -35,7 +37,7 @@ let buy_plant store stage light_points =
         else count)
       store
 
-let rec plant_is_full stage store =
+let plant_is_full stage store =
   let ind = stage_to_ind stage in
   List.nth store ind = 0
 

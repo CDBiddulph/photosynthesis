@@ -1,15 +1,13 @@
-(** Keeps track of the plants that one player can buy. *)
-
-(* May want to internally represent this with a PlantInventory, along
-   with other data structures to handle costs, capacities, etc. *)
-
 (** Represents a store. *)
 type t
 
+(** TODO *)
 exception InsufficientLightPoints of int
 
+(** TODO *)
 exception FullOfPlant of Plant.plant_stage
 
+(** TODO *)
 exception OutOfPlant of Plant.plant_stage
 
 (** [init_store] is a new store with the default number of starting
