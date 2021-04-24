@@ -18,7 +18,7 @@ let player_params =
   [
     (1, ('s', ANSITerminal.Green));
     (2, ('c', ANSITerminal.Red));
-    (3, ('x', ANSITerminal.Blue));
+    (3, ('x', ANSITerminal.Cyan));
     (4, ('o', ANSITerminal.Yellow));
   ]
 
@@ -27,7 +27,7 @@ let main () =
   let gui =
     init_gui
       [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-      [ 2; 4; 1; 0 ]
+      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ]
       (HexMap.flatten hex_map)
       player_params
   in
@@ -43,14 +43,24 @@ let main () =
          basic_cell3 { diag = 3; col = 3 };
          basic_cell4 { diag = 0; col = 0 };
        ]
-  |> update_cursor ANSITerminal.Red (Some { diag = 0; col = 0 })
-  |> update_cursor ANSITerminal.Red (Some { diag = 2; col = 2 })
+  |> update_sun 5 |> update_sun 0
+  |> update_cursor (Some { diag = 0; col = 0 })
+  |> update_cursor (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
-  |> update_turn 4 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
-       (Some (true, Plant.Medium))
-  |> update_turn 3 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
-       (Some (true, Plant.Medium))
+  |> update_turn 4 20 7 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
+       (Some (false, Plant.Small))
+  |> update_turn 3 5 11 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
+       (Some (true, Plant.Seed))
+  |> update_cell_highlight [ { diag = 2; col = 4 } ]
+  |> update_cell_highlight
+       [
+         { diag = 6; col = 6 };
+         { diag = 4; col = 2 };
+         { diag = 0; col = 3 };
+       ]
+  |> update_next_sp 1 1 |> update_next_sp 2 9 |> update_next_sp 3 10
+  |> update_player_lp 20 |> update_player_sp 100 |> update_player_sp 19
   |> render;
   let state = init_state gui in
   read_char state

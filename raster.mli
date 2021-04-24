@@ -26,17 +26,24 @@ val map_grid : ('a option -> 'b option) -> 'a grid -> 'b grid
 val map2_grid :
   ('a option -> 'b option -> 'c option) -> 'a grid -> 'b grid -> 'c grid
 
-val replace_char_in_raster : char -> char -> t -> t
+(** [replace_char find_char replace_char raster] is [raster] with all
+    instances of [find_char] replaced by [replace_char], but
+    case-sensitive, so all uppercase versions of [find_char] will be
+    replaced with the uppercase version of [replace_char]. *)
+val replace_char : char -> char -> t -> t
 
-(** [replace_color_in_raster find_color replace_color raster] is
-    [raster] with all instances of [find_color] replaced by
-    [replace_color]. *)
-val replace_color_in_raster :
-  ANSITerminal.color -> ANSITerminal.color -> t -> t
+(** [replace_char_with_none find_char raster] is [raster] with all
+    instances of [Some find_char] replaced by [None]. Not
+    case-sensitive. *)
+val replace_char_with_none : char -> t -> t
 
-(** [fill_color_in_raster fill_color raster] is [raster] with all colors
-    in the color grid of raster replaced by [fill_color]. *)
-val fill_color_in_raster : ANSITerminal.color -> t -> t
+(** [replace_color find_color replace_color raster] is [raster] with all
+    instances of [find_color] replaced by [replace_color]. *)
+val replace_color : ANSITerminal.color -> ANSITerminal.color -> t -> t
+
+(** [replace_all_color fill_color raster] is [raster] with all colors in
+    the color grid of raster replaced by [fill_color]. *)
+val replace_all_color : ANSITerminal.color -> t -> t
 
 val fill_raster :
   point2d -> char option -> ANSITerminal.color option -> t
