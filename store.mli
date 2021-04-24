@@ -10,7 +10,9 @@ exception InsufficientLightPoints of int
 
 exception FullOfPlant of Plant.plant_stage
 
-(** [init_store ()] is a new store with the default number of starting
+exception OutOfPlant of Plant.plant_stage
+
+(** [init_store] is a new store with the default number of starting
     plants. *)
 val init_store : t
 
