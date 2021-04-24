@@ -132,8 +132,9 @@ let player_params =
 let gui =
   Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ]
     (Game.cells game4) player_params
+  |> Gui.update_sun (Game.sun_dir game4)
 
-let to_render = false
+let to_render = true
 
 let test =
   if to_render then Gui.render gui;
