@@ -6,6 +6,8 @@ type t = {
   available : PlantInventory.t;
 }
 
+let max_lp = 20
+
 let init_player id =
   {
     id;
@@ -28,7 +30,7 @@ let light_points player = player.light_points
 let score_points player = player.score_points
 
 let add_lp pts player =
-  { player with light_points = player.light_points + pts }
+  { player with light_points = min (player.light_points + pts) max_lp }
 
 let add_sp pts player =
   { player with score_points = player.score_points + pts }
