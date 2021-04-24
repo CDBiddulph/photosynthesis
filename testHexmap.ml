@@ -37,6 +37,15 @@ let block_test
     (does_block map dir c1 c2)
     ~printer:string_of_bool
 
+let dist_test
+    (name : string)
+    (map : t)
+    (c1 : HexUtil.coord)
+    (c2 : HexUtil.coord)
+    (expected_output : int) : test =
+  name >:: fun _ ->
+  assert_equal expected_output (dist map c1 c2) ~printer:string_of_int
+
 let i_map = HexMap.init_map ()
 
 let c00 : HexUtil.coord = { col = 0; diag = 0 }
@@ -63,10 +72,23 @@ let set_cell_tests =
   ]
 
 let does_block_tests =
-  [ block_test "horizontal block true" i_map 5 c00 c01 true ]
+  [
+    block_test "horizontal adjacent block true" i_map 5 c00 c01 true;
+    block_test "horizontal 1 separation block true" i_map 5 c00
+      { col = 2; diag = 0 } true;
+    block_test "horizontal 2 separation block true" i_map 5 c00
+      { col = 3; diag = 0 } true;
+    block_test "horizontal 3 separation block true" i_map 5 c00
+      { col = 4; diag = 0 } true;
+    block_test "horizontal 4 separation block true" i_map 5 c00
+      { col = 5; diag = 0 } true;
+  ]
+
+let dist_tests = []
 
 let suite =
   "test suite for HexMap"
-  >::: List.flatten [ cell_at_tests; set_cell_tests; does_block_tests ]
+  >::: List.flatten
+         [ cell_at_tests; set_cell_tests; does_block_tests; dist_tests ]
 
 let test = run_test_tt_main suite
