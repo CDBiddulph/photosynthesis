@@ -1,203 +1,298 @@
-open HexUtil
+open Renderer
 open Raster
+open HexUtil
 
 type t = {
-  width : int;
-  height : int;
-  layers : (string * Raster.t) list;
-  layer_order : string list;
-  char_graphics : (string * char grid) list;
-  color_graphics : (string * ANSITerminal.color grid) list;
-  hex_offset : point2d;
+  rend : Renderer.t;
+  offsets : (string * point2d) list;
+  player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
+  turn : PlayerId.t;
+  store_costs : int list list;
+  num_bought : int list;
+  num_available : int list;
 }
 
-let apply_to_layer layer_name f gui =
-  let new_layer = f (List.assoc layer_name gui.layers) in
-  {
-    gui with
-    layers =
-      (layer_name, new_layer) :: List.remove_assoc layer_name gui.layers;
-  }
+let set_layer layer_name new_layer gui =
+  { gui with rend = set_layer layer_name new_layer gui.rend }
 
-(* Could be used for testing later *)
-(* gui |> update_layer "hexes" (draw gui "hex" 0 0) |> update_layer
-   "hexes2" (draw gui "hex" 1 1) |> update_layer "hexes" (draw gui
-   "empty" 10 5) |> update_layer "hexes2" (draw gui "horiz" 80 29) |>
-   update_layer "hexes" (draw gui "vert" 99 0) |> update_layer "hexes"
-   (draw gui "hex" 91 25) |> update_layer "background" (draw gui "hex"
-   50 5) *)
-
-let update_sun dir gui = gui
+let get_offset name gui = List.assoc name gui.offsets
 
 let point2d_of_hex_coord gui coord =
-  let x = coord.col * 11 in
-  let y = (coord.diag * 6) - (coord.col * 3) in
-  { x = x + gui.hex_offset.x; y = y + gui.hex_offset.y }
+  { x = coord.col * 11; y = (coord.diag * 6) - (coord.col * 3) + 9 }
+  +: get_offset "board" gui
 
-(** [draw_in_coord gui graphic_name layer coord] returns [layer] with
+(** [draw_at_point gui graphic_name layer point] returns [layer] with
     the graphic with name [graphic_name] of [gui] drawn in the position
-    corresponding to [coord] with an offset of [gui.hex_offset]. *)
-let draw_in_coord gui graphic layer coord =
-  let top_left = point2d_of_hex_coord gui coord in
-  draw graphic layer top_left
+    corresponding to [point] *)
+let draw_at_point layer_name graphic gui point =
+  let new_layer = draw point graphic (get_layer layer_name gui.rend) in
+  set_layer layer_name new_layer gui
 
-(** [get_graphic gui char_name color_name] is the combined char-color
-    graphic with [char_name] from [gui.char_graphics] and [color_name]
-    from [gui.color_graphics]. *)
-let get_graphic gui char_name color_name =
-  {
-    char_grid = List.assoc char_name gui.char_graphics;
-    color_grid = List.assoc color_name gui.color_graphics;
-  }
+(** [draw_hexes gui points layer] returns [layer] with hexes drawn on it
+    in the positions corresponding to [points] with an offset of
+    [gui.hex_offset] + [gui.board_offset]. *)
+let draw_hexes layer_name points gui =
+  let hex_graphic =
+    gui.rend |> get_graphic "hex" "hex"
+    |> ANSITerminal.(fill_color_in_raster White)
+  in
+  List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
-(** [draw_hexes gui coords layer] returns [layer] with hexes drawn on it
-    in the positions corresponding to [coords] with an offset of
-    [gui.hex_offset]. *)
-let draw_hexes gui coords layer =
-  List.fold_left
-    (draw_in_coord gui
-       (get_graphic gui "hex" "hex"
-       |> ANSITerminal.(replace_color_in_raster Default White)))
-    layer coords
+(** [draw_soil gui point soil layer] returns [layer] with a soil marker
+    for [soil] drawn on it in the position corresponding to [point] with
+    an offset of [gui.hex_offset] + [gui.board_offset]. *)
+let draw_soil layer_name soil point gui =
+  let char_grid_name = "soil/" ^ string_of_int soil in
+  let soil_graphic = get_graphic char_grid_name "soil/" gui.rend in
+  draw_at_point layer_name soil_graphic gui point
 
-(** [draw_soil gui coord soil layer] returns [layer] with a soil marker
-    for [soil] drawn on it in the position corresponding to [coord] with
-    an offset of [gui.hex_offset]. *)
-let draw_soil gui coord soil layer =
-  let char_name = "soil/" ^ string_of_int soil in
-  draw_in_coord gui (get_graphic gui char_name "soil/") layer coord
+let render_char player_id gui =
+  fst (List.assoc player_id gui.player_params)
 
-(** [draw_plants gui coord plant layer] returns [layer] with [plant]
-    drawn in the position corresponding to [coord] according to the
-    hex_offset and graphics in [gui]. *)
-let draw_plant gui coord plant layer =
+let render_color player_id gui =
+  snd (List.assoc player_id gui.player_params)
+
+let plant_graphic plant gui =
   let char_name =
     "plants/" ^ Plant.(plant |> plant_stage |> string_of_plant_stage)
   in
-  let color_name = "plants/tree" in
-  let graphic =
-    get_graphic gui char_name color_name
-    |> replace_char_in_raster 'x' (Plant.render_char plant)
-    |> replace_color_in_raster ANSITerminal.Default
-         (Plant.render_color plant)
+  let color_name =
+    match Plant.plant_stage plant with
+    | Seed -> "plants/seed"
+    | Small | Medium | Large -> "plants/tree"
   in
-  draw_in_coord gui graphic layer coord
+  let player_id = Plant.player_id plant in
+  gui.rend
+  |> get_graphic char_name color_name
+  |> replace_char_in_raster 'x' (render_char player_id gui)
+  |> replace_color_in_raster ANSITerminal.Default
+       (render_color player_id gui)
 
-(** [draw_cells gui cells layer] returns [layer] with the contents of
-    [cells] (either soil or a plant, depending on whether the cell has a
-    plant or not) in the corresponding positions, with the graphics and
-    offset in [gui] *)
-let draw_cells gui cells layer =
-  let draw_cell gui layer cell =
+(** [draw_plant layer_name plant point gui] returns [gui] with [plant]
+    drawn in the position corresponding to [point] in the layer of
+    [layer_name] according to the offset and graphics in [gui]. *)
+let draw_plant layer_name plant point gui =
+  let graphic = plant_graphic plant gui in
+  draw_at_point layer_name graphic gui point
+
+let draw_cells layer_name cells gui =
+  let draw_cell gui cell =
+    let point = cell |> Cell.coord |> point2d_of_hex_coord gui in
     match Cell.plant cell with
-    | None -> draw_soil gui (Cell.coord cell) (Cell.soil cell) layer
-    | Some p -> draw_plant gui (Cell.coord cell) p layer
+    | None -> draw_soil layer_name (Cell.soil cell) point gui
+    | Some plant -> draw_plant layer_name plant point gui
   in
-  List.fold_left (draw_cell gui) layer cells
+  List.fold_left draw_cell gui cells
 
-(* [update_cells cells gui] is [gui] with the contents of each cell in
-   [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
-   the space corresponding to [c] will display a marker showing the type
-   of soil in [c]. Otherwise, if [Cell.plant c = Some p], [p] will be
-   displayed. *)
-let update_cells cells gui =
-  gui |> apply_to_layer "cells" (draw_cells gui cells)
+let update_cells = draw_cells "cells"
 
-let draw_cursor gui color coord_opt layer =
-  (* TODO: fix so that 76 and 41 are not hard-coded *)
-  let blank = blank_raster 76 41 in
+let set_blank layer_name gui =
+  set_layer layer_name (blank_layer gui.rend) gui
+
+let draw_cursor layer_name color coord_opt gui =
   match coord_opt with
-  | None -> blank
-  | Some coord ->
+  | None -> gui
+  | Some point ->
       let graphic =
-        get_graphic gui "hex" "hex"
-        |> replace_color_in_raster ANSITerminal.Default color
+        gui.rend |> get_graphic "hex" "hex"
+        |> fill_color_in_raster color
       in
-      draw_in_coord gui graphic blank coord
+      draw_at_point layer_name graphic gui
+        (point2d_of_hex_coord gui point)
 
 let update_cursor color coord_opt gui =
-  gui |> apply_to_layer "cursor" (draw_cursor gui color coord_opt)
+  let layer_name = "cursor" in
+  gui |> set_blank layer_name |> draw_cursor layer_name color coord_opt
 
-(** [init_gui cells] is a GUI with the layers of rasters necessary to
-    run the game. Postcondition: Each raster in
-    [(init_gui cells).layers] has the same dimensions. *)
-let init_gui cells =
-  let w = 76 in
-  let h = 41 in
-  let background =
-    fill_raster (Some '.') (Some ANSITerminal.Magenta) w h
+let draw_text layer_name point text color gui =
+  let text_graphic = text_raster text color in
+  draw_at_point layer_name text_graphic gui point
+
+let rec draw_text_lines layer_name point lines color gui =
+  match lines with
+  | [] -> gui
+  | h :: t ->
+      gui
+      |> draw_text layer_name point h color
+      |> draw_text_lines layer_name (point +: { x = 0; y = 1 }) t color
+
+let update_message text color gui =
+  gui |> set_blank "message"
+  |> draw_text "message" { x = 0; y = 0 } text color
+
+let update_sun dir gui = gui
+
+let draw_plant_num layer_name point color num gui =
+  gui
+  |> draw_text layer_name
+       (point +: get_offset "plant_num" gui)
+       (string_of_int num) color
+
+let plant_inv_point capacity origin row_i col_i =
+  let max_capacity = 4 in
+  let x = 8 * (max_capacity - capacity + col_i) in
+  (* Equivalent to taking the sum from 4 to row_i + 4 *)
+  let y = ((row_i * row_i) + (7 * row_i)) / 2 in
+  origin +: { x; y }
+
+let draw_row layer_name origin nums gui (row_i, graphic) =
+  let capacity = List.nth nums row_i in
+  List.fold_left
+    (fun g col_i ->
+      let top_left = plant_inv_point capacity origin row_i col_i in
+      draw_at_point layer_name graphic g top_left)
+    gui
+    (List.rev (List.init capacity Fun.id))
+
+let draw_plant_inventory layer_name offset nums gui =
+  let enumerate_graphics =
+    List.mapi
+      (fun i s -> (i, plant_graphic (Plant.init_plant gui.turn s) gui))
+      Plant.all_stages
   in
-  (* layers must be in order from back to front, since it will be used
-     to make layer_order *)
-  let layers =
+  List.fold_left
+    (draw_row layer_name offset nums)
+    gui
+    (List.rev enumerate_graphics)
+
+let draw_costs layer_name offset color limit_opt gui =
+  let indexed_costs =
+    List.mapi
+      (fun row_i cost_row ->
+        List.mapi (fun col_i cost -> (row_i, col_i, cost)) cost_row)
+      gui.store_costs
+    |> List.flatten
+    |>
+    match limit_opt with
+    | None -> Fun.id
+    | Some limits ->
+        List.filter (fun (row_i, col_i, _) ->
+            List.nth limits row_i > col_i)
+  in
+  List.fold_left
+    (fun g (row_i, col_i, cost) ->
+      let point =
+        plant_inv_point
+          (List.nth gui.store_costs row_i |> List.length)
+          offset row_i col_i
+      in
+      draw_plant_num layer_name point color cost g)
+    gui indexed_costs
+
+let draw_bought layer_name offset color num_bought gui =
+  gui |> set_blank layer_name
+  |> draw_costs layer_name offset color (Some num_bought)
+
+let update_bought num_bought gui =
+  (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
+     g *)
+  { gui with num_bought }
+  |> draw_bought "store_bought"
+       (get_offset "store" gui)
+       ANSITerminal.Magenta num_bought
+
+let update_available num_available gui =
+  gui |> set_blank "available"
+  |> draw_plant_inventory "available"
+       (get_offset "available" gui)
+       num_available
+
+let draw_static_text layer_name gui =
+  let draw_plant_inventory_static_text offset_name title =
+    draw_text_lines layer_name
+      (get_offset offset_name gui +: { x = 2; y = 1 })
+      [ title; "-----------------------------" ]
+      ANSITerminal.White
+  in
+  gui
+  |> draw_plant_inventory_static_text "store" "Store"
+  |> draw_plant_inventory_static_text "available" "Available"
+
+let update_plant_highlight loc_opt gui = failwith "Unimplemented"
+
+let update_turn player_id num_bought num_available highlight_loc_opt gui
+    =
+  let capacities = List.map List.length gui.store_costs in
+  let store_offset = get_offset "store" gui in
+  let new_turn_gui = { gui with turn = player_id } in
+  new_turn_gui
+  |> draw_plant_inventory "store_plants" store_offset capacities
+  |> draw_costs "store_plants" store_offset
+       (render_color new_turn_gui.turn new_turn_gui)
+       None
+  |> update_bought num_bought
+  |> update_available num_available
+(* |> update_plant_highlight highlight_loc_opt gui *)
+
+let init_gui store_costs init_available cells player_params =
+  let layer_names =
     [
-      ("background", background);
-      ("hexes", blank_raster w h);
-      ("cursor", blank_raster w h);
-      ("cells", blank_raster w h);
+      "background";
+      "hexes";
+      "cursor";
+      "cells";
+      "store_plants";
+      "store_bought";
+      "available";
+      "static text";
+      "message";
+    ]
+  in
+  let char_grid_names =
+    [
+      "hex";
+      "miscellaneous/dot";
+      "miscellaneous/empty";
+      "miscellaneous/vert";
+      "miscellaneous/horiz";
+      "plants/seed";
+      "plants/small";
+      "plants/medium";
+      "plants/large";
+      "soil/1";
+      "soil/2";
+      "soil/3";
+      "soil/4";
+    ]
+  in
+  let color_grid_names =
+    [
+      "hex";
+      "miscellaneous/dot";
+      "miscellaneous/empty";
+      "miscellaneous/vert";
+      "miscellaneous/horiz";
+      "plants/seed";
+      "plants/tree";
+      "soil/";
     ]
   in
   let gui =
     {
-      width = w;
-      height = h;
-      layers;
-      layer_order = List.map fst layers;
-      char_graphics =
-        load_char_grids '`'
-          [
-            "hex";
-            "miscellaneous/dot";
-            "miscellaneous/empty";
-            "miscellaneous/vert";
-            "miscellaneous/horiz";
-            "plants/seed";
-            "plants/small";
-            "plants/medium";
-            "plants/large";
-            "soil/1";
-            "soil/2";
-            "soil/3";
-            "soil/4";
-          ];
-      color_graphics =
-        load_color_grids '`'
-          [
-            "hex";
-            "miscellaneous/dot";
-            "miscellaneous/empty";
-            "miscellaneous/vert";
-            "miscellaneous/horiz";
-            "plants/tree";
-            "soil/";
-          ];
-      hex_offset = { x = 0; y = 9 };
+      rend =
+        init_rend { x = 140; y = 45 } layer_names char_grid_names
+          color_grid_names;
+      offsets =
+        [
+          ("board", { x = 5; y = 2 });
+          ("store", { x = 85; y = 0 });
+          ("available", { x = 85; y = 23 });
+          ("plant_num", { x = 5; y = 5 });
+        ];
+      player_params;
+      turn = PlayerId.first;
+      store_costs;
+      num_bought = List.map (fun _ -> 0) Plant.all_stages;
+      num_available = init_available;
     }
   in
   gui
-  |> apply_to_layer "hexes" (draw_hexes gui (List.map Cell.coord cells))
-  |> update_cells cells
+  |> draw_hexes "hexes"
+       (List.map
+          (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
+          cells)
+  |> draw_cells "cells" cells
+  |> draw_static_text "static text"
+  |> update_turn gui.turn gui.num_bought gui.num_available None
 
-let render gui =
-  let print_raster raster =
-    let print_row char_row color_row =
-      List.iter2
-        (fun char_opt color_opt ->
-          match (char_opt, color_opt) with
-          | None, None -> print_char ' '
-          | None, Some _ -> print_char ' '
-          | Some ch, None -> print_char ch
-          | Some ch, Some col ->
-              ANSITerminal.print_string [ Foreground col ]
-                (String.make 1 ch))
-        char_row color_row
-    in
-    List.iter2
-      (fun char_row color_row ->
-        print_row char_row color_row;
-        print_newline ())
-      raster.char_grid raster.color_grid
-  in
-  let render_raster = merge_rasters gui.layer_order gui.layers in
-  ignore (Sys.command "clear");
-  print_raster render_raster
+let render gui = render gui.rend

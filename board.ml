@@ -7,56 +7,109 @@ type round_phase =
   | Photosynthesis
   | Life_Cycle
 
-(** A record type representing a game and its data. The [Player.t list]
-    is a list of all the players in the game, with the turn order being
-    the order of players in the list. [current_phase] indicates if it is
-    a Photosynthesis (true) or Life Cycle (false) phase. *)
+(** A record type representing a game and its data. [sun_dir] indicates
+    the direction that shadows are cast. *)
 type t = {
   map : HexMap.t;
-  sun_dir : HexUtil.dir;
-  current_phase : round_phase;
-  round_count : int;
   rules : ruleset;
-  (* will be moved into the game layer *)
-  players : Player.t list;
-  current_turn : int;
 }
 
-exception InvalidPlacement
+exception IllegalPlacePlant
 
-let init_game players map sun ruleset =
-  {
-    map;
-    sun_dir = sun;
-    current_phase = Life_Cycle;
-    round_count = 0;
-    rules = ruleset;
-    (* will be moved *)
-    players;
-    current_turn = 0;
-  }
+exception IllegalGrowPlant
 
-let is_place_plant_legal board c plant =
-  (* plant can replace a smaller plant of the player *)
-  HexMap.valid_coord board.map c
-  &&
-  match HexMap.cell_at board.map c with
+exception IllegalHarvest
+
+let cell_at coord board = HexMap.cell_at board.map coord
+
+let valid_coord coord board = HexMap.valid_coord board.map coord
+
+let plant_at board coord =
+  match cell_at board coord with
+  | None -> None
+  | Some cell -> Cell.plant cell
+
+let init_board ruleset = { map = HexMap.init_map (); rules = ruleset }
+
+let cell_if_empty coord board =
+  match cell_at board coord with
+  | None -> None
+  | Some c -> (
+      match Cell.plant c with None -> Some c | Some p -> None)
+
+(* TODO: check that location is within the necessary radius of one of
+   the player's trees *)
+let can_plant_seed player_id coord board =
+  cell_if_empty board coord <> None
+
+(** [can_plant_small coord board] is [true] if there is an empty cell at
+    [coord] in [board] and the cell has soil of type [1]. *)
+let can_plant_small coord board =
+  match cell_if_empty board coord with
   | None -> false
-  | Some cell -> Cell.plant cell = None
+  | Some c -> Cell.soil c = 1
 
-let place_plant (board : t) c plant =
-  if is_place_plant_legal board c plant then
-    match HexMap.cell_at board.map c with
-    | None -> failwith "should be a valid cell"
-    | Some cell ->
+let place_plant can_place plant coord board =
+  if can_place then
+    match cell_at coord board with
+    | None -> failwith "Unreachable"
+    | Some old_cell ->
         {
           board with
           map =
             HexMap.set_cell board.map
-              (Some (Cell.init_cell (Cell.soil cell) (Some plant) c))
-              c;
+              (Some (Cell.set_plant old_cell (Some plant)))
+              coord;
         }
-  else raise InvalidPlacement
+  else raise IllegalPlacePlant
+
+let plant_seed player_id coord board =
+  place_plant
+    (can_plant_seed player_id coord board)
+    (Plant.init_plant player_id Plant.Seed)
+    coord board
+
+let plant_small player_id coord board =
+  place_plant
+    (can_plant_small coord board)
+    (Plant.init_plant player_id Plant.Small)
+    coord board
+
+let can_grow_plant player_id coord board =
+  match plant_at coord board with
+  | None -> false
+  | Some old_plant ->
+      let old_player_id = Plant.player_id old_plant in
+      let not_large = Plant.plant_stage old_plant <> Plant.Large in
+      old_player_id = player_id && not_large
+
+let grow_plant coord player_id board =
+  if can_grow_plant player_id coord board then
+    match cell_at coord board with
+    | None -> failwith "Impossible"
+    | Some old_cell ->
+        let old_plant =
+          match Cell.plant old_cell with
+          | None -> failwith "Impossible"
+          | Some p -> p
+        in
+        let next_plant =
+          Some
+            (Plant.init_plant player_id
+               (match
+                  old_plant |> Plant.plant_stage |> Plant.next_stage
+                with
+               | None -> failwith "Impossible"
+               | Some p -> p))
+        in
+        {
+          board with
+          map =
+            HexMap.set_cell board.map
+              (Some (Cell.set_plant old_cell next_plant))
+              coord;
+        }
+  else raise IllegalGrowPlant
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)
@@ -100,23 +153,23 @@ let lp_map (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
-(** [player_lp_helper board player_cells] TODO *)
-let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
+(** [player_lp_helper board player_cells] returns an association list of
+    [HexUtil.coord]s where the player's plants are and their respective
+    light point values based on [board]'s sun direction.*)
+let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
   let coord_lp_lst = ref [] in
   for i = 0 to List.length player_cells - 1 do
     let cell_coord = List.nth player_cells i in
     let shadowed =
       let fst_neigh_opt =
-        HexMap.neighbor board.map cell_coord board.sun_dir
+        HexMap.neighbor board.map cell_coord sun_dir
       in
       match fst_neigh_opt with
       | None -> false
       | Some fst_coord -> (
           let fst_shadow = shadows board.map fst_coord cell_coord in
-          let snd_neigh =
-            HexMap.neighbor board.map fst_coord board.sun_dir
-          in
+          let snd_neigh = HexMap.neighbor board.map fst_coord sun_dir in
           match snd_neigh with
           | None -> fst_shadow
           | Some snd_coord -> (
@@ -124,7 +177,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
                 fst_shadow || shadows board.map snd_coord cell_coord
               in
               let thd_neigh =
-                HexMap.neighbor board.map snd_coord board.sun_dir
+                HexMap.neighbor board.map snd_coord sun_dir
               in
               match thd_neigh with
               | None -> snd_shadow
@@ -132,7 +185,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
                   snd_shadow || shadows board.map thd_coord cell_coord))
     in
     if not shadowed then
-      match HexMap.cell_at board.map cell_coord with
+      match cell_at cell_coord board with
       | None -> failwith "should be a valid cell"
       | Some cell -> (
           let plnt = Cell.plant cell in
@@ -144,7 +197,7 @@ let player_lp_helper (board : t) (player_cells : HexUtil.coord list) :
   done;
   !coord_lp_lst
 
-let get_photo_lp board players =
+let get_photo_lp sun_dir players board =
   let out = ref [] in
   for i = 0 to List.length players - 1 do
     let player = List.nth players i in
@@ -158,48 +211,36 @@ let get_photo_lp board players =
              | Some plant -> Plant.player_id plant = player)
            (HexMap.flatten board.map))
     in
-    out := (player, player_lp_helper board player_cells) :: !out
+    out := (player, player_lp_helper sun_dir player_cells board) :: !out
   done;
   !out
 
-let end_turn (board : t) : t =
-  let current_phase = board.current_phase in
-  match current_phase with
-  | Photosynthesis ->
-      { board with current_phase = Life_Cycle }
-      (* { (lp_helper board) with current_phase = Life_Cycle } *)
-  | Life_Cycle ->
-      if board.current_turn = List.length board.players - 1 then
-        {
-          board with
-          current_phase = Photosynthesis;
-          current_turn = 0;
-          sun_dir = (board.sun_dir + 1) mod 6;
-          round_count = board.round_count + 1;
-        }
-      else { board with current_turn = board.current_turn + 1 }
-
-let sun_dir board = board.sun_dir
-
-let flat_board (board : t) : Cell.t list = HexMap.flatten board.map
-
-let can_remove board c =
-  match HexMap.cell_at board.map c with
+let can_harvest player c board =
+  match cell_at c board with
   | None -> false
   | Some cell -> (
       match Cell.plant cell with
       | None -> false
       | Some plnt -> (
           match Plant.plant_stage plnt with
-          | Plant.Large -> true
+          | Plant.Large -> Plant.player_id plnt = player
           | _ -> false))
 
-let remove_plant board c =
-  if can_remove board c then
-    match HexMap.cell_at board.map c with
-    | None -> failwith "should be a valid cell"
+let harvest player_id coord board =
+  if can_harvest player_id coord board then
+    match cell_at coord board with
+    | None -> failwith "Unreachable"
     | Some cell ->
-        let new_cell = Some (Cell.init_cell (Cell.soil cell) None c) in
-        let new_map = HexMap.set_cell board.map new_cell c in
+        let new_cell =
+          Some (Cell.init_cell (Cell.soil cell) None coord)
+        in
+        let new_map = HexMap.set_cell board.map new_cell coord in
         { board with map = new_map }
-  else board
+  else raise IllegalHarvest
+
+let cells (board : t) : Cell.t list = HexMap.flatten board.map
+
+(* TODO: some notion of turn to keep track of cells that are touched
+   this "turn" *)
+(* TODO: update shadows/lp to use blocks instead of what's happening now
+   (?) *)
