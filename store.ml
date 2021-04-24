@@ -137,7 +137,7 @@ let num_remaining store stage =
   | 5 -> PlantInventory.size (inv (find_list store stage))
   | 6 -> 2 + PlantInventory.size (inv (find_list store stage))
   | 7 -> PlantInventory.size (inv (find_list store stage))
-  | 8 -> 1 + PlantInventory.size (inv (find_list store st))
+  | 8 -> 1 + PlantInventory.size (inv (find_list store stage))
   | _ -> raise (InvalidOrderKey order)
 
 let capacity stage =
