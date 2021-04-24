@@ -2,6 +2,9 @@ open Plant
 
 exception OutOfPlant of Plant.plant_stage
 
+(** An association list of [Plant.plant_stage]s to the number of the
+    respective plants in the inventory. There should always be an entry
+    in the list for each stage. *)
 type t = (Plant.plant_stage * int) list
 
 let init_plant_inventory =

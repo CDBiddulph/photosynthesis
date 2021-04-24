@@ -1,13 +1,18 @@
 open PlantInventory
 
-(** TODO *)
+(** A list of indices that point to the current cost of the next [Plant]
+    of its type. The value at index 0 points to the cost of the next
+    [Seed] which is in the int list at index 0 of costs, at index 1
+    points to the cost of the next [Small] plant which is in the int
+    list at index 1 in costs, and so on. The number of indices in [t]
+    should always match the number of [Plant.plant_stage]s, and the
+    value of the indices should be in bounds of its respective int list
+    in costs. *)
 type t = int list
 
 exception InsufficientLightPoints of int
 
 exception FullOfPlant of Plant.plant_stage
-
-exception OutOfPlant of Plant.plant_stage
 
 let init_store =
   let open Plant in
@@ -15,7 +20,8 @@ let init_store =
 
 let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
 
-(** TODO *)
+(** [stage_to_ind stage] maps a [Plant.plant_stage] to an index in a
+    store. *)
 let stage_to_ind =
   let open Plant in
   function Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
@@ -26,7 +32,7 @@ let cost store stage =
 
 let buy_plant store stage light_points =
   if cost store stage > light_points then
-    raise (InsufficientLightPoints light_points)
+    raise (InsufficientLightPoints (cost store stage))
   else
     let ind = stage_to_ind stage in
     List.mapi

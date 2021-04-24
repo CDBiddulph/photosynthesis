@@ -1,14 +1,12 @@
 (** Represents a store. *)
 type t
 
-(** TODO *)
+(** Raised when purchasing a plant from the store with insufficient
+    light points. *)
 exception InsufficientLightPoints of int
 
-(** TODO *)
+(** Raised when a plant is added to a store without capacity for it. *)
 exception FullOfPlant of Plant.plant_stage
-
-(** TODO *)
-exception OutOfPlant of Plant.plant_stage
 
 (** [init_store] is a new store with the default number of starting
     plants. *)
