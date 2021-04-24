@@ -2,35 +2,29 @@ open Plant
 
 exception OutOfPlant of Plant.plant_stage
 
-type cost = int
+exception InvalidNumber of int
 
-type t = { inv : Plant.plant_stage list }
+type t = Plant.plant_stage list
 
-let init_plant_inventory p_id =
-  [
-    Plant.Seed;
-    Plant.Seed;
-    Plant.Seed;
-    Plant.Seed;
-    Plant.Seed;
-    Plant.Seed;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Small;
-    Plant.Medium;
-    Plant.Medium;
-    Plant.Medium;
-    Plant.Medium;
-    Plant.Large;
-    Plant.Large;
-  ]
+let init_plant_inventory =
+  [ Plant.Seed; Plant.Seed; Plant.Small; Plant.Small; Plant.Medium ]
+
+let rec init_plant_inventory_gen
+    (stage : Plant.plant_stage)
+    (x : int)
+    (acc : t) =
+  match x with
+  | 0 -> acc
+  | _ ->
+      let acc = stage :: acc in
+      let num = x - 1 in
+      init_plant_inventory_gen stage num acc
 
 let empty = []
+
+let is_empty inv = inv = empty
+
+let size inv = List.length inv
 
 let remove_bool1 (x : Plant.t) (y : Plant.plant_stage) : bool =
   Plant.plant_stage x <> y
