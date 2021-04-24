@@ -12,12 +12,12 @@ type ruleset =
 
 (* Setter functions*)
 
-(** [init_game num_players] is a new game with [num_players] players and
-    all initial defaults. *)
+(** [init_game num_players shadow_ruleset round_ruleset] is a new game
+    with [num_players] players and all initial defaults. *)
 val init_game : int -> Board.ruleset -> ruleset -> t
 
 (** [_init_game_test num_players board turn starting_turn
-    setup_rounds_left scoring_points num_rounds]
+    setup_rounds_left scoring_points num_rounds rounds_rule]
     is a new game with all of those things. Should only be used for
     testing. *)
 val _init_game_test :
