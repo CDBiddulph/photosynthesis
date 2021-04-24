@@ -61,6 +61,17 @@ let main () =
        ]
   |> update_next_sp 1 1 |> update_next_sp 2 9 |> update_next_sp 3 10
   |> update_player_lp 20 |> update_player_sp 100 |> update_player_sp 19
+  |> photosynthesis
+       [
+         (1, [ ({ diag = 7; col = 6 }, 3) ]);
+         (2, [ ({ diag = 5; col = 2 }, 2); ({ diag = 2; col = 3 }, 1) ]);
+       ]
+  |> clear_photosynthesis
+  |> photosynthesis
+       [
+         (1, [ ({ diag = 6; col = 6 }, 3) ]);
+         (2, [ ({ diag = 4; col = 2 }, 2); ({ diag = 1; col = 3 }, 1) ]);
+       ]
   |> render;
   let state = init_state gui in
   read_char state

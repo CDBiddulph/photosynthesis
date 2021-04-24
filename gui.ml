@@ -320,6 +320,20 @@ let draw_player_sign layer_name player_id gui =
     (render_color player_id gui)
     gui
 
+let photosynthesis lp gui =
+  List.fold_left
+    (fun g_o (p_id, coord_lps) ->
+      let color = render_color p_id gui in
+      List.fold_left
+        (fun g_i (coord, lp_int) ->
+          draw_plant_num "photosynthesis"
+            (point2d_of_hex_coord g_i coord)
+            color lp_int g_i)
+        g_o coord_lps)
+    gui lp
+
+let clear_photosynthesis gui = set_blank "photosynthesis" gui
+
 let update_turn
     player_id
     lp
@@ -353,6 +367,7 @@ let init_gui store_costs init_available init_next_sp cells player_params
       "cell_highlight";
       "cursor";
       "cells";
+      "photosynthesis";
       "store_plants";
       "store_bought";
       "available";

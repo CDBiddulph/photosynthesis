@@ -109,6 +109,17 @@ val update_player_lp : int -> t -> t
     current player overwritten with [sp]. *)
 val update_player_sp : int -> t -> t
 
+(** [photosynthesis lp gui] is [gui] with numbers under each of the
+    trees at the coordinates in the color of the proper player id -
+    these should be the number of light points each of these trees gains
+    in this stage of photosynthesis. *)
+val photosynthesis :
+  (PlayerId.t * (HexUtil.coord * int) list) list -> t -> t
+
+(** [photosynthesis gui] is [gui] with any numbers drawn in
+    [photosynthesis] cleared. *)
+val clear_photosynthesis : t -> t
+
 (* erase the previous render and print the new render to the screen
    based on the state in t *)
 val render : t -> unit
