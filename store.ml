@@ -1,6 +1,6 @@
 open PlantInventory
 
-type t = (Plant.plant_stage * int * int list) list
+type t = int list
 
 exception InsufficientLightPoints of int
 
@@ -10,55 +10,47 @@ exception OutOfPlant of Plant.plant_stage
 
 let init_store =
   let open Plant in
-  [
-    (Seed, 0, [ 1; 1; 2; 2 ]);
-    (Small, 0, [ 2; 2; 3; 3 ]);
-    (Medium, 0, [ 3; 3; 4 ]);
-    (Large, 0, [ 4; 5 ]);
-  ]
+  [ 0; 0; 0; 0 ]
+
+let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
+
+let stage_to_ind =
+  let open Plant in
+  function Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 let rec cost store stage =
-  match store with
-  | [] -> failwith "invalid stage"
-  | (store_stage, ind, costs) :: tl ->
-      if store_stage = stage then List.nth costs ind else cost tl stage
+  let ind = stage_to_ind stage in
+  List.nth (List.nth costs ind) (List.nth store ind)
 
 let buy_plant store stage light_points =
   if cost store stage > light_points then
     raise (InsufficientLightPoints light_points)
   else
-    List.fold_right
-      (fun (store_stage, ind, costs) new_store ->
-        if store_stage = stage then
-          if ind + 1 < List.length costs then
-            (store_stage, ind + 1, costs) :: new_store
-          else raise (FullOfPlant stage)
-        else (store_stage, ind, costs) :: new_store)
-      store []
+    let ind = stage_to_ind stage in
+    List.mapi
+      (fun i count ->
+        if i = ind then
+          if count + 1 < List.length (List.nth costs ind) then count + 1
+          else raise (OutOfPlant stage)
+        else count)
+      store
 
 let rec plant_is_full stage store =
-  match store with
-  | [] -> failwith "invalid stage"
-  | (store_stage, ind, costs) :: tl ->
-      store_stage = stage && ind = List.length costs
+  let ind = stage_to_ind stage in
+  List.nth store ind = 0
 
 let add_plant store stage =
-  List.fold_right
-    (fun (store_stage, ind, costs) new_store ->
-      if store_stage = stage then
-        if ind - 1 >= 0 then (store_stage, ind - 1, costs) :: new_store
-        else raise (OutOfPlant stage)
-      else new_store)
-    store []
+  let ind = stage_to_ind stage in
+  List.mapi
+    (fun i count ->
+      if i = ind then
+        if count - 1 >= 0 then count - 1 else raise (FullOfPlant stage)
+      else count)
+    store
 
 let num_remaining store stage =
-  let entry =
-    List.filter (fun (store_stage, _, _) -> store_stage = stage) store
-  in
-  match entry with
-  | [] -> failwith "invalid stage"
-  | [ (store_stage, ind, costs) ] -> List.length costs - ind
-  | _ -> failwith "invalid store representation"
+  let ind = stage_to_ind stage in
+  List.length (List.nth costs ind) - List.nth store ind
 
 let capacity stage =
   match stage with
@@ -68,10 +60,4 @@ let capacity stage =
   | Plant.Large -> 2
 
 let remaining_capacity store stage =
-  let entry =
-    List.filter (fun (store_stage, _, _) -> store_stage = stage) store
-  in
-  match entry with
-  | [] -> failwith "invalid stage"
-  | [ (store_stage, ind, costs) ] -> ind
-  | _ -> failwith "invalid store representation"
+  stage_to_ind stage |> List.nth store

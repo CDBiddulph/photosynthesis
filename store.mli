@@ -16,6 +16,9 @@ exception OutOfPlant of Plant.plant_stage
     plants. *)
 val init_store : t
 
+(** [costs] is the list of costs for plants. *)
+val costs : int list list
+
 (** [cost store stage] is the cost in light points to buy the next plant
     of [stage] in [store]. *)
 val cost : t -> Plant.plant_stage -> int
