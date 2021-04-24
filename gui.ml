@@ -31,8 +31,16 @@ let draw_at_point layer_name graphic gui point =
 (** [draw_hexes gui points layer] returns [layer] with hexes drawn on it
     in the positions corresponding to [points] with an offset of
     [gui.hex_offset] + [gui.board_offset]. *)
+<<<<<<< HEAD
 let draw_hexes layer_name color points gui =
   let hex_graphic = gui.rend |> get_graphic_fill_color "hex" color in
+=======
+let draw_hexes layer_name points gui =
+  let hex_graphic =
+    gui.rend |> get_graphic "hex" "hex"
+    |> ANSITerminal.(replace_all_color White)
+  in
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
 (** [draw_soil gui point soil layer] returns [layer] with a soil marker
@@ -62,7 +70,11 @@ let plant_graphic plant gui =
   in
   let player_id = Plant.player_id plant in
   gui.rend
+<<<<<<< HEAD
   |> get_graphic_with_color_grid char_name color_name
+=======
+  |> get_graphic char_name color_name
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
   |> replace_char 'x' (render_char player_id gui)
   |> replace_color ANSITerminal.Default (render_color player_id gui)
 
@@ -91,7 +103,13 @@ let draw_cursor layer_name color coord_opt gui =
   match coord_opt with
   | None -> gui
   | Some point ->
+<<<<<<< HEAD
       let graphic = gui.rend |> get_graphic_fill_color "hex" color in
+=======
+      let graphic =
+        gui.rend |> get_graphic "hex" "hex" |> replace_all_color color
+      in
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
@@ -131,13 +149,11 @@ let draw_plant_num layer_name point color num gui =
        (string_of_int num) color
 
 let plant_inv_point capacity origin row_i col_i =
-  if col_i >= capacity || col_i < 0 then None
-  else
-    let max_capacity = 4 in
-    let x = 8 * (max_capacity - capacity + col_i) in
-    (* Equivalent to taking the sum from 4 to row_i + 4 *)
-    let y = ((row_i * row_i) + (7 * row_i)) / 2 in
-    Some (origin +: { x; y })
+  let max_capacity = 4 in
+  let x = 8 * (max_capacity - capacity + col_i) in
+  (* Equivalent to taking the sum from 4 to row_i + 4 *)
+  let y = ((row_i * row_i) + (7 * row_i)) / 2 in
+  origin +: { x; y }
 
 let draw_row layer_name origin nums capacities gui (row_i, graphic) =
   let capacity = List.nth capacities row_i in
@@ -221,8 +237,12 @@ let update_available num_available gui =
   new_gui |> set_blank "available"
   |> draw_plant_inventory "available"
        (get_offset "available" new_gui)
+<<<<<<< HEAD
        num_available None
        (replace_char_with_none ' ')
+=======
+       num_available None Fun.id
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
 
 let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
@@ -280,6 +300,7 @@ let update_cell_highlight coords gui =
   |> draw_hexes layer_name ANSITerminal.Green
        (List.map (point2d_of_hex_coord gui) coords)
 
+<<<<<<< HEAD
 let pad_to_length str length =
   str ^ String.make (max 0 (length - String.length str)) ' '
 
@@ -324,6 +345,10 @@ let update_turn
     player_id
     lp
     sp
+=======
+let update_turn
+    player_id
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
     num_store_remaining
     num_available
     highlight_loc_opt
@@ -332,12 +357,19 @@ let update_turn
   let new_turn_gui = { gui with turn = player_id } in
   new_turn_gui
   |> draw_plant_inventory "store_plants" store_offset
+<<<<<<< HEAD
        (get_capacities gui) None
        (replace_char_with_none ' ')
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
   |> draw_player_sign "player_sign" player_id
+=======
+       (get_capacities gui) None Fun.id
+  |> draw_costs "store_plants" store_offset
+       (render_color new_turn_gui.turn new_turn_gui)
+       None
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
   |> update_store_remaining num_store_remaining
   |> update_available num_available
   |> update_plant_highlight highlight_loc_opt
@@ -381,7 +413,11 @@ let init_gui store_costs init_available init_next_sp cells player_params
       player_params;
       turn = PlayerId.first;
       store_costs;
+<<<<<<< HEAD
       num_store_remaining = List.map List.length store_costs;
+=======
+      num_store_remaining = List.map (fun _ -> 0) Plant.all_stages;
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
       num_available = init_available;
     }
   in
@@ -393,9 +429,14 @@ let init_gui store_costs init_available init_next_sp cells player_params
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
+<<<<<<< HEAD
   |> draw_init_next_sp "overwrite_text" init_next_sp
   |> draw_static_text "static_text"
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
        None
+=======
+  |> draw_static_text "static text"
+  |> update_turn gui.turn gui.num_store_remaining gui.num_available None
+>>>>>>> 3086f6fe942226751ade324fec6d5007f9db545b
 
 let render gui = render gui.rend

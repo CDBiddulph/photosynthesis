@@ -48,19 +48,10 @@ let main () =
   |> update_cursor (Some { diag = 2; col = 2 })
   |> update_message "You shouldn't be able to see this" ANSITerminal.Red
   |> update_message "(P) Plant small tree" ANSITerminal.White
-  |> update_turn 4 20 7 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
+  |> update_turn 4 [ 4; 2; 0; 1 ] [ 0; 3; 1; 1 ]
+       (Some (true, Plant.Medium))
+  |> update_turn 3 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
        (Some (false, Plant.Small))
-  |> update_turn 3 5 11 [ 2; 4; 1; 0 ] [ 2; 1; 0; 1 ]
-       (Some (true, Plant.Seed))
-  |> update_cell_highlight [ { diag = 2; col = 4 } ]
-  |> update_cell_highlight
-       [
-         { diag = 6; col = 6 };
-         { diag = 4; col = 2 };
-         { diag = 0; col = 3 };
-       ]
-  |> update_next_sp 1 1 |> update_next_sp 2 9 |> update_next_sp 3 10
-  |> update_player_lp 20 |> update_player_sp 100 |> update_player_sp 19
   |> render;
   let state = Ui.init_state gui in Ui.read_char state
 
