@@ -1,6 +1,6 @@
 type ruleset =
   | Normal
-  | Extended
+  | Shadows
 
 (** The type [round_phase] represents the part of the round. *)
 type round_phase =

@@ -4,11 +4,17 @@
 (** Type of the game state *)
 type t
 
+(** The type [ruleset] represents the ruleset (extended or normal) used
+    in the game. *)
+type ruleset =
+  | Normal
+  | Extended
+
 (* Setter functions*)
 
 (** [init_game num_players] is a new game with [num_players] players and
     all initial defaults. *)
-val init_game : int -> Board.ruleset -> t
+val init_game : int -> Board.ruleset -> ruleset -> t
 
 (** [_init_game_test num_players board turn starting_turn
     setup_rounds_left scoring_points num_rounds]
@@ -22,6 +28,7 @@ val _init_game_test :
   int ->
   (Cell.soil * int list) list ->
   int ->
+  ruleset ->
   t
 
 (** [plant_seed player_id coord game] is game with a seed of [player]
@@ -135,3 +142,7 @@ val sun_dir : t -> HexUtil.dir
     remaining scoring points for each soil type, in order from the next
     available to the last available. *)
 val scoring_points : t -> (Cell.soil * int list) list
+
+(** [winner game] is the winner of the game. If the game isn't over,
+    then returns [None]. *)
+val winner : t -> PlayerId.t option

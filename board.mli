@@ -4,7 +4,7 @@ type t
 (** The type [ruleset] represents the ruleset used in the game. *)
 type ruleset =
   | Normal
-  | Extended
+  | Shadows
 
 (** Raised when an illegal plant placement is attempted. *)
 exception IllegalPlacePlant
