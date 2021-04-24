@@ -128,16 +128,16 @@ let add_plant store stage =
   with OutOfPlant stage -> store
 
 let num_remaining store stage =
-  let order = find_list stage store |> ordkey in
+  let order = find_list store stage |> ordkey in
   match order with
-  | 1 -> PlantInventory.size (inv (find_list stage store))
-  | 2 -> 2 + PlantInventory.size (inv (find_list stage store))
-  | 3 -> PlantInventory.size (inv (find_list stage store))
-  | 4 -> 2 + PlantInventory.size (inv (find_list stage store))
-  | 5 -> PlantInventory.size (inv (find_list stage store))
-  | 6 -> 2 + PlantInventory.size (inv (find_list stage store))
-  | 7 -> PlantInventory.size (inv (find_list stage store))
-  | 8 -> 1 + PlantInventory.size (inv (find_list stage store))
+  | 1 -> PlantInventory.size (inv (find_list store stage))
+  | 2 -> 2 + PlantInventory.size (inv (find_list store stage))
+  | 3 -> PlantInventory.size (inv (find_list store stage))
+  | 4 -> 2 + PlantInventory.size (inv (find_list store stage))
+  | 5 -> PlantInventory.size (inv (find_list store stage))
+  | 6 -> 2 + PlantInventory.size (inv (find_list store stage))
+  | 7 -> PlantInventory.size (inv (find_list store stage))
+  | 8 -> 1 + PlantInventory.size (inv (find_list store st))
   | _ -> raise (InvalidOrderKey order)
 
 let capacity stage =
@@ -148,14 +148,14 @@ let capacity stage =
   | Plant.Large -> 2
 
 let remaining_capacity store stage =
-  let order = find_list stage store |> ordkey in
+  let order = find_list store stage |> ordkey in
   match order with
-  | 1 -> 2 - PlantInventory.size (inv (find_list stage store))
-  | 2 -> 4 - PlantInventory.size (inv (find_list stage store))
-  | 3 -> 2 - PlantInventory.size (inv (find_list stage store))
-  | 4 -> 4 - PlantInventory.size (inv (find_list stage store))
-  | 5 -> 2 - PlantInventory.size (inv (find_list stage store))
-  | 6 -> 1 - PlantInventory.size (inv (find_list stage store))
-  | 7 -> 1 - PlantInventory.size (inv (find_list stage store))
-  | 8 -> 2 - PlantInventory.size (inv (find_list stage store))
+  | 1 -> 2 - PlantInventory.size (inv (find_list store stage))
+  | 2 -> 4 - PlantInventory.size (inv (find_list store stage))
+  | 3 -> 2 - PlantInventory.size (inv (find_list store stage))
+  | 4 -> 4 - PlantInventory.size (inv (find_list store stage))
+  | 5 -> 2 - PlantInventory.size (inv (find_list store stage))
+  | 6 -> 1 - PlantInventory.size (inv (find_list store stage))
+  | 7 -> 1 - PlantInventory.size (inv (find_list store stage))
+  | 8 -> 2 - PlantInventory.size (inv (find_list store stage))
   | _ -> raise (InvalidOrderKey order)
