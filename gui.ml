@@ -8,7 +8,7 @@ type t = {
   player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
-  num_bought : int list;
+  num_store_remaining : int list;
   num_available : int list;
 }
 
@@ -31,11 +31,8 @@ let draw_at_point layer_name graphic gui point =
 (** [draw_hexes gui points layer] returns [layer] with hexes drawn on it
     in the positions corresponding to [points] with an offset of
     [gui.hex_offset] + [gui.board_offset]. *)
-let draw_hexes layer_name points gui =
-  let hex_graphic =
-    gui.rend |> get_graphic "hex" "hex"
-    |> ANSITerminal.(fill_color_in_raster White)
-  in
+let draw_hexes layer_name color points gui =
+  let hex_graphic = gui.rend |> get_graphic_fill_color "hex" color in
   List.fold_left (draw_at_point layer_name hex_graphic) gui points
 
 (** [draw_soil gui point soil layer] returns [layer] with a soil marker
@@ -43,7 +40,9 @@ let draw_hexes layer_name points gui =
     an offset of [gui.hex_offset] + [gui.board_offset]. *)
 let draw_soil layer_name soil point gui =
   let char_grid_name = "soil/" ^ string_of_int soil in
-  let soil_graphic = get_graphic char_grid_name "soil/" gui.rend in
+  let soil_graphic =
+    get_graphic_fill_color char_grid_name ANSITerminal.Green gui.rend
+  in
   draw_at_point layer_name soil_graphic gui point
 
 let render_char player_id gui =
@@ -63,10 +62,9 @@ let plant_graphic plant gui =
   in
   let player_id = Plant.player_id plant in
   gui.rend
-  |> get_graphic char_name color_name
-  |> replace_char_in_raster 'x' (render_char player_id gui)
-  |> replace_color_in_raster ANSITerminal.Default
-       (render_color player_id gui)
+  |> get_graphic_with_color_grid char_name color_name
+  |> replace_char 'x' (render_char player_id gui)
+  |> replace_color ANSITerminal.Default (render_color player_id gui)
 
 (** [draw_plant layer_name plant point gui] returns [gui] with [plant]
     drawn in the position corresponding to [point] in the layer of
@@ -93,16 +91,14 @@ let draw_cursor layer_name color coord_opt gui =
   match coord_opt with
   | None -> gui
   | Some point ->
-      let graphic =
-        gui.rend |> get_graphic "hex" "hex"
-        |> fill_color_in_raster color
-      in
+      let graphic = gui.rend |> get_graphic_fill_color "hex" color in
       draw_at_point layer_name graphic gui
         (point2d_of_hex_coord gui point)
 
-let update_cursor color coord_opt gui =
+let update_cursor coord_opt gui =
   let layer_name = "cursor" in
-  gui |> set_blank layer_name |> draw_cursor layer_name color coord_opt
+  gui |> set_blank layer_name
+  |> draw_cursor layer_name ANSITerminal.Red coord_opt
 
 let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
@@ -120,7 +116,13 @@ let update_message text color gui =
   gui |> set_blank "message"
   |> draw_text "message" { x = 0; y = 0 } text color
 
-let update_sun dir gui = gui
+let update_sun dir gui =
+  let gui' = set_blank "sun" gui in
+  draw_at_point "sun"
+    (get_graphic_fill_color
+       ("sun/" ^ string_of_int dir)
+       ANSITerminal.Yellow gui'.rend)
+    gui' (get_offset "sun" gui')
 
 let draw_plant_num layer_name point color num gui =
   gui
@@ -129,170 +131,271 @@ let draw_plant_num layer_name point color num gui =
        (string_of_int num) color
 
 let plant_inv_point capacity origin row_i col_i =
-  let max_capacity = 4 in
-  let x = 8 * (max_capacity - capacity + col_i) in
-  (* Equivalent to taking the sum from 4 to row_i + 4 *)
-  let y = ((row_i * row_i) + (7 * row_i)) / 2 in
-  origin +: { x; y }
+  if col_i >= capacity || col_i < 0 then None
+  else
+    let max_capacity = 4 in
+    let x = 8 * (max_capacity - capacity + col_i) in
+    (* Equivalent to taking the sum from 4 to row_i + 4 *)
+    let y = ((row_i * row_i) + (7 * row_i)) / 2 in
+    Some (origin +: { x; y })
 
-let draw_row layer_name origin nums gui (row_i, graphic) =
-  let capacity = List.nth nums row_i in
+let draw_row layer_name origin nums capacities gui (row_i, graphic) =
+  let capacity = List.nth capacities row_i in
+  let num = List.nth nums row_i in
   List.fold_left
     (fun g col_i ->
-      let top_left = plant_inv_point capacity origin row_i col_i in
-      draw_at_point layer_name graphic g top_left)
+      match plant_inv_point capacity origin row_i col_i with
+      | None -> failwith "Invalid args to plant_inv_point"
+      | Some top_left -> draw_at_point layer_name graphic g top_left)
     gui
-    (List.rev (List.init capacity Fun.id))
+    (List.rev (List.init num Fun.id))
 
-let draw_plant_inventory layer_name offset nums gui =
+let get_capacities gui = List.map List.length gui.store_costs
+
+let get_diffs_opt gone_opt capacities =
+  match gone_opt with
+  | None -> capacities
+  | Some gone -> List.map2 ( - ) capacities gone
+
+let draw_plant_inventory
+    layer_name
+    offset
+    capacities
+    gone_opt
+    graphic_f
+    gui =
+  let nums = get_diffs_opt gone_opt capacities in
   let enumerate_graphics =
     List.mapi
-      (fun i s -> (i, plant_graphic (Plant.init_plant gui.turn s) gui))
+      (fun i s ->
+        (i, plant_graphic (Plant.init_plant gui.turn s) gui |> graphic_f))
       Plant.all_stages
   in
   List.fold_left
-    (draw_row layer_name offset nums)
+    (draw_row layer_name offset nums capacities)
     gui
     (List.rev enumerate_graphics)
 
-let draw_costs layer_name offset color limit_opt gui =
+let draw_costs layer_name offset color gone_opt gui =
+  let capacities = get_capacities gui in
+  let nums = get_diffs_opt gone_opt capacities in
   let indexed_costs =
     List.mapi
       (fun row_i cost_row ->
         List.mapi (fun col_i cost -> (row_i, col_i, cost)) cost_row)
       gui.store_costs
     |> List.flatten
-    |>
-    match limit_opt with
-    | None -> Fun.id
-    | Some limits ->
-        List.filter (fun (row_i, col_i, _) ->
-            List.nth limits row_i > col_i)
+    |> List.filter (fun (row_i, col_i, _) ->
+           List.nth nums row_i > col_i)
   in
   List.fold_left
     (fun g (row_i, col_i, cost) ->
       let point =
-        plant_inv_point
-          (List.nth gui.store_costs row_i |> List.length)
-          offset row_i col_i
+        match
+          plant_inv_point
+            (List.nth gui.store_costs row_i |> List.length)
+            offset row_i col_i
+        with
+        | None -> failwith "Invalid args to plant_inv_point"
+        | Some p -> p
       in
       draw_plant_num layer_name point color cost g)
     gui indexed_costs
 
-let draw_bought layer_name offset color num_bought gui =
+let draw_bought layer_name offset color num_remaining gui =
   gui |> set_blank layer_name
-  |> draw_costs layer_name offset color (Some num_bought)
+  |> draw_plant_inventory layer_name offset (get_capacities gui)
+       (Some num_remaining) (fun g ->
+         g |> replace_all_color color |> replace_char_with_none ' ')
+  |> draw_costs layer_name offset color (Some num_remaining)
 
-let update_bought num_bought gui =
-  (* draw_plant_num cost_layer_name top_left color (List.nth cost col_i)
-     g *)
-  { gui with num_bought }
+let update_store_remaining num_remaining gui =
+  let new_gui = { gui with num_store_remaining = num_remaining } in
+  new_gui
   |> draw_bought "store_bought"
-       (get_offset "store" gui)
-       ANSITerminal.Magenta num_bought
+       (get_offset "store" new_gui)
+       ANSITerminal.Magenta num_remaining
 
 let update_available num_available gui =
-  gui |> set_blank "available"
+  let new_gui = { gui with num_available } in
+  new_gui |> set_blank "available"
   |> draw_plant_inventory "available"
-       (get_offset "available" gui)
-       num_available
+       (get_offset "available" new_gui)
+       num_available None
+       (replace_char_with_none ' ')
 
 let draw_static_text layer_name gui =
   let draw_plant_inventory_static_text offset_name title =
     draw_text_lines layer_name
       (get_offset offset_name gui +: { x = 2; y = 1 })
-      [ title; "-----------------------------" ]
+      [ title; "------------------------------" ]
       ANSITerminal.White
   in
   gui
   |> draw_plant_inventory_static_text "store" "Store"
   |> draw_plant_inventory_static_text "available" "Available"
 
-let update_plant_highlight loc_opt gui = failwith "Unimplemented"
+let draw_plant_highlight layer_name color loc_opt gui =
+  match loc_opt with
+  | None -> gui
+  | Some (is_store, stage) -> (
+      let top_left =
+        get_offset (if is_store then "store" else "available") gui
+      in
+      let row_i = Plant.int_of_plant_stage stage in
+      let capacity =
+        List.nth
+          (if is_store then get_capacities gui else gui.num_available)
+          row_i
+      in
+      let col_i =
+        if is_store then
+          capacity - List.nth gui.num_store_remaining row_i
+        else 0
+      in
+      match plant_inv_point capacity top_left row_i col_i with
+      | None -> gui (* Don't update gui if this row has no plants *)
+      | Some point ->
+          let graphic =
+            plant_graphic (Plant.init_plant gui.turn stage) gui
+            |> replace_all_color color
+            |> replace_char_with_none ' '
+          in
+          let gui' = draw_at_point layer_name graphic gui point in
+          if is_store then
+            let cost =
+              List.nth (List.nth gui.store_costs row_i) col_i
+            in
+            draw_plant_num layer_name point color cost gui'
+          else gui')
 
-let update_turn player_id num_bought num_available highlight_loc_opt gui
-    =
-  let capacities = List.map List.length gui.store_costs in
+let update_plant_highlight loc_opt gui =
+  let layer_name = "plant_highlight" in
+  gui |> set_blank layer_name
+  |> draw_plant_highlight layer_name ANSITerminal.White loc_opt
+
+let update_cell_highlight coords gui =
+  let layer_name = "cell_highlight" in
+  gui |> set_blank layer_name
+  |> draw_hexes layer_name ANSITerminal.Green
+       (List.map (point2d_of_hex_coord gui) coords)
+
+let pad_to_length str length =
+  str ^ String.make (max 0 (length - String.length str)) ' '
+
+let draw_next_sp layer_name soil sp gui =
+  draw_text layer_name
+    (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
+    (pad_to_length (string_of_int sp) 2)
+    ANSITerminal.Green gui
+
+let draw_init_next_sp layer_name sps gui =
+  let enumerate_sps = List.mapi (fun i sp -> (i + 1, sp)) sps in
+  List.fold_left
+    (fun g (soil, sp) -> draw_next_sp layer_name soil sp g)
+    gui enumerate_sps
+  |> draw_text_lines layer_name
+       (get_offset "next_sp" gui)
+       [ "Next SP:"; "::"; ":."; ":"; "." ]
+       ANSITerminal.Green
+
+let update_next_sp = draw_next_sp "overwrite_text"
+
+let update_player_lp lp gui =
+  draw_text "overwrite_text"
+    (get_offset "player_lp" gui)
+    ("LP: " ^ pad_to_length (string_of_int lp) 2)
+    ANSITerminal.Yellow gui
+
+let update_player_sp sp gui =
+  draw_text "overwrite_text"
+    (get_offset "player_sp" gui)
+    ("SP: " ^ pad_to_length (string_of_int sp) 3)
+    ANSITerminal.Green gui
+
+let draw_player_sign layer_name player_id gui =
+  draw_text layer_name
+    (get_offset "player_sign" gui)
+    ("Player " ^ string_of_int player_id)
+    (render_color player_id gui)
+    gui
+
+let update_turn
+    player_id
+    lp
+    sp
+    num_store_remaining
+    num_available
+    highlight_loc_opt
+    gui =
   let store_offset = get_offset "store" gui in
   let new_turn_gui = { gui with turn = player_id } in
   new_turn_gui
-  |> draw_plant_inventory "store_plants" store_offset capacities
+  |> draw_plant_inventory "store_plants" store_offset
+       (get_capacities gui) None
+       (replace_char_with_none ' ')
   |> draw_costs "store_plants" store_offset
        (render_color new_turn_gui.turn new_turn_gui)
        None
-  |> update_bought num_bought
+  |> draw_player_sign "player_sign" player_id
+  |> update_store_remaining num_store_remaining
   |> update_available num_available
-(* |> update_plant_highlight highlight_loc_opt gui *)
+  |> update_plant_highlight highlight_loc_opt
+  |> update_player_lp lp |> update_player_sp sp
 
-let init_gui store_costs init_available cells player_params =
+let init_gui store_costs init_available init_next_sp cells player_params
+    =
   let layer_names =
     [
       "background";
+      "sun";
       "hexes";
+      "cell_highlight";
       "cursor";
       "cells";
       "store_plants";
       "store_bought";
       "available";
-      "static text";
+      "plant_highlight";
+      "static_text";
+      "overwrite_text";
+      "player_sign";
       "message";
-    ]
-  in
-  let char_grid_names =
-    [
-      "hex";
-      "miscellaneous/dot";
-      "miscellaneous/empty";
-      "miscellaneous/vert";
-      "miscellaneous/horiz";
-      "plants/seed";
-      "plants/small";
-      "plants/medium";
-      "plants/large";
-      "soil/1";
-      "soil/2";
-      "soil/3";
-      "soil/4";
-    ]
-  in
-  let color_grid_names =
-    [
-      "hex";
-      "miscellaneous/dot";
-      "miscellaneous/empty";
-      "miscellaneous/vert";
-      "miscellaneous/horiz";
-      "plants/seed";
-      "plants/tree";
-      "soil/";
     ]
   in
   let gui =
     {
-      rend =
-        init_rend { x = 140; y = 45 } layer_names char_grid_names
-          color_grid_names;
+      rend = init_rend layer_names { x = 119; y = 44 };
       offsets =
         [
           ("board", { x = 5; y = 2 });
-          ("store", { x = 85; y = 0 });
+          ("store", { x = 85; y = 2 });
           ("available", { x = 85; y = 23 });
           ("plant_num", { x = 5; y = 5 });
+          ("player_sign", { x = 109; y = 1 });
+          ("sun", { x = 3; y = 1 });
+          ("next_sp", { x = 7; y = 38 });
+          ("player_lp", { x = 73; y = 4 });
+          ("player_sp", { x = 7; y = 4 });
         ];
       player_params;
       turn = PlayerId.first;
       store_costs;
-      num_bought = List.map (fun _ -> 0) Plant.all_stages;
+      num_store_remaining = List.map List.length store_costs;
       num_available = init_available;
     }
   in
   gui
-  |> draw_hexes "hexes"
+  (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
+     ANSITerminal.Magenta)) *)
+  |> draw_hexes "hexes" ANSITerminal.White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
   |> draw_cells "cells" cells
-  |> draw_static_text "static text"
-  |> update_turn gui.turn gui.num_bought gui.num_available None
+  |> draw_init_next_sp "overwrite_text" init_next_sp
+  |> draw_static_text "static_text"
+  |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
+       None
 
 let render gui = render gui.rend

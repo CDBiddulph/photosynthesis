@@ -196,7 +196,7 @@ let replace_case_sens find_char replace_char input_char =
 let replace find_e replace_e input_e =
   if input_e = find_e then replace_e else input_e
 
-let replace_color_in_raster find_color replace_color raster =
+let replace_color find_color replace_color raster =
   {
     raster with
     color_grid =
@@ -205,19 +205,26 @@ let replace_color_in_raster find_color replace_color raster =
         raster.color_grid;
   }
 
-let fill_color_in_raster fill_color raster =
+let replace_all_color fill_color raster =
   {
     raster with
     color_grid = map_grid (fun _ -> Some fill_color) raster.color_grid;
   }
 
-let replace_char_in_raster find_char replace_char raster =
+let replace_char find_char replace_char raster =
   {
     raster with
     char_grid =
       map_grid
         (double_ended_opt (replace_case_sens find_char replace_char))
         raster.char_grid;
+  }
+
+let replace_char_with_none find_char raster =
+  {
+    raster with
+    char_grid =
+      map_grid (replace (Some find_char) None) raster.char_grid;
   }
 
 let merge_two_rasters under over =

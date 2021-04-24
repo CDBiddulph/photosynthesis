@@ -25,7 +25,7 @@ let set_layer layer_name new_layer rend =
       :: List.remove_assoc layer_name rend.layers;
   }
 
-let get_graphic char_name color_name rend =
+let get_graphic_with_color_grid char_name color_name rend =
   let char_grid =
     try List.assoc char_name rend.char_graphics
     with Not_found -> raise (Char_grid_not_found char_name)
@@ -36,11 +36,54 @@ let get_graphic char_name color_name rend =
   in
   { char_grid; color_grid }
 
+let get_graphic_fill_color char_name color rend =
+  let char_grid =
+    try List.assoc char_name rend.char_graphics
+    with Not_found -> raise (Char_grid_not_found char_name)
+  in
+  let color_grid = map_grid (fun _ -> Some color) char_grid in
+  { char_grid; color_grid }
+
 let get_layer name gui = List.assoc name gui.layers
 
-let init_rend size layer_names char_grid_names color_grid_names =
-  (* layers must be in order from back to front, since it will be used
-     to make layer_order *)
+let init_rend layer_names size =
+  (* layer_names must be in order from back to front, since it will be
+     used to make layer_order *)
+  let char_grid_names =
+    [
+      "hex";
+      "miscellaneous/dot";
+      "miscellaneous/empty";
+      "miscellaneous/vert";
+      "miscellaneous/horiz";
+      "plants/seed";
+      "plants/small";
+      "plants/medium";
+      "plants/large";
+      "soil/1";
+      "soil/2";
+      "soil/3";
+      "soil/4";
+      "sun/0";
+      "sun/1";
+      "sun/2";
+      "sun/3";
+      "sun/4";
+      "sun/5";
+    ]
+  in
+  let color_grid_names =
+    [
+      "hex";
+      "miscellaneous/dot";
+      "miscellaneous/empty";
+      "miscellaneous/vert";
+      "miscellaneous/horiz";
+      "plants/seed";
+      "plants/tree";
+      "soil/";
+    ]
+  in
   let layers = List.map (fun n -> (n, blank_raster size)) layer_names in
   {
     size;
