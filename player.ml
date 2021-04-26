@@ -42,7 +42,7 @@ let num_in_store player stage = Store.num_remaining player.store stage
 let store_capacity player stage = Store.capacity stage
 
 let is_store_full player stage =
-  Store.remaining_capacity player.store stage <> 0
+  Store.remaining_capacity player.store stage = 0
 
 let can_buy_plant player stage =
   num_in_store player stage > 0
