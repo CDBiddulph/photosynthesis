@@ -35,3 +35,5 @@ let next_stage stage =
   | Large -> None
 
 let all_stages = [ Seed; Small; Medium; Large ]
+
+let to_string stage = Format.fprintf Format.std_formatter "%s" stage

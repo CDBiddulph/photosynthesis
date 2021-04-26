@@ -24,6 +24,8 @@ val _init_game_test :
   int ->
   t
 
+val board : t -> Board.t
+
 (** [plant_seed player_id coord game] is game with a seed of [player]
     planted at [coord] and the available seeds of the player decremented
     by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at

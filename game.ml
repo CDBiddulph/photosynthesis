@@ -55,6 +55,8 @@ let player_of game id = List.assoc id game.players
 
 let turn game = game.turn
 
+let board game = game.board 
+
 let player_of_turn game = game |> turn |> player_of game
 
 let player_order game = game.player_order

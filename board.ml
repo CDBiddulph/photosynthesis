@@ -20,7 +20,11 @@ exception IllegalGrowPlant
 
 exception IllegalHarvest
 
+let map t = t.map
+
 let cell_at coord board = HexMap.cell_at board.map coord
+
+let cell (c : Cell.t option) = Option.get c
 
 let valid_coord coord board = HexMap.valid_coord board.map coord
 

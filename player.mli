@@ -30,6 +30,8 @@ val add_lp : int -> t -> t
     points. *)
 val add_sp : int -> t -> t
 
+val store : t -> Store.t
+
 (** [is_in_available stage player] is true if [player] has a plant of
     [stage] in their available area. *)
 val is_in_available : Plant.plant_stage -> t -> bool

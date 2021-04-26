@@ -33,6 +33,8 @@ let add_lp pts player =
 let add_sp pts player =
   { player with score_points = player.score_points + pts }
 
+let store t = t.store
+
 let is_in_available stage player = failwith "Unimplemented"
 
 let num_in_available stage player = failwith "Unimplemented"

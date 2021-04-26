@@ -41,7 +41,7 @@ let find_list (store : t) (stage : Plant.plant_stage) =
       if PlantInventory.is_empty (List.assoc 1 store) = false then
         List.nth store 0
       else if
-        PlantInventory.is_empty (List.assoc 2 store)
+        PlantInventory.is_empty (List.assoc 1 store)
         && PlantInventory.is_empty (List.assoc 2 store) = false
       then List.nth store 1
       else raise (OutOfPlant stage)
