@@ -29,6 +29,13 @@ val init_gui :
   (PlayerId.t * (char * color)) list ->
   t
 
+(** [update_cell cell gui] is gui with the contents of [cell] updated.
+    If [Cell.plant c = None] for [cell], the space corresponding to
+    [cell] will display a marker showing the type of soil in [cell].
+    Otherwise, if [Cell.plant cell = Some p], [p] will be displayed.
+    Precondition: hexagons of board match the hexagons formed in init*)
+val update_cell : Cell.t -> t -> t
+
 (** [update_cells cells gui] is [gui] with the contents of each cell in
     [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
     the space corresponding to [c] will display a marker showing the
