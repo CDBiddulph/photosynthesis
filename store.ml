@@ -1,4 +1,5 @@
 open PlantInventory
+open Plant
 
 (** A list of indices that point to the current cost of the next [Plant]
     of its type. The value at index 0 points to the cost of the next
@@ -20,21 +21,15 @@ let init_store =
 
 let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
 
-(** [stage_to_ind stage] maps a [Plant.plant_stage] to an index in a
-    store. *)
-let stage_to_ind =
-  let open Plant in
-  function Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
-
 let cost store stage =
-  let ind = stage_to_ind stage in
+  let ind = int_of_plant_stage stage in
   List.nth (List.nth costs ind) (List.nth store ind)
 
 let buy_plant store stage light_points =
   if cost store stage > light_points then
     raise (InsufficientLightPoints (cost store stage))
   else
-    let ind = stage_to_ind stage in
+    let ind = int_of_plant_stage stage in
     List.mapi
       (fun i count ->
         if i = ind then
@@ -44,11 +39,11 @@ let buy_plant store stage light_points =
       store
 
 let plant_is_full stage store =
-  let ind = stage_to_ind stage in
+  let ind = int_of_plant_stage stage in
   List.nth store ind = 0
 
 let add_plant store stage =
-  let ind = stage_to_ind stage in
+  let ind = int_of_plant_stage stage in
   List.mapi
     (fun i count ->
       if i = ind then
@@ -57,15 +52,11 @@ let add_plant store stage =
     store
 
 let num_remaining store stage =
-  let ind = stage_to_ind stage in
+  let ind = int_of_plant_stage stage in
   List.length (List.nth costs ind) - List.nth store ind
 
 let capacity stage =
-  match stage with
-  | Plant.Seed -> 4
-  | Plant.Small -> 4
-  | Plant.Medium -> 3
-  | Plant.Large -> 2
+  List.nth costs (Plant.int_of_plant_stage stage) |> List.length
 
 let remaining_capacity store stage =
-  stage_to_ind stage |> List.nth store
+  int_of_plant_stage stage |> List.nth store
