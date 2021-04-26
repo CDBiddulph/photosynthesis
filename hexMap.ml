@@ -134,3 +134,7 @@ let flatten (map : t) =
     done
   done;
   !flat
+
+let end_turn map =
+  print_endline "Warning: Unimplemented";
+  map

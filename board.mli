@@ -20,7 +20,9 @@ val init_board : ruleset -> t
 
 val map : t -> HexMap.t
 
-val cell : (t ->Cell.t option) -> Cell.t
+(** [testing_init_board ruleset cells] initializes a board with the
+    given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
+val testing_init_board : ruleset -> Cell.t list -> t
 
 (** [plant_seed stage board coord player_id] places a seed belonging to
     [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
@@ -90,3 +92,11 @@ val valid_coord : HexUtil.coord -> t -> bool
 (** [plant_at board coord] is the plant at [coord] on [board], if it
     exists. *)
 val plant_at : HexUtil.coord -> t -> Plant.t option
+
+(** [end_turn board] resets the cells touched in the current turn,
+    allowing the next player to execute their actions. *)
+val end_turn : t -> t
+
+(** [actionable_cells board] is a list of cells that can have operations
+    performed on them. *)
+val actionable_cells : t -> HexUtil.coord list

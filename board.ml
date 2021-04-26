@@ -12,6 +12,7 @@ type round_phase =
 type t = {
   map : HexMap.t;
   rules : ruleset;
+  touched_cells : HexUtil.coord list;
 }
 
 exception IllegalPlacePlant
@@ -21,6 +22,11 @@ exception IllegalGrowPlant
 exception IllegalHarvest
 
 let map t = t.map
+(** [plant_to_int plant] maps [Plant.plant_stage]s to light point
+    amounts. *)
+let plant_to_int (plant : Plant.plant_stage) : int =
+  let open Plant in
+  match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 let cell_at coord board = HexMap.cell_at board.map coord
 
@@ -33,7 +39,18 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
-let init_board ruleset = { map = HexMap.init_map (); rules = ruleset }
+let init_board ruleset =
+  { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
+
+let testing_init_board ruleset cells =
+  let board = init_board ruleset in
+  let new_map =
+    List.fold_left
+      (fun map cell ->
+        HexMap.set_cell map (Some cell) (Cell.coord cell))
+      board.map cells
+  in
+  { board with map = new_map }
 
 let cell_if_empty coord board =
   match cell_at board coord with
@@ -41,14 +58,62 @@ let cell_if_empty coord board =
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
-(* TODO: check that location is within the necessary radius of one of
-   the player's trees *)
+(** [neighbors_in_dir board coord sun_dir] is the list of the three
+    neighbors in direction [sun_dir]. If there are fewer than three
+    legal neighbors, return only the legal neighbors. *)
+let neighbors_in_dir board coord sun_dir =
+  match HexMap.neighbor board.map coord sun_dir with
+  | None -> []
+  | Some fst_neigh_coord ->
+      fst_neigh_coord
+      ::
+      (match HexMap.neighbor board.map fst_neigh_coord sun_dir with
+      | None -> []
+      | Some snd_neigh_coord ->
+          snd_neigh_coord
+          ::
+          (match HexMap.neighbor board.map snd_neigh_coord sun_dir with
+          | None -> []
+          | Some thd_neigh_coord -> [ thd_neigh_coord ]))
+
+(** [within_radius p_id coord board] checks if there is a plant owned by
+    the player with [p_id] within a proper radius of [coord]. *)
+let within_radius p_id coord board =
+  let valid_dirs = [ 0; 1; 2; 3; 4; 5 ] in
+  let all_neighbors =
+    List.flatten
+      (List.map
+         (fun dir -> neighbors_in_dir board coord dir)
+         valid_dirs)
+  in
+  let open Plant in
+  List.fold_left
+    (* check if has plant owned by player; if not, false; if so, match
+       plant size -> allowed distance *)
+      (fun acc neighbor_coord ->
+      match cell_at neighbor_coord board with
+      | None -> failwith "Should never happen"
+      | Some cell -> (
+          match Cell.plant cell with
+          | None -> acc
+          | Some plant ->
+              if Plant.player_id plant = p_id then
+                acc
+                || HexMap.dist board.map neighbor_coord coord
+                   <= plant_to_int (plant_stage plant)
+              else acc))
+    false all_neighbors
+
 let can_plant_seed player_id coord board =
-  cell_if_empty board coord <> None
+  (not (List.mem coord board.touched_cells))
+  && cell_if_empty board coord <> None
+  && within_radius player_id coord board
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
     [coord] in [board] and the cell has soil of type [1]. *)
 let can_plant_small coord board =
+  (not (List.mem coord board.touched_cells))
+  &&
   match cell_if_empty board coord with
   | None -> false
   | Some c -> Cell.soil c = 1
@@ -64,6 +129,7 @@ let place_plant can_place plant coord board =
             HexMap.set_cell board.map
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
+          touched_cells = coord :: board.touched_cells;
         }
   else raise IllegalPlacePlant
 
@@ -80,6 +146,8 @@ let plant_small player_id coord board =
     coord board
 
 let can_grow_plant player_id coord board =
+  (not (List.mem coord board.touched_cells))
+  &&
   match plant_at coord board with
   | None -> false
   | Some old_plant ->
@@ -112,6 +180,7 @@ let grow_plant coord player_id board =
             HexMap.set_cell board.map
               (Some (Cell.set_plant old_cell next_plant))
               coord;
+          touched_cells = coord :: board.touched_cells;
         }
   else raise IllegalGrowPlant
 
@@ -152,74 +221,60 @@ let shadows map c1 c2 =
                      || c2_plnt = Small)
                       && HexMap.dist map c1 c2 <= 3))))
 
-(** [lp_map plant] maps [Plant.plant_stage]s to light point amounts. *)
-let lp_map (plant : Plant.plant_stage) : int =
-  let open Plant in
-  match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
-
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
 let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
-  let coord_lp_lst = ref [] in
-  for i = 0 to List.length player_cells - 1 do
-    let cell_coord = List.nth player_cells i in
+  let single_cell_shadowed coord =
+    let neighbors = neighbors_in_dir board coord sun_dir in
     let shadowed =
-      let fst_neigh_opt =
-        HexMap.neighbor board.map cell_coord sun_dir
-      in
-      match fst_neigh_opt with
-      | None -> false
-      | Some fst_coord -> (
-          let fst_shadow = shadows board.map fst_coord cell_coord in
-          let snd_neigh = HexMap.neighbor board.map fst_coord sun_dir in
-          match snd_neigh with
-          | None -> fst_shadow
-          | Some snd_coord -> (
-              let snd_shadow =
-                fst_shadow || shadows board.map snd_coord cell_coord
-              in
-              let thd_neigh =
-                HexMap.neighbor board.map snd_coord sun_dir
-              in
-              match thd_neigh with
-              | None -> snd_shadow
-              | Some thd_coord ->
-                  snd_shadow || shadows board.map thd_coord cell_coord))
+      List.fold_left
+        (fun acc neighbors_coord ->
+          shadows board.map neighbors_coord coord || acc)
+        false neighbors
     in
-    if not shadowed then
-      match cell_at cell_coord board with
-      | None -> failwith "should be a valid cell"
-      | Some cell -> (
-          let plnt = Cell.plant cell in
-          match plnt with
-          | None -> ()
-          | Some lp_plnt ->
-              let lp = lp_map (Plant.plant_stage lp_plnt) in
-              coord_lp_lst := (cell_coord, lp) :: !coord_lp_lst)
-  done;
-  !coord_lp_lst
+    if shadowed then None
+    else
+      let plt_stage =
+        match cell_at coord board with
+        | None -> failwith "should be impossible"
+        | Some cell -> (
+            match Cell.plant cell with
+            | None -> failwith "should be impossible"
+            | Some plant -> Plant.plant_stage plant)
+      in
+      Some (plant_to_int plt_stage)
+  in
+  List.fold_left
+    (fun acc player_cell_coord ->
+      match single_cell_shadowed player_cell_coord with
+      | None -> acc
+      | Some lp_value -> (player_cell_coord, lp_value) :: acc)
+    [] player_cells
 
 let get_photo_lp sun_dir players board =
-  let out = ref [] in
-  for i = 0 to List.length players - 1 do
-    let player = List.nth players i in
-    let player_cells =
-      List.map
-        (fun c -> Cell.coord c)
-        (List.filter
-           (fun c ->
-             match Cell.plant c with
-             | None -> false
-             | Some plant -> Plant.player_id plant = player)
-           (HexMap.flatten board.map))
-    in
-    out := (player, player_lp_helper sun_dir player_cells board) :: !out
-  done;
-  !out
+  let get_player_cell_coords player_id =
+    List.map
+      (fun cell -> Cell.coord cell)
+      (List.filter
+         (fun cell ->
+           match Cell.plant cell with
+           | None -> false
+           | Some plant -> Plant.player_id plant = player_id)
+         (HexMap.flatten board.map))
+  in
+  List.map
+    (fun player_id ->
+      ( player_id,
+        player_lp_helper sun_dir
+          (get_player_cell_coords player_id)
+          board ))
+    players
 
 let can_harvest player c board =
+  (not (List.mem c board.touched_cells))
+  &&
   match cell_at c board with
   | None -> false
   | Some cell -> (
@@ -239,12 +294,18 @@ let harvest player_id coord board =
           Some (Cell.init_cell (Cell.soil cell) None coord)
         in
         let new_map = HexMap.set_cell board.map new_cell coord in
-        { board with map = new_map }
+        {
+          board with
+          map = new_map;
+          touched_cells = coord :: board.touched_cells;
+        }
   else raise IllegalHarvest
 
 let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
-(* TODO: some notion of turn to keep track of cells that are touched
-   this "turn" *)
-(* TODO: update shadows/lp to use blocks instead of what's happening now
-   (?) *)
+let end_turn board = { board with touched_cells = [] }
+
+let actionable_cells board =
+  List.filter
+    (fun coord -> not (List.mem coord board.touched_cells))
+    (List.map (fun cell -> Cell.coord cell) (cells board))

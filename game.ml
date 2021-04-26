@@ -174,6 +174,7 @@ let end_turn_normal natural_next_turn is_new_round game =
   let move_sun_game =
     {
       game with
+      board = Board.end_turn game.board;
       num_rounds = new_num_rounds;
       starting_turn = new_starting_turn;
       turn = new_turn;
@@ -195,6 +196,7 @@ let end_turn_setup natural_next_turn is_new_round game =
   in
   {
     game with
+    board = Board.end_turn game.board;
     turn = natural_next_turn;
     players = new_players;
     setup_rounds_left = new_setup_rounds_left;
