@@ -4,7 +4,7 @@ type t
 
 (** [init_state gui] is a state with a current_position at col = 0 and
     diag = 0 and the starting map *)
-val init_state : Gui.t -> t
+val init_state : Gui.t -> Game.t -> t
 
 (** [scroll] returns a new state of the neighbor of the original
     current_postion in direction [d] *)

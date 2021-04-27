@@ -36,4 +36,4 @@ let next_stage stage =
 
 let all_stages = [ Seed; Small; Medium; Large ]
 
-let to_string stage = Format.fprintf Format.std_formatter "%s" stage
+let to_string (stage : plant_stage) = Format.fprintf Format.std_formatter "%s"
