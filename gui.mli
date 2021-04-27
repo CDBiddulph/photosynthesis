@@ -51,12 +51,13 @@ val update_cursor : HexUtil.coord option -> t -> t
     [gui] with [text] and [color]. *)
 val update_message : string -> color -> t -> t
 
-(** [update_turn player_id num_store_remaining num_available highlight_loc_opt gui]
+(** [update_turn lp sp player_id num_store_remaining num_available highlight_loc_opt gui]
     configures [gui] to render its store and available area according to
-    [player_id]; performs [update_bought num_store_remaining gui],
-    [update_available num_available gui],
-    [update_plant_highlight highlight_loc_opt gui]; and updates the sign
-    displaying whose turn it is. *)
+    [player_id]; performs [update_player_lp lp], [update_player_sp sp]
+    [update_bought num_store_remaining],
+    [update_available num_available], and
+    [update_plant_highlight highlight_loc_opt] on [gui]; and updates the
+    sign displaying whose turn it is. *)
 val update_turn :
   PlayerId.t ->
   int ->
