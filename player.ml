@@ -54,5 +54,10 @@ let buy_plant player stage =
       player with
       store = Store.buy_plant player.store stage player.light_points;
       available = PlantInventory.add_plant player.available stage;
+      light_points = player.light_points - Store.cost player.store stage;
     }
-  else player
+  else if num_in_store player stage = 0 then
+    raise (PlantInventory.OutOfPlant stage)
+  else
+    raise
+      (Store.InsufficientLightPoints (Store.cost player.store stage))

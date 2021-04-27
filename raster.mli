@@ -1,10 +1,15 @@
+(** TODO *)
+
+(** TODO *)
 type point2d = {
   x : int;
   y : int;
 }
 
+(** TODO *)
 type 'a grid = 'a option list list
 
+(** TODO *)
 type t = {
   char_grid : char grid;
   color_grid : ANSITerminal.color grid;
