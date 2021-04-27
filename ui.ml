@@ -50,7 +50,7 @@ let update_message (s : t) =
 
 let scroll s d =
   try
-    let new_map = Game.board s.game |> Board.map in
+    let new_map = (Game.board s.game) |> Board.map in
     let new_gui =
       Gui.update_cursor
         (HexMap.neighbor new_map s.current_position d)
