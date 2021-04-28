@@ -35,12 +35,12 @@ let extract_cell (c : Cell.t option) : Cell.t =
 let extract_plant (p : Plant.t option) = match p with Some i -> i |None -> failwith "Should Not Happen"
 
 let num_remaining_available (p : Player.t) =
-  Player.num_in_available Plant.Large p :: Player.num_in_available Plant.Medium p ::
-  Player.num_in_available Plant.Small p :: Player.num_in_available Plant.Seed p :: []
+  Player.num_in_available Plant.Seed p :: Player.num_in_available Plant.Small p ::
+  Player.num_in_available Plant.Medium p :: Player.num_in_available Plant.Large p :: []
 
 let num_remaining_store (p : Player.t) =
-  Player.num_in_store p Plant.Large ::  Player.num_in_store p Plant.Medium ::
-  Player.num_in_store p Plant.Small :: Player.num_in_store p Plant.Seed :: []
+  Player.num_in_store p Plant.Seed ::  Player.num_in_store p Plant.Small ::
+  Player.num_in_store p Plant.Medium :: Player.num_in_store p Plant.Large :: []
 
 
 let update_message (s : t) (p : HexUtil.coord) = 
