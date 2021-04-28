@@ -104,6 +104,10 @@ val can_plant_small : HexUtil.coord -> t -> bool
     their available area. *)
 val can_grow_plant : HexUtil.coord -> PlayerId.t -> t -> bool
 
+(** [can_harvest coord player_id game] is true iff harvesting the plant
+    at [coord] with the player of [player_id] at [coord] is a legal move. *)
+val can_harvest : HexUtil.coord -> PlayerId.t -> t -> bool
+
 (** [turn game] is the player_id of the player whose turn it is in
     [game]. *)
 val turn : t -> PlayerId.t

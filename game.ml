@@ -221,6 +221,9 @@ let can_plant_small coord game =
 let can_grow_plant coord player_id game =
   Board.can_grow_plant player_id coord game.board
 
+let can_harvest coord player_id game =
+  Board.can_harvest player_id coord game.board
+
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
