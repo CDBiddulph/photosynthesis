@@ -1,3 +1,5 @@
+(** A cell in the hexmap of the game. *)
+
 (** The abstract type representing cells. *)
 type t
 

@@ -29,6 +29,13 @@ val init_gui :
   (PlayerId.t * (char * color)) list ->
   t
 
+(** [update_cell cell gui] is gui with the contents of [cell] updated.
+    If [Cell.plant c = None] for [cell], the space corresponding to
+    [cell] will display a marker showing the type of soil in [cell].
+    Otherwise, if [Cell.plant cell = Some p], [p] will be displayed.
+    Precondition: hexagons of board match the hexagons formed in init*)
+val update_cell : Cell.t -> t -> t
+
 (** [update_cells cells gui] is [gui] with the contents of each cell in
     [cells] updated. If [Cell.plant c = None] for some [c] in [cells],
     the space corresponding to [c] will display a marker showing the
@@ -108,6 +115,17 @@ val update_player_lp : int -> t -> t
 (** [update_player_sp sp gui] is [gui] with the scoring points of the
     current player overwritten with [sp]. *)
 val update_player_sp : int -> t -> t
+
+(** [photosynthesis lp gui] is [gui] with numbers under each of the
+    trees at the coordinates in the color of the proper player id -
+    these should be the number of light points each of these trees gains
+    in this stage of photosynthesis. *)
+val photosynthesis :
+  (PlayerId.t * (HexUtil.coord * int) list) list -> t -> t
+
+(** [photosynthesis gui] is [gui] with any numbers drawn in
+    [photosynthesis] cleared. *)
+val clear_photosynthesis : t -> t
 
 (* erase the previous render and print the new render to the screen
    based on the state in t *)

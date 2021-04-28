@@ -73,16 +73,16 @@ let draw_plant layer_name plant point gui =
   let graphic = plant_graphic plant gui in
   draw_at_point layer_name graphic gui point
 
-let draw_cells layer_name cells gui =
-  let draw_cell gui cell =
-    let point = cell |> Cell.coord |> point2d_of_hex_coord gui in
-    match Cell.plant cell with
-    | None -> draw_soil layer_name (Cell.soil cell) point gui
-    | Some plant -> draw_plant layer_name plant point gui
-  in
-  List.fold_left draw_cell gui cells
+let draw_cell layer_name gui cell =
+  let point = cell |> Cell.coord |> point2d_of_hex_coord gui in
+  match Cell.plant cell with
+  | None -> draw_soil layer_name (Cell.soil cell) point gui
+  | Some plant -> draw_plant layer_name plant point gui
 
-let update_cells = draw_cells "cells"
+let update_cell cell gui = draw_cell "cells" gui cell
+
+let update_cells cells gui =
+  List.fold_left (fun g c -> update_cell c g) gui cells
 
 let set_blank layer_name gui =
   set_layer layer_name (blank_layer gui.rend) gui
@@ -320,6 +320,20 @@ let draw_player_sign layer_name player_id gui =
     (render_color player_id gui)
     gui
 
+let photosynthesis lp gui =
+  List.fold_left
+    (fun g_o (p_id, coord_lps) ->
+      let color = render_color p_id gui in
+      List.fold_left
+        (fun g_i (coord, lp_int) ->
+          draw_plant_num "photosynthesis"
+            (point2d_of_hex_coord g_i coord)
+            color lp_int g_i)
+        g_o coord_lps)
+    gui lp
+
+let clear_photosynthesis gui = set_blank "photosynthesis" gui
+
 let update_turn
     player_id
     lp
@@ -353,6 +367,7 @@ let init_gui store_costs init_available init_next_sp cells player_params
       "cell_highlight";
       "cursor";
       "cells";
+      "photosynthesis";
       "store_plants";
       "store_bought";
       "available";
@@ -392,7 +407,7 @@ let init_gui store_costs init_available init_next_sp cells player_params
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
-  |> draw_cells "cells" cells
+  |> update_cells cells
   |> draw_init_next_sp "overwrite_text" init_next_sp
   |> draw_static_text "static_text"
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available

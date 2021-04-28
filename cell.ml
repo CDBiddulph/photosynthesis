@@ -1,7 +1,6 @@
-(* open Plant *)
-
 type soil = int
 
+(** TODO *)
 type t = {
   soil : soil;
   plant : Plant.t option;

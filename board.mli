@@ -1,3 +1,5 @@
+(** TODO *)
+
 (** The abstract type representing the game's board. *)
 type t
 

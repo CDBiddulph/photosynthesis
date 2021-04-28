@@ -5,7 +5,7 @@
    or use it for commercial purposes.
  ************************************************************)
 
-(** CS 3110 Spring 2021 Assignment A3 Search
+(** CS 3110 Spring 2021 Final Project Photosynthesis
 
     @author Caleb Biddulph - cdb229; Caroline Zeng - chz6; Adrian Jung - akj47 *)
 

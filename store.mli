@@ -1,18 +1,21 @@
-(** Keeps track of the plants that one player can buy. *)
-
-(* May want to internally represent this with a PlantInventory, along
-   with other data structures to handle costs, capacities, etc. *)
+(** The plant store for each player. *)
 
 (** Represents a store. *)
 type t
 
+(** Raised when purchasing a plant from the store with insufficient
+    light points. *)
 exception InsufficientLightPoints of int
 
+(** Raised when a plant is added to a store without capacity for it. *)
 exception FullOfPlant of Plant.plant_stage
 
-(** [init_store ()] is a new store with the default number of starting
+(** [init_store] is a new store with the default number of starting
     plants. *)
 val init_store : t
+
+(** [costs] is the list of costs for plants. *)
+val costs : int list list
 
 (** [cost store stage] is the cost in light points to buy the next plant
     of [stage] in [store]. *)
