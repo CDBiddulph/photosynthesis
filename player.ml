@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 open PlantInventory
 
-=======
-(** TODO *)
->>>>>>> master
 type t = {
   id : PlayerId.t;
   light_points : int;
