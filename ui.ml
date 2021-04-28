@@ -216,7 +216,7 @@ let handle_char s c =
   | _ -> s
 
 let rec read_char (s : t) =
-  Graphics.open_graph " 1x1";
+  Graphics.open_graph " 100x100+900+0";
   while true do
     try
       let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
