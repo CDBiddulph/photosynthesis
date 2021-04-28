@@ -1,3 +1,5 @@
+(** The plant store for each player. *)
+
 (** Represents a store. *)
 type t
 

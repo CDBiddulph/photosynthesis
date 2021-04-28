@@ -1,3 +1,6 @@
+(** Utility module for direction and coordinate types needed across
+    other modules. *)
+
 (** Type representing the position of a flat-topped hexagon in axial
     coordinates. [col] increases from left to right when viewed via the
     GUI. That is, assuming [HexMap.neighbor map c1 dir = Some c2],
@@ -19,4 +22,5 @@ type dir = int
 (** [move_cw dir] is [dir] after it moves clockwise once. *)
 val move_cw : dir -> dir
 
+(** [dir_of_int n] converts an int into a valid dir. *)
 val dir_of_int : int -> dir
