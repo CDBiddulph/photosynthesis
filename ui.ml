@@ -55,7 +55,8 @@ let update_message (s : t) (p : HexUtil.coord) =
     | Seed -> "(P) Grow Small Tree"
     | Small -> "(P) Grow Medium Tree"
     | Medium -> "(P) Grow Tall Tree"
-    | Large -> "(P) Harvest Tall Tree"
+    | Large -> failwith "Should Not Happen"
+  else if Game.can_harvest p (Player.player_id pl) s.game then "(P) Harvest Tall Tree" 
   else "" 
 
 let scroll s d =
@@ -76,7 +77,7 @@ let scroll s d =
     | Some pos -> 
       let new_gui =
         Gui.update_cursor new_pos s.gui
-        |> Gui.update_message (update_message s pos) ANSITerminal.Green
+        |> Gui.update_message (update_message s pos) ANSITerminal.White
       in
       render new_gui;
       let new_state =
@@ -163,7 +164,9 @@ let plant s =
       | Seed -> plant_helper s Game.grow_plant pl_id
       | Small -> plant_helper s Game.grow_plant pl_id 
       | Medium -> plant_helper s Game.grow_plant pl_id
-      | Large -> plant_helper s Game.harvest pl_id 
+      | Large -> failwith "Should Not Happen"
+    else if Game.can_harvest s.current_position pl_id s.game then 
+      plant_helper s Game.harvest pl_id
     else s  
   with 
   | Board.IllegalPlacePlant -> 
@@ -223,7 +226,7 @@ let handle_char s c =
   | 'd' -> scroll s 0
   | 'p' -> plant s
   | 'f' -> end_turn s
-  | 'x' -> Raise End
+  | 'x' -> raise End
   | _ -> s
 
 let rec read_char (s : t) =
@@ -235,5 +238,5 @@ let rec read_char (s : t) =
         let new_state = handle_char s a.Graphics.key in
         read_char new_state
       else read_char s
-    with End -> ()
+    with End -> Graphics.close_graph ()
   done
