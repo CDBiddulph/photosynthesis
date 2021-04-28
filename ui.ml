@@ -32,7 +32,7 @@ let extract (c : HexUtil.coord option) : HexUtil.coord =
 let extract_cell (c : Cell.t option) : Cell.t = 
   match c with Some i -> i | None -> raise Invalid_Cell
 
-let extract_plant p = match p with Some i -> i |None -> failwith "Should Not Happen"
+let extract_plant (p : Plant.t option) = match p with Some i -> i |None -> failwith "Should Not Happen"
 
 let update_message (s : t) = 
   let pl = Game.player_of_turn s.game in 
@@ -51,17 +51,17 @@ let update_message (s : t) =
 
 let scroll s d =
   try
-    let new_map = (Game.board s.game) |> Board.map in
+    let map = (Game.board s.game) |> Board.map in
+    let new_pos = HexMap.neighbor map s.current_position d in
     let new_gui =
-      Gui.update_cursor
-        (HexMap.neighbor new_map s.current_position d)
-        s.gui |> Gui.update_message (update_message s) ANSITerminal.White 
+      Gui.update_cursor new_pos s.gui
+      |> Gui.update_message (update_message s) ANSITerminal.White 
     in
     render new_gui;
     let new_state =
       {
         current_position =
-          extract (HexMap.neighbor new_map s.current_position d);
+          extract new_pos;
         gui = new_gui;
         game = s.game
       }
@@ -171,8 +171,28 @@ let plant s =
   let new_game = Game.end_turn s.game in
   let pl = Game.player_of_turn s.game in 
   let pl_id = Player.player_id pl in  
-  let num_store_remaining = Player.num_in_store 
-  let new_gui = Gui.update_turn pl_id *)
+  let num_store_remaining = Player.num_in_store in 
+  let num_available = Player.num_in_available in 
+  let hlo = 
+    let plnt_opt = s.current_position |> Game.cell_at s.game |> Cell.plant in 
+    match plnt_opt with 
+    | None -> None
+    | Some plant -> 
+      if Plant.player_id plant <> pl_id then None
+      else 
+        let plnt_stg= 
+          plant |> Plant.plant_stage in
+        if Player.is_in_available plnt_stg pl then Some (false, plnt_stg)
+        else Some (true, plnt_stg) in
+  let new_gui = Gui.update_turn pl_id num_store_remaining num_store_available hlo s.gui in 
+  render new_gui;
+  let new_state = 
+    {
+      current_position = s.current_position;
+      game = new_game;
+      gui = new_gui;
+    }
+  in new_state *)
   
 let handle_char s c =
   match c with
