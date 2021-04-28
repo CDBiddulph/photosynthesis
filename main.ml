@@ -36,6 +36,7 @@ let rec get_num_players () =
   | exception End_of_file -> ANSITerminal.print_string [ ANSITerminal.red ]
   "Invalid Input. Must be a number between 2 and 4 \n> "; get_num_players ()
   | str ->
+    if str = "" then 4 else
     match int_of_string_opt str with 
     | None -> ANSITerminal.print_string [ ANSITerminal.red ]
     "Invalid Input. Must be a number between 2 and 4 \n> "; get_num_players ()
@@ -51,9 +52,9 @@ let rec get_ruleset () =
   | exception End_of_file -> ANSITerminal.print_string [ ANSITerminal.red ]
   "Invalid Input. Must be Normal or Extended \n> "; get_ruleset ()
   | str ->
-    match str with 
-    | "Normal" -> Board.Normal
-    | "Extended" -> Board.Extended
+    match String.lowercase_ascii str with 
+    | "normal" | "n" | "" -> Board.Normal
+    | "extended" | "e" -> Board.Extended
     | _ -> 
       ANSITerminal.print_string [ ANSITerminal.red ]
   "Invalid Input. Must be Normal or Extended \n> "; get_ruleset ()
