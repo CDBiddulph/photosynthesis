@@ -84,7 +84,24 @@ let does_block_tests =
       { col = 5; diag = 0 } true;
   ]
 
-let dist_tests = []
+let center : HexUtil.coord = { col = 3; diag = 3 }
+
+let dist_tests =
+  [
+    dist_test "dist to self" i_map c00 c00 0;
+    dist_test "1 dist dir 0" i_map center { col = 4; diag = 4 } 1;
+    dist_test "1 dist dir 1" i_map center { col = 3; diag = 4 } 1;
+    dist_test "1 dist dir 2" i_map center { col = 2; diag = 3 } 1;
+    dist_test "1 dist dir 3" i_map center { col = 2; diag = 2 } 1;
+    dist_test "1 dist dir 4" i_map center { col = 3; diag = 2 } 1;
+    dist_test "1 dist dir 5" i_map center { col = 4; diag = 3 } 1;
+    dist_test "2 dist dir 0" i_map center { col = 5; diag = 5 } 2;
+    dist_test "2 dist dir 1" i_map center { col = 3; diag = 4 } 2;
+    dist_test "2 dist dir 2" i_map center { col = 2; diag = 3 } 2;
+    dist_test "2 dist dir 3" i_map center { col = 1; diag = 1 } 2;
+    dist_test "2 dist dir 4" i_map center { col = 3; diag = 2 } 2;
+    dist_test "2 dist dir 5" i_map center { col = 4; diag = 3 } 2;
+  ]
 
 let suite =
   "test suite for HexMap"

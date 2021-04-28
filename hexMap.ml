@@ -112,8 +112,9 @@ let does_block (map : t) (d : HexUtil.dir) c1 c2 =
 let dist (map : t) c1 c2 =
   let open HexUtil in
   if
-    (c1.col > c2.col && c1.diag < c2.diag)
-    || (c1.col < c2.col && c1.diag > c2.diag)
+    Int.abs (c1.col - c2.col) = Int.abs (c1.diag - c2.diag)
+    && ((c1.col > c2.col && c1.diag < c2.diag)
+       || (c1.col < c2.col && c1.diag > c2.diag))
   then Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
   else max (Int.abs (c1.col - c2.col)) (Int.abs (c1.diag - c2.diag))
 
