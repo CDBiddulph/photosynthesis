@@ -55,7 +55,7 @@ let update_message (s : t) (p : HexUtil.coord) =
     | Seed -> "(P) Grow Small Tree"
     | Small -> "(P) Grow Medium Tree"
     | Medium -> "(P) Grow Tall Tree"
-    | Large -> "(P) Collect Tall Tree"
+    | Large -> "(P) Harvest Tall Tree"
   else "" 
 
 let scroll s d =
@@ -90,10 +90,15 @@ let scroll s d =
   
 let plant_helper s f p_id = 
   let pl_id = Game.player_of_turn s.game |> Player.player_id in 
+  let pl = Game.player_of_turn s.game in 
   let new_game = f pl_id s.current_position s.game in 
+  let num_store_remaining = num_remaining_store pl in 
+  let num_available = num_remaining_available pl in 
   let new_gui = 
     let cells = Game.cells new_game in 
-    Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+    Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
+    |> Gui.update_available num_available 
+    |> Gui.update_store_remaining num_store_remaining in 
     render new_gui;
   let new_state = 
     {
@@ -105,11 +110,16 @@ let plant_helper s f p_id =
 
 let plant_helper_exn (s : t) f plnt_stg = 
   try
-    let pl_id = Game.player_of_turn s.game |> Player.player_id in 
+    let pl = Game.player_of_turn s.game in
+    let num_store_remaining = num_remaining_store pl in 
+    let num_available = num_remaining_available pl in 
+    let pl_id = Player.player_id pl in 
     let new_game = Game.buy_plant plnt_stg s.game |> f pl_id s.current_position in 
     let new_gui =
       let cells = Game.cells new_game in 
-      Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+      Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
+      |> Gui.update_available num_available 
+      |> Gui.update_store_remaining num_store_remaining in 
       render new_gui;
     let new_state = 
       {
@@ -213,6 +223,7 @@ let handle_char s c =
   | 'd' -> scroll s 0
   | 'p' -> plant s
   | 'f' -> end_turn s
+  | 'x' -> Raise End
   | _ -> s
 
 let rec read_char (s : t) =
@@ -224,5 +235,5 @@ let rec read_char (s : t) =
         let new_state = handle_char s a.Graphics.key in
         read_char new_state
       else read_char s
-    with End -> raise End
+    with End -> ()
   done

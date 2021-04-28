@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 open PlantInventory
 
-=======
-(** TODO *)
->>>>>>> master
 type t = {
   id : PlayerId.t;
   light_points : int;
@@ -29,6 +25,8 @@ let player_id player = player.id
 let light_points player = player.light_points
 
 let score_points player = player.score_points
+
+let store player = player.store
 
 let add_lp pts player =
   { player with light_points = min (player.light_points + pts) max_lp }
