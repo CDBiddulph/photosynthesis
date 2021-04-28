@@ -78,7 +78,7 @@ let init_map () : t =
     refer to a [None] cell) *)
 let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
-  map.(coord.col).(coord.diag)
+  try map.(coord.col).(coord.diag) with Invalid_argument _ -> None
 
 let valid_coord (map : t) c = cell_at map c <> None
 

@@ -34,51 +34,60 @@ let extract_cell (c : Cell.t option) : Cell.t =
 
 let extract_plant (p : Plant.t option) = match p with Some i -> i |None -> failwith "Should Not Happen"
 
-let update_message (s : t) = 
+let num_remaining_available (p : Player.t) =
+  Player.num_in_available Plant.Large p :: Player.num_in_available Plant.Medium p ::
+  Player.num_in_available Plant.Small p :: Player.num_in_available Plant.Seed p :: []
+
+let num_remaining_store (p : Player.t) =
+  Player.num_in_store p Plant.Large ::  Player.num_in_store p Plant.Medium ::
+  Player.num_in_store p Plant.Small :: Player.num_in_store p Plant.Seed :: []
+
+
+let update_message (s : t) (p : HexUtil.coord) = 
   let pl = Game.player_of_turn s.game in 
-  if Game.can_plant_seed s.current_position (Player.player_id pl) s.game then 
+  if Game.can_plant_seed p (Player.player_id pl) s.game then 
     "(P) Plant Seed"
-  else if Game.can_plant_small s.current_position (Player.player_id pl) s.game then
+  else if Game.can_plant_small p s.game then
     "(P) Plant Small Tree"
-  else if Game.can_grow_plant s.current_position (Player.player_id pl) s.game then 
-    let plnt_stg = Game.cell_at s.game s.current_position |> Cell.plant |> extract_plant |> Plant.plant_stage in 
+  else if Game.can_grow_plant p (Player.player_id pl) s.game then 
+    let plnt_stg = Game.cell_at s.game p |> Cell.plant |> extract_plant |> Plant.plant_stage in 
     match plnt_stg with 
-    | Seed -> failwith "Should Not Happen"
+    | Seed -> "(P) Grow Small Tree"
     | Small -> "(P) Grow Medium Tree"
     | Medium -> "(P) Grow Tall Tree"
     | Large -> "(P) Collect Tall Tree"
   else "" 
 
 let scroll s d =
-  try
     let map = (Game.board s.game) |> Board.map in
     let new_pos = HexMap.neighbor map s.current_position d in
-    let new_gui =
-      Gui.update_cursor new_pos s.gui
-      |> Gui.update_message (update_message s) ANSITerminal.White 
-    in
-    render new_gui;
-    let new_state =
-      {
-        current_position =
-          extract new_pos;
-        gui = new_gui;
-        game = s.game
-      }
-    in
-    new_state
-  with Invalid_Direction -> 
-    let new_gui = Gui.update_message "Invalid Direction" ANSITerminal.Red s.gui in
-    render new_gui; 
-    let new_state =
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = s.game;
-      }
-    in 
-    new_state
-    
+    match new_pos with 
+    | None ->  
+      let new_gui = Gui.update_message "Invalid Direction" ANSITerminal.Red s.gui in
+      render new_gui; 
+      let new_state =
+        {
+          current_position = s.current_position;
+          gui = new_gui;
+          game = s.game;
+        }
+      in 
+      new_state
+    | Some pos -> 
+      let new_gui =
+        Gui.update_cursor new_pos s.gui
+        |> Gui.update_message (update_message s pos) ANSITerminal.Green
+      in
+      render new_gui;
+      let new_state =
+        {
+          current_position = pos;
+          gui = new_gui;
+          game = s.game
+        }
+      in
+      new_state
+  
 let plant_helper s f p_id = 
   let pl_id = Game.player_of_turn s.game |> Player.player_id in 
   let new_game = f pl_id s.current_position s.game in 
@@ -136,12 +145,12 @@ let plant s =
     let pl_id = Game.player_of_turn s.game |> Player.player_id in 
     if Game.can_plant_seed s.current_position pl_id s.game then
       plant_helper s Game.plant_seed pl_id
-    else if Game.can_plant_small s.current_position pl_id s.game then 
+    else if Game.can_plant_small s.current_position s.game then 
       plant_helper s Game.plant_small pl_id
     else if Game.can_grow_plant s.current_position pl_id s.game then 
       let plnt_stg = Game.cell_at s.game s.current_position |> Cell.plant |> extract_plant |> Plant.plant_stage in 
       match plnt_stg with 
-      | Seed -> failwith "Should Not Happen"
+      | Seed -> plant_helper s Game.grow_plant pl_id
       | Small -> plant_helper s Game.grow_plant pl_id 
       | Medium -> plant_helper s Game.grow_plant pl_id
       | Large -> plant_helper s Game.harvest pl_id 
@@ -167,12 +176,12 @@ let plant s =
   | PlantInventory.OutOfPlant Plant.Large ->
     plant_helper_exn s Game.grow_plant Plant.Large
 
-(* let end_turn s = 
+ let end_turn s = 
   let new_game = Game.end_turn s.game in
-  let pl = Game.player_of_turn s.game in 
+  let pl = Game.player_of_turn new_game in 
   let pl_id = Player.player_id pl in  
-  let num_store_remaining = Player.num_in_store in 
-  let num_available = Player.num_in_available in 
+  let num_store_remaining = num_remaining_store pl in 
+  let num_available = num_remaining_available pl in 
   let hlo = 
     let plnt_opt = s.current_position |> Game.cell_at s.game |> Cell.plant in 
     match plnt_opt with 
@@ -184,7 +193,7 @@ let plant s =
           plant |> Plant.plant_stage in
         if Player.is_in_available plnt_stg pl then Some (false, plnt_stg)
         else Some (true, plnt_stg) in
-  let new_gui = Gui.update_turn pl_id num_store_remaining num_store_available hlo s.gui in 
+  let new_gui = Gui.update_turn pl_id (Player.light_points pl) (Player.score_points pl) num_store_remaining num_available hlo s.gui in 
   render new_gui;
   let new_state = 
     {
@@ -192,7 +201,7 @@ let plant s =
       game = new_game;
       gui = new_gui;
     }
-  in new_state *)
+  in new_state
   
 let handle_char s c =
   match c with
@@ -203,6 +212,7 @@ let handle_char s c =
   | 's' -> scroll s 1
   | 'd' -> scroll s 0
   | 'p' -> plant s
+  | 'f' -> end_turn s
   | _ -> s
 
 let rec read_char (s : t) =

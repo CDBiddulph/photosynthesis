@@ -1,3 +1,5 @@
+open PlantInventory
+
 type t = {
   id : PlayerId.t;
   light_points : int;
@@ -37,9 +39,9 @@ let store t = t.store
 
 let is_in_available stage player = failwith "Unimplemented"
 
-let num_in_available stage player = failwith "Unimplemented"
+let num_in_available stage player = PlantInventory.num_remaining player.available stage
 
-let num_in_store player stage = failwith "Unimplemented"
+let num_in_store player stage = Store.num_remaining player.store stage
 
 let store_capacity player stage = failwith "Unimplemented"
 

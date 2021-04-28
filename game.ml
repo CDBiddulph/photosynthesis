@@ -215,8 +215,8 @@ let can_plant_seed coord player_id game =
   (not (is_setup game))
   && Board.can_plant_seed player_id coord game.board
 
-let can_plant_small coord player_id game =
-  is_setup game && Board.can_plant_seed player_id coord game.board
+let can_plant_small coord game =
+  is_setup game && Board.can_plant_small coord game.board
 
 let can_grow_plant coord player_id game =
   Board.can_grow_plant player_id coord game.board
