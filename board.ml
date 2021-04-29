@@ -1,6 +1,6 @@
 type ruleset =
   | Normal
-  | Extended
+  | Shadows
 
 (** The type [round_phase] represents the part of the round. *)
 type round_phase =
@@ -21,23 +21,11 @@ exception IllegalGrowPlant
 
 exception IllegalHarvest
 
-let map t = t.map
 (** [plant_to_int plant] maps [Plant.plant_stage]s to light point
     amounts. *)
 let plant_to_int (plant : Plant.plant_stage) : int =
   let open Plant in
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
-
-let cell_at coord board = HexMap.cell_at board.map coord
-
-let cell (c : Cell.t option) = Option.get c
-
-let valid_coord coord board = HexMap.valid_coord board.map coord
-
-let plant_at board coord =
-  match cell_at board coord with
-  | None -> None
-  | Some cell -> Cell.plant cell
 
 let init_board ruleset =
   { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
@@ -51,6 +39,17 @@ let testing_init_board ruleset cells =
       board.map cells
   in
   { board with map = new_map }
+
+let ruleset board = board.rules
+
+let cell_at coord board = HexMap.cell_at board.map coord
+
+let valid_coord coord board = HexMap.valid_coord board.map coord
+
+let plant_at board coord =
+  match cell_at board coord with
+  | None -> None
+  | Some cell -> Cell.plant cell
 
 let cell_if_empty coord board =
   match cell_at board coord with
@@ -76,16 +75,19 @@ let neighbors_in_dir board coord sun_dir =
           | None -> []
           | Some thd_neigh_coord -> [ thd_neigh_coord ]))
 
+(** TODO *)
+let neighbors_in_radius board coord radius =
+  List.map
+    (fun cell -> Cell.coord cell)
+    (List.filter
+       (fun cell ->
+         HexMap.dist board.map (Cell.coord cell) coord <= radius)
+       (HexMap.flatten board.map))
+
 (** [within_radius p_id coord board] checks if there is a plant owned by
     the player with [p_id] within a proper radius of [coord]. *)
 let within_radius p_id coord board =
-  let valid_dirs = [ 0; 1; 2; 3; 4; 5 ] in
-  let all_neighbors =
-    List.flatten
-      (List.map
-         (fun dir -> neighbors_in_dir board coord dir)
-         valid_dirs)
-  in
+  let all_neighbors = neighbors_in_radius board coord 3 in
   let open Plant in
   List.fold_left
     (* check if has plant owned by player; if not, false; if so, match
