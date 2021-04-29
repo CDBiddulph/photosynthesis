@@ -96,11 +96,17 @@ let dist_tests =
     dist_test "1 dist dir 4" i_map center { col = 3; diag = 2 } 1;
     dist_test "1 dist dir 5" i_map center { col = 4; diag = 3 } 1;
     dist_test "2 dist dir 0" i_map center { col = 5; diag = 5 } 2;
-    dist_test "2 dist dir 1" i_map center { col = 3; diag = 4 } 2;
-    dist_test "2 dist dir 2" i_map center { col = 2; diag = 3 } 2;
+    dist_test "2 dist dir 01" i_map center { col = 4; diag = 5 } 2;
+    dist_test "2 dist dir 1" i_map center { col = 3; diag = 5 } 2;
+    dist_test "2 dist dir 12" i_map center { col = 2; diag = 4 } 2;
+    dist_test "2 dist dir 2" i_map center { col = 1; diag = 3 } 2;
+    dist_test "2 dist dir 23" i_map center { col = 1; diag = 2 } 2;
     dist_test "2 dist dir 3" i_map center { col = 1; diag = 1 } 2;
-    dist_test "2 dist dir 4" i_map center { col = 3; diag = 2 } 2;
-    dist_test "2 dist dir 5" i_map center { col = 4; diag = 3 } 2;
+    dist_test "2 dist dir 34" i_map center { col = 2; diag = 1 } 2;
+    dist_test "2 dist dir 4" i_map center { col = 3; diag = 1 } 2;
+    dist_test "2 dist dir 45" i_map center { col = 4; diag = 2 } 2;
+    dist_test "2 dist dir 5" i_map center { col = 5; diag = 3 } 2;
+    dist_test "2 dist dir 50" i_map center { col = 5; diag = 4 } 2;
   ]
 
 let suite =
