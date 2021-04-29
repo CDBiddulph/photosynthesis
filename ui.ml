@@ -77,9 +77,13 @@ let scroll s d =
       let p = Game.player_of_turn s.game |> Player.player_id in 
       let new_gui =
         Gui.update_cursor new_pos s.gui
+<<<<<<< HEAD
         |> Gui.update_message (update_message s pos) ANSITerminal.White 
         |> Gui.update_player_sp p
         |> Gui.update_player_lp p
+=======
+        |> Gui.update_message (update_message s pos) ANSITerminal.Green
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
       in
       render new_gui;
       let new_state =
@@ -96,11 +100,15 @@ let plant_helper s f p_id =
   let new_game = f pl_id s.current_position s.game in 
   let new_gui = 
     let cells = Game.cells new_game in 
+<<<<<<< HEAD
     Gui.update_cells cells s.gui |> Gui.update_message (update_message s s.current_position) ANSITerminal.White 
     |> Gui.update_available num_available 
     |> Gui.update_store_remaining num_store_remaining 
     |> Gui.update_player_lp (Player.light_points pl) 
     |> Gui.update_player_sp (Player.score_points pl) in 
+=======
+    Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
     render new_gui;
   let new_state = 
     {
@@ -116,11 +124,15 @@ let plant_helper_exn (s : t) f plnt_stg =
     let new_game = Game.buy_plant plnt_stg s.game |> f pl_id s.current_position in 
     let new_gui =
       let cells = Game.cells new_game in 
+<<<<<<< HEAD
       Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
       |> Gui.update_available num_available 
       |> Gui.update_store_remaining num_store_remaining
       |> Gui.update_player_lp (Player.light_points pl) 
       |> Gui.update_player_sp (Player.score_points pl) in 
+=======
+      Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
       render new_gui;
     let new_state = 
       {
@@ -206,7 +218,11 @@ let plant s =
         if Player.is_in_available plnt_stg pl then Some (false, plnt_stg)
         else Some (true, plnt_stg) in
   let new_gui = Gui.update_turn pl_id (Player.light_points pl) (Player.score_points pl) num_store_remaining num_available hlo s.gui 
+<<<<<<< HEAD
   |> Gui.update_sun sun_dir in 
+=======
+  |> Gui.update_sun (Game.sun_dir s.game) in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
   render new_gui;
   let new_state = 
     {
