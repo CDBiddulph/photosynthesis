@@ -1,6 +1,6 @@
 type ruleset =
   | Normal
-  | Shadows
+  | Extended
 
 (** The type [round_phase] represents the part of the round. *)
 type round_phase =
@@ -41,6 +41,8 @@ let testing_init_board ruleset cells =
   { board with map = new_map }
 
 let ruleset board = board.rules
+
+let map board = board.map
 
 let cell_at coord board = HexMap.cell_at board.map coord
 
