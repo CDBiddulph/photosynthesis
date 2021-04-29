@@ -75,9 +75,12 @@ let scroll s d =
       in 
       new_state
     | Some pos -> 
+      let p = Game.player_of_turn s.game |> Player.player_id in 
       let new_gui =
         Gui.update_cursor new_pos s.gui
-        |> Gui.update_message (update_message s pos) ANSITerminal.White
+        |> Gui.update_message (update_message s pos) ANSITerminal.White 
+        |> Gui.update_player_sp p
+        |> Gui.update_player_lp p
       in
       render new_gui;
       let new_state =
@@ -97,7 +100,7 @@ let plant_helper s f p_id =
   let num_available = num_remaining_available pl in 
   let new_gui = 
     let cells = Game.cells new_game in 
-    Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
+    Gui.update_cells cells s.gui |> Gui.update_message (update_message s s.current_position) ANSITerminal.White 
     |> Gui.update_available num_available 
     |> Gui.update_store_remaining num_store_remaining 
     |> Gui.update_player_lp (Player.light_points pl) 
@@ -122,7 +125,9 @@ let plant_helper_exn (s : t) f plnt_stg =
       let cells = Game.cells new_game in 
       Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
       |> Gui.update_available num_available 
-      |> Gui.update_store_remaining num_store_remaining in 
+      |> Gui.update_store_remaining num_store_remaining
+      |> Gui.update_player_lp (Player.light_points pl) 
+      |> Gui.update_player_sp (Player.score_points pl) in 
       render new_gui;
     let new_state = 
       {
@@ -197,6 +202,7 @@ let plant s =
   let pl_id = Player.player_id pl in  
   let num_store_remaining = num_remaining_store pl in 
   let num_available = num_remaining_available pl in 
+  let sun_dir = Game.sun_dir s.game in 
   let hlo = 
     let plnt_opt = s.current_position |> Game.cell_at s.game |> Cell.plant in 
     match plnt_opt with 
@@ -208,7 +214,8 @@ let plant s =
           plant |> Plant.plant_stage in
         if Player.is_in_available plnt_stg pl then Some (false, plnt_stg)
         else Some (true, plnt_stg) in
-  let new_gui = Gui.update_turn pl_id (Player.light_points pl) (Player.score_points pl) num_store_remaining num_available hlo s.gui in 
+  let new_gui = Gui.update_turn pl_id (Player.light_points pl) (Player.score_points pl) num_store_remaining num_available hlo s.gui 
+  |> Gui.update_sun sun_dir in 
   render new_gui;
   let new_state = 
     {
