@@ -57,10 +57,6 @@ let cell_if_empty coord board =
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
-let string_of_coord c =
-  let open HexUtil in
-  string_of_int c.col ^ " " ^ string_of_int c.diag
-
 (** [neighbors_in_dir board coord sun_dir] is the list of the three
     neighbors in direction [sun_dir]. If there are fewer than three
     legal neighbors, return only the legal neighbors. *)
@@ -79,6 +75,7 @@ let neighbors_in_dir board coord sun_dir =
           | None -> []
           | Some thd_neigh_coord -> [ thd_neigh_coord ]))
 
+(** TODO *)
 let neighbors_in_radius board coord radius =
   List.map
     (fun cell -> Cell.coord cell)
