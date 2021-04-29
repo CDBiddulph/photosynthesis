@@ -57,6 +57,10 @@ let cell_if_empty coord board =
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
+let string_of_coord c =
+  let open HexUtil in
+  string_of_int c.col ^ " " ^ string_of_int c.diag
+
 (** [neighbors_in_dir board coord sun_dir] is the list of the three
     neighbors in direction [sun_dir]. If there are fewer than three
     legal neighbors, return only the legal neighbors. *)
@@ -75,16 +79,18 @@ let neighbors_in_dir board coord sun_dir =
           | None -> []
           | Some thd_neigh_coord -> [ thd_neigh_coord ]))
 
+let neighbors_in_radius board coord radius =
+  List.map
+    (fun cell -> Cell.coord cell)
+    (List.filter
+       (fun cell ->
+         HexMap.dist board.map (Cell.coord cell) coord <= radius)
+       (HexMap.flatten board.map))
+
 (** [within_radius p_id coord board] checks if there is a plant owned by
     the player with [p_id] within a proper radius of [coord]. *)
 let within_radius p_id coord board =
-  let valid_dirs = [ 0; 1; 2; 3; 4; 5 ] in
-  let all_neighbors =
-    List.flatten
-      (List.map
-         (fun dir -> neighbors_in_dir board coord dir)
-         valid_dirs)
-  in
+  let all_neighbors = neighbors_in_radius board coord 3 in
   let open Plant in
   List.fold_left
     (* check if has plant owned by player; if not, false; if so, match
