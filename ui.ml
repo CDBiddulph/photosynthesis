@@ -55,8 +55,7 @@ let update_message (s : t) (p : HexUtil.coord) =
     | Seed -> "(P) Grow Small Tree"
     | Small -> "(P) Grow Medium Tree"
     | Medium -> "(P) Grow Tall Tree"
-    | Large -> failwith "Should Not Happen"
-  else if Game.can_harvest p (Player.player_id pl) s.game then "(P) Harvest Tall Tree" 
+    | Large -> "(P) Collect Tall Tree"
   else "" 
 
 let scroll s d =
@@ -78,9 +77,13 @@ let scroll s d =
       let p = Game.player_of_turn s.game |> Player.player_id in 
       let new_gui =
         Gui.update_cursor new_pos s.gui
+<<<<<<< HEAD
         |> Gui.update_message (update_message s pos) ANSITerminal.White 
         |> Gui.update_player_sp p
         |> Gui.update_player_lp p
+=======
+        |> Gui.update_message (update_message s pos) ANSITerminal.Green
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
       in
       render new_gui;
       let new_state =
@@ -94,17 +97,18 @@ let scroll s d =
   
 let plant_helper s f p_id = 
   let pl_id = Game.player_of_turn s.game |> Player.player_id in 
-  let pl = Game.player_of_turn s.game in 
   let new_game = f pl_id s.current_position s.game in 
-  let num_store_remaining = num_remaining_store pl in 
-  let num_available = num_remaining_available pl in 
   let new_gui = 
     let cells = Game.cells new_game in 
+<<<<<<< HEAD
     Gui.update_cells cells s.gui |> Gui.update_message (update_message s s.current_position) ANSITerminal.White 
     |> Gui.update_available num_available 
     |> Gui.update_store_remaining num_store_remaining 
     |> Gui.update_player_lp (Player.light_points pl) 
     |> Gui.update_player_sp (Player.score_points pl) in 
+=======
+    Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
     render new_gui;
   let new_state = 
     {
@@ -116,18 +120,19 @@ let plant_helper s f p_id =
 
 let plant_helper_exn (s : t) f plnt_stg = 
   try
-    let pl = Game.player_of_turn s.game in
-    let num_store_remaining = num_remaining_store pl in 
-    let num_available = num_remaining_available pl in 
-    let pl_id = Player.player_id pl in 
+    let pl_id = Game.player_of_turn s.game |> Player.player_id in 
     let new_game = Game.buy_plant plnt_stg s.game |> f pl_id s.current_position in 
     let new_gui =
       let cells = Game.cells new_game in 
+<<<<<<< HEAD
       Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
       |> Gui.update_available num_available 
       |> Gui.update_store_remaining num_store_remaining
       |> Gui.update_player_lp (Player.light_points pl) 
       |> Gui.update_player_sp (Player.score_points pl) in 
+=======
+      Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
       render new_gui;
     let new_state = 
       {
@@ -171,9 +176,7 @@ let plant s =
       | Seed -> plant_helper s Game.grow_plant pl_id
       | Small -> plant_helper s Game.grow_plant pl_id 
       | Medium -> plant_helper s Game.grow_plant pl_id
-      | Large -> failwith "Should Not Happen"
-    else if Game.can_harvest s.current_position pl_id s.game then 
-      plant_helper s Game.harvest pl_id
+      | Large -> plant_helper s Game.harvest pl_id 
     else s  
   with 
   | Board.IllegalPlacePlant -> 
@@ -215,7 +218,11 @@ let plant s =
         if Player.is_in_available plnt_stg pl then Some (false, plnt_stg)
         else Some (true, plnt_stg) in
   let new_gui = Gui.update_turn pl_id (Player.light_points pl) (Player.score_points pl) num_store_remaining num_available hlo s.gui 
+<<<<<<< HEAD
   |> Gui.update_sun sun_dir in 
+=======
+  |> Gui.update_sun (Game.sun_dir s.game) in 
+>>>>>>> 1fee20841a181e33b2adf416acb4be641e2ccb86
   render new_gui;
   let new_state = 
     {
@@ -235,7 +242,6 @@ let handle_char s c =
   | 'd' -> scroll s 0
   | 'p' -> plant s
   | 'f' -> end_turn s
-  | 'x' -> raise End
   | _ -> s
 
 let rec read_char (s : t) =
@@ -247,5 +253,5 @@ let rec read_char (s : t) =
         let new_state = handle_char s a.Graphics.key in
         read_char new_state
       else read_char s
-    with End -> Graphics.close_graph ()
+    with End -> raise End
   done
