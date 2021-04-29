@@ -44,12 +44,11 @@ let num_remaining_store (p : Player.t) =
 
 
 let update_message (s : t) (p : HexUtil.coord) = 
-  let pl = Game.player_of_turn s.game in 
-  if Game.can_plant_seed p (Player.player_id pl) s.game then 
+  if Game.can_plant_seed p s.game then 
     "(P) Plant Seed"
   else if Game.can_plant_small p s.game then
     "(P) Plant Small Tree"
-  else if Game.can_grow_plant p (Player.player_id pl) s.game then 
+  else if Game.can_grow_plant p s.game then 
     let plnt_stg = Game.cell_at s.game p |> Cell.plant |> extract_plant |> Plant.plant_stage in 
     match plnt_stg with 
     | Seed -> "(P) Grow Small Tree"
@@ -88,9 +87,8 @@ let scroll s d =
       in
       new_state
   
-let plant_helper s f p_id = 
-  let pl_id = Game.player_of_turn s.game |> Player.player_id in 
-  let new_game = f pl_id s.current_position s.game in 
+let plant_helper s f = 
+  let new_game = f s.current_position s.game in 
   let new_gui = 
     let cells = Game.cells new_game in 
     Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
@@ -105,8 +103,7 @@ let plant_helper s f p_id =
 
 let plant_helper_exn (s : t) f plnt_stg = 
   try
-    let pl_id = Game.player_of_turn s.game |> Player.player_id in 
-    let new_game = Game.buy_plant plnt_stg s.game |> f pl_id s.current_position in 
+    let new_game = Game.buy_plant plnt_stg s.game |> f s.current_position in 
     let new_gui =
       let cells = Game.cells new_game in 
       Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
@@ -142,18 +139,17 @@ let plant_helper_exn (s : t) f plnt_stg =
 
 let plant s = 
   try 
-    let pl_id = Game.player_of_turn s.game |> Player.player_id in 
-    if Game.can_plant_seed s.current_position pl_id s.game then
-      plant_helper s Game.plant_seed pl_id
+    if Game.can_plant_seed s.current_position s.game then
+      plant_helper s Game.plant_seed 
     else if Game.can_plant_small s.current_position s.game then 
-      plant_helper s Game.plant_small pl_id
-    else if Game.can_grow_plant s.current_position pl_id s.game then 
+      plant_helper s Game.plant_small 
+    else if Game.can_grow_plant s.current_position s.game then 
       let plnt_stg = Game.cell_at s.game s.current_position |> Cell.plant |> extract_plant |> Plant.plant_stage in 
       match plnt_stg with 
-      | Seed -> plant_helper s Game.grow_plant pl_id
-      | Small -> plant_helper s Game.grow_plant pl_id 
-      | Medium -> plant_helper s Game.grow_plant pl_id
-      | Large -> plant_helper s Game.harvest pl_id 
+      | Seed -> plant_helper s Game.grow_plant 
+      | Small -> plant_helper s Game.grow_plant 
+      | Medium -> plant_helper s Game.grow_plant 
+      | Large -> plant_helper s Game.harvest 
     else s  
   with 
   | Board.IllegalPlacePlant -> 

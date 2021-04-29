@@ -70,15 +70,6 @@ let update_player player_id player game =
     ((player_id, player) :: List.remove_assoc player_id game.players)
     game
 
-let grow_plant player_id coord game =
-  update_board (Board.grow_plant coord player_id game.board) game
-
-let plant_seed coord player_id game =
-  update_board (Board.plant_seed coord player_id game.board) game
-
-let plant_small coord player_id game =
-  update_board (Board.plant_small coord player_id game.board) game
-
 (** [get_scoring_points game soil] is a tuple [(sp, new_game)] where
     [sp] is the number of scoring points awarded to the next player to
     harvest a tree on [soil] and [new_game] is [game] with the
@@ -101,9 +92,9 @@ let cell_at game coord =
   | None -> failwith "invalid cell"
   | Some cell -> cell
 
-let harvest player_id coord game =
+let harvest coord game =
   let harvest_game =
-    update_board (Board.harvest player_id coord game.board) game
+    update_board (Board.harvest game.turn coord game.board) game
   in
   (* Should already have failed if harvesting is not possible *)
   let sp_to_add, scored_game =
@@ -111,9 +102,9 @@ let harvest player_id coord game =
       (coord |> cell_at harvest_game |> Cell.soil)
   in
   let scored_player =
-    player_id |> player_of game |> Player.add_sp sp_to_add
+    game.turn |> player_of game |> Player.add_sp sp_to_add
   in
-  scored_game |> update_player player_id scored_player
+  scored_game |> update_player game.turn scored_player
 
 let buy_plant stage game =
   let player = player_of game game.turn in
@@ -211,18 +202,28 @@ let end_turn game =
 
 let is_setup game = game.setup_rounds_left > 0
 
-let can_plant_seed coord player_id game =
+let can_plant_seed coord game =
   (not (is_setup game))
-  && Board.can_plant_seed player_id coord game.board
+  && Board.can_plant_seed game.turn coord game.board
 
 let can_plant_small coord game =
   is_setup game && Board.can_plant_small coord game.board
 
-let can_grow_plant coord player_id game =
-  Board.can_grow_plant player_id coord game.board
+let can_grow_plant coord game =
+  Board.can_grow_plant game.turn coord game.board
 
-let can_harvest coord player_id game =
-  Board.can_harvest player_id coord game.board
+let can_harvest coord game =
+  Board.can_harvest game.turn coord game.board
+
+let grow_plant coord game =
+  update_board (Board.grow_plant coord game.turn game.board) game
+
+let plant_seed coord game =
+  if not (can_plant_seed coord game) then raise Board.IllegalGrowPlant else
+  update_board (Board.plant_seed game.turn coord game.board) game
+
+let plant_small coord game =
+  update_board (Board.plant_small game.turn coord game.board) game
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
