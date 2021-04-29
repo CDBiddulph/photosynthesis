@@ -69,7 +69,7 @@ let main1 () =
   let gui =
     init_gui
       [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ]
+      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ] (Game.sun_dir game)
       (HexMap.flatten hex_map)
       [
         (1, ('o', Green));
@@ -86,7 +86,7 @@ let main () =
   let gui =
     init_gui
       [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ]
+      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ] 0
       (HexMap.flatten hex_map)
       player_params
   in

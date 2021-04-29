@@ -5,7 +5,7 @@ open ANSITerminal
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui store_costs init_available init_next_sp cells player_params]
+(** [init_gui store_costs init_available init_next_sp sun_dir cells player_params]
     is the GUI for a board of cells, constructed from the ground up. A
     hexagon will be created in every place corresponding to a Some value
     in [cells]. Then, [update_cells cells] will be called. The colors
@@ -25,6 +25,7 @@ val init_gui :
   int list list ->
   int list ->
   int list ->
+  HexUtil.dir ->
   Cell.t list ->
   (PlayerId.t * (char * color)) list ->
   t
