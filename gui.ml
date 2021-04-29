@@ -357,7 +357,7 @@ let update_turn
   |> update_plant_highlight highlight_loc_opt
   |> update_player_lp lp |> update_player_sp sp
 
-let init_gui store_costs init_available init_next_sp cells player_params
+let init_gui store_costs init_available init_next_sp sun_dir cells player_params
     =
   let layer_names =
     [
@@ -412,5 +412,6 @@ let init_gui store_costs init_available init_next_sp cells player_params
   |> draw_static_text "static_text"
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
        None
+  |> update_sun sun_dir
 
 let render gui = render gui.rend
