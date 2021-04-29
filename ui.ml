@@ -99,7 +99,9 @@ let plant_helper s f p_id =
     let cells = Game.cells new_game in 
     Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White 
     |> Gui.update_available num_available 
-    |> Gui.update_store_remaining num_store_remaining in 
+    |> Gui.update_store_remaining num_store_remaining 
+    |> Gui.update_player_lp (Player.light_points pl) 
+    |> Gui.update_player_sp (Player.score_points pl) in 
     render new_gui;
   let new_state = 
     {

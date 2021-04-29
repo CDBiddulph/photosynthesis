@@ -8,7 +8,6 @@ type t = {
   available : PlantInventory.t;
 }
 
-(** TODO *)
 let max_lp = 20
 
 let init_player id =
