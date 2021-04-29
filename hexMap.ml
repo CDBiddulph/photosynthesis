@@ -111,14 +111,12 @@ let does_block (map : t) (d : HexUtil.dir) c1 c2 =
 
 let dist (map : t) c1 c2 =
   let open HexUtil in
-  (* let v = *)
   if
     Int.abs (c1.col - c2.col) = Int.abs (c1.diag - c2.diag)
     && ((c1.col > c2.col && c1.diag < c2.diag)
        || (c1.col < c2.col && c1.diag > c2.diag))
   then Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
   else max (Int.abs (c1.col - c2.col)) (Int.abs (c1.diag - c2.diag))
-(* in print_endline (string_of_int v); v *)
 
 let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in
@@ -145,6 +143,4 @@ let flatten (map : t) =
   done;
   !flat
 
-let end_turn map =
-  print_endline "Warning: Unimplemented";
-  map
+(* let end_turn map = print_endline "Warning: Unimplemented"; map *)
