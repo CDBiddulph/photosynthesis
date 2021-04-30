@@ -32,3 +32,5 @@ val next_stage : plant_stage -> plant_stage option
 
 (** TODO *)
 val all_stages : plant_stage list
+
+val to_string : plant_stage -> string -> unit

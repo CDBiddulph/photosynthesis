@@ -24,6 +24,8 @@ val _init_game_test :
   int ->
   t
 
+val board : t -> Board.t
+
 (** [plant_seed player_id coord game] is game with a seed of [player]
     planted at [coord] and the available seeds of the player decremented
     by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at
@@ -94,13 +96,17 @@ val can_plant_seed : HexUtil.coord -> PlayerId.t -> t -> bool
 (** [can_plant_small coord player_id game] is true if planting a small
     tree at [coord] is a legal move. Will always be [false] if [game] is
     not in setup mode. *)
-val can_plant_small : HexUtil.coord -> PlayerId.t -> t -> bool
+val can_plant_small : HexUtil.coord -> t -> bool
 
 (** [can_grow_plant coord player_id game] is true iff growing the plant
     at [coord] with the player of [player_id] at [coord] is a legal
     move, disregarding whether the player actually has the plant in
     their available area. *)
 val can_grow_plant : HexUtil.coord -> PlayerId.t -> t -> bool
+
+(** [can_harvest coord player_id game] is true iff harvesting the plant
+    at [coord] with the player of [player_id] at [coord] is a legal move. *)
+val can_harvest : HexUtil.coord -> PlayerId.t -> t -> bool
 
 (** [turn game] is the player_id of the player whose turn it is in
     [game]. *)

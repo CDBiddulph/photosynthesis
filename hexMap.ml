@@ -78,7 +78,7 @@ let init_map () : t =
     refer to a [None] cell) *)
 let cell_at (map : t) coord : Cell.t option =
   let open HexUtil in
-  map.(coord.col).(coord.diag)
+  try map.(coord.col).(coord.diag) with Invalid_argument _ -> None
 
 let valid_coord (map : t) c = cell_at map c <> None
 
@@ -106,9 +106,15 @@ let does_block (map : t) (d : HexUtil.dir) c1 c2 =
   | 5 -> c1.diag = c2.diag && c2.col > c1.col
   | _ -> failwith "Invalid direction"
 
+
 let dist (map : t) c1 c2 =
   let open HexUtil in
-  Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
+  if
+    Int.abs (c1.col - c2.col) = Int.abs (c1.diag - c2.diag)
+    && ((c1.col > c2.col && c1.diag < c2.diag)
+        || (c1.col < c2.col && c1.diag > c2.diag))
+  then Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
+  else max (Int.abs (c1.col - c2.col)) (Int.abs (c1.diag - c2.diag))
 
 let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in

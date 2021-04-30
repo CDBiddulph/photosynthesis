@@ -55,6 +55,8 @@ let player_of game id = List.assoc id game.players
 
 let turn game = game.turn
 
+let board game = game.board 
+
 let player_of_turn game = game |> turn |> player_of game
 
 let player_order game = game.player_order
@@ -213,11 +215,14 @@ let can_plant_seed coord player_id game =
   (not (is_setup game))
   && Board.can_plant_seed player_id coord game.board
 
-let can_plant_small coord player_id game =
-  is_setup game && Board.can_plant_seed player_id coord game.board
+let can_plant_small coord game =
+  is_setup game && Board.can_plant_small coord game.board
 
 let can_grow_plant coord player_id game =
   Board.can_grow_plant player_id coord game.board
+
+let can_harvest coord player_id game =
+  Board.can_harvest player_id coord game.board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 

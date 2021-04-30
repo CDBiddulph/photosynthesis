@@ -20,6 +20,8 @@ exception IllegalHarvest
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
 
+val map : t -> HexMap.t
+
 (** [testing_init_board ruleset cells] initializes a board with the
     given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
 val testing_init_board : ruleset -> Cell.t list -> t
