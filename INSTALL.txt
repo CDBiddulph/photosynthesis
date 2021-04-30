@@ -6,5 +6,4 @@ brew install pkg-config
 
 Run the following command in the parent directory (the directory with the Makefile)
 to run our program:
-make build
 make play
