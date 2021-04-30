@@ -43,10 +43,12 @@ let store_capacity stage player = Store.capacity stage
 let is_store_full stage player =
   Store.remaining_capacity player.store stage = 0
 
-let cost_to_plant stage =
+(** [cost_to_grow stage] is the cost in light points to grow a plant to [stage]
+    from the stage before [stage], if it exists.  *)
+let cost_to_grow stage =
   Plant.(
     match stage with
-    | Seed -> 0
+    | Seed -> failwith "Cannot \"grow to\" a Seed"
     | Small -> 1
     | Medium -> 2
     | Large -> 3
@@ -58,9 +60,13 @@ let can_buy_plant stage player =
   num_in_store stage player > 0
   && player.light_points >= Store.cost stage player.store 
 
+(* Planting, i.e. putting a plant on an empty cell, never costs light points *)
 let can_plant_plant stage player =
   num_in_available stage player > 0
-  && player.light_points >= cost_to_plant stage
+
+let can_grow_plant stage player =
+  num_in_available stage player > 0
+  && player.light_points >= cost_to_grow stage
 
 let can_harvest player =
   player.light_points >= cost_to_harvest
@@ -81,18 +87,26 @@ let buy_plant stage player =
       (Store.InsufficientLightPoints cost)
 
 let plant_plant stage player =
-  let cost = cost_to_plant stage in
   if can_plant_plant stage player then
     {
       player with
       available = PlantInventory.remove_plant stage player.available;
-      light_points = player.light_points - cost
+    }
+  else
+    raise (PlantInventory.OutOfPlant stage)
+
+let grow_plant stage player =
+  let cost = cost_to_grow stage in
+  if can_grow_plant stage player then
+    {
+      player with
+      available = PlantInventory.remove_plant stage player.available;
+      light_points = player.light_points - cost;
     }
   else if num_in_available stage player <= 0 then
     raise (PlantInventory.OutOfPlant stage)
   else
-    raise
-      (Store.InsufficientLightPoints cost)
+    raise (Store.InsufficientLightPoints cost)
 
 let harvest sp player =
   if can_harvest player then

@@ -32,29 +32,29 @@ let extract (c : HexUtil.coord option) : HexUtil.coord =
 let extract_cell (c : Cell.t option) : Cell.t = 
   match c with Some i -> i | None -> raise Invalid_Cell
 
-let extract_plant (p : Plant.t option) = match p with Some i -> i |None -> failwith "Should Not Happen"
+let extract_plant (p : Plant.t option) = match p with 
+| Some i -> i 
+| None -> failwith "Should Not Happen"
 
 let num_remaining_available (p : Player.t) =
-  Player.num_in_available Plant.Seed p :: Player.num_in_available Plant.Small p ::
-  Player.num_in_available Plant.Medium p :: Player.num_in_available Plant.Large p :: []
+  List.map (fun stage -> Player.num_in_available stage p) Plant.all_stages
 
 let num_remaining_store (p : Player.t) =
-  Player.num_in_store Plant.Seed p ::  Player.num_in_store Plant.Small p ::
-  Player.num_in_store Plant.Medium p :: Player.num_in_store Plant.Large p :: []
+  List.map (fun stage -> Player.num_in_store stage p) Plant.all_stages
 
 
-let update_message (s : t) (p : HexUtil.coord) = 
-  if Game.can_plant_seed p s.game then 
+let update_message (s : t) (coord : HexUtil.coord) = 
+  if Game.can_plant_seed coord s.game then 
     "(P) Plant Seed"
-  else if Game.can_plant_small p s.game then
+  else if Game.can_plant_small coord s.game then
     "(P) Plant Small Tree"
-  else if Game.can_grow_plant p s.game then 
-    let plnt_stg = Game.cell_at s.game p |> Cell.plant |> extract_plant |> Plant.plant_stage in 
+  else if Game.can_grow_plant coord s.game then 
+    let plnt_stg = Game.cell_at s.game coord |> Cell.plant |> extract_plant |> Plant.plant_stage in 
     match plnt_stg with 
     | Seed -> "(P) Grow Small Tree"
     | Small -> "(P) Grow Medium Tree"
-    | Medium -> "(P) Grow Tall Tree"
-    | Large -> "(P) Collect Tall Tree"
+    | Medium -> "(P) Grow Large Tree"
+    | Large -> "(P) Collect Large Tree"
   else "" 
 
 let scroll s d =
@@ -66,9 +66,8 @@ let scroll s d =
       render new_gui; 
       let new_state =
         {
-          current_position = s.current_position;
+          s with
           gui = new_gui;
-          game = s.game;
         }
       in 
       new_state
@@ -80,9 +79,9 @@ let scroll s d =
       render new_gui;
       let new_state =
         {
+          s with
           current_position = pos;
           gui = new_gui;
-          game = s.game
         }
       in
       new_state
@@ -95,7 +94,7 @@ let plant_helper s f =
     render new_gui;
   let new_state = 
     {
-      current_position = s.current_position;
+      s with
       gui = new_gui;
       game = new_game;
     }
@@ -107,35 +106,27 @@ let plant_helper_exn (s : t) f plnt_stg =
     let new_gui =
       let cells = Game.cells new_game in 
       Gui.update_cells cells s.gui |> Gui.update_message "" ANSITerminal.White in 
-      render new_gui;
-    let new_state = 
-      {
-        current_position = s.current_position; 
-        gui = new_gui; 
-        game = new_game;
-      }
-    in new_state
+    render new_gui;
+    {
+      s with
+      gui = new_gui; 
+      game = new_game;
+    }
   with
   | Store.InsufficientLightPoints plnt_stg -> 
     let new_gui = Gui.update_message "Insufficient Light Points" ANSITerminal.Red s.gui in 
     render new_gui; 
-    let new_state = 
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = s.game;
-      } 
-    in new_state
+    {
+      s with
+      gui = new_gui;
+    } 
   | PlantInventory.OutOfPlant plnt_stg -> 
     let new_gui = Gui.update_message "Out of Plant" ANSITerminal.Red s.gui in 
     render new_gui;
-    let new_state = 
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = s.game;
-      }
-    in new_state
+    {
+      s with
+      gui = new_gui;
+    }
 
 let plant s = 
   try 
@@ -146,7 +137,7 @@ let plant s =
     else if Game.can_grow_plant s.current_position s.game then 
       let plnt_stg = Game.cell_at s.game s.current_position |> Cell.plant |> extract_plant |> Plant.plant_stage in 
       match plnt_stg with 
-      | Seed -> plant_helper s Game.grow_plant 
+      | Seed -> plant_helper s Game.plant_seed 
       | Small -> plant_helper s Game.grow_plant 
       | Medium -> plant_helper s Game.grow_plant 
       | Large -> plant_helper s Game.harvest 
@@ -156,15 +147,12 @@ let plant s =
     let new_gui = 
       Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red s.gui in 
     render new_gui;
-    let new_state = 
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = s.game;
-      }
-    in new_state
+    {
+      s with
+      gui = new_gui;
+    }
   | PlantInventory.OutOfPlant Plant.Seed -> 
-    plant_helper_exn s Game.plant_seed Plant.Seed 
+    plant_helper_exn s Game.plant_seed Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->
     plant_helper_exn s Game.plant_small Plant.Small
   | PlantInventory.OutOfPlant Plant.Medium ->
@@ -194,7 +182,7 @@ let plant s =
   render new_gui;
   let new_state = 
     {
-      current_position = s.current_position;
+      s with
       game = new_game;
       gui = new_gui;
     }

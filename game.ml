@@ -192,13 +192,20 @@ let can_plant_small coord game =
   is_setup game && Board.can_plant_small coord game.board
 
 let can_grow_plant coord game =
-  Board.can_grow_plant game.turn coord game.board
+  (not (is_setup game))
+  && Board.can_grow_plant game.turn coord game.board
 
 let can_harvest coord game =
-  Board.can_harvest game.turn coord game.board
+  (not (is_setup game))
+  && Board.can_harvest game.turn coord game.board
 
 let grow_plant coord game =
-  update_board (Board.grow_plant coord game.turn game.board) game
+  if not (can_grow_plant coord game) then raise Board.IllegalGrowPlant else
+  let stage = match Board.plant_at coord game.board with 
+  | None -> failwith "Unreachable"
+  | Some plant -> plant |> Plant.plant_stage in
+  update_board (Board.grow_plant coord game.turn game.board) game |>
+  update_player game.turn (Player.grow_plant stage (player_of_turn game))
 
 let plant_seed coord game =
   if not (can_plant_seed coord game) then raise Board.IllegalPlacePlant else
@@ -211,6 +218,7 @@ let plant_small coord game =
   |> update_player game.turn (Player.plant_plant Plant.Small (player_of_turn game))
 
 let harvest coord game =
+  if not (can_harvest coord game) then raise Board.IllegalHarvest else
   let harvest_game =
     update_board (Board.harvest game.turn coord game.board) game
   in
@@ -219,10 +227,11 @@ let harvest coord game =
     get_scoring_points harvest_game
       (coord |> cell_at harvest_game |> Cell.soil)
   in
-  let scored_player =
+  let harvest_player =
     game.turn |> player_of game |> Player.harvest sp_to_add
   in
-  scored_game |> update_player game.turn scored_player
+  (* Also should have failed if player doesn't have enough light points *)
+  scored_game |> update_player game.turn harvest_player
 
 let buy_plant stage game =
   let player = player_of game game.turn in

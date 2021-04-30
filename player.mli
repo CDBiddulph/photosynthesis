@@ -7,10 +7,10 @@ type t
     inventories set to default values. *)
 val init_player : PlayerId.t -> t
 
-(** [cost_to_plant stage] is the number of light points that it
-    costs to plant a plant of [stage] by moving it from the available 
-    area to the board. *)
-val cost_to_plant : Plant.plant_stage -> int
+(** [cost_to_grow stage] is the number of light points that it
+    costs to grow a plant of stage one below [stage] into [stage] by moving
+    it from the available area to the board. *)
+val cost_to_grow : Plant.plant_stage -> int
 
 (** [cost_to_harvest] is the number of light points that it costs
     to harvest a Large tree. *)
@@ -24,6 +24,11 @@ val can_buy_plant : Plant.plant_stage -> t -> bool
     plant of [stage] from their available area. *)
 val can_plant_plant : Plant.plant_stage -> t -> bool
 
+(** [can_grow_plant stage player] is true iff [player] can grow a 
+    plant with stage one below [stage] into [stage] using a plant of
+    [stage] from their available area. *)
+val can_grow_plant : Plant.plant_stage -> t -> bool
+
 (** [can_harvest player] is true iff [player] can harvest a plant. *)
 val can_harvest : t -> bool
 
@@ -35,11 +40,16 @@ val can_harvest : t -> bool
     enough light points to make the purchase. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
-(** [plant_plant stage player] moves a plant of [stage] out of [player]'s available area,
+(** [plant_plant stage player] moves a plant of [stage] out of [player]'s
+    available area.  Raises: [PlantInventory.OutOfPlant stage] if there 
+    are no more plants of [stage] in the available area. *)
+val plant_plant : Plant.plant_stage -> t -> t
+
+(** [grow_plant stage player] moves a plant of [stage] out of [player]'s available area,
     and deducts the appropriate amount of light points. Raises: [PlantInventory.OutOfPlant stage]
     if there are no more plants of [stage] in the available area; [Player.InsufficientLightPoints]
     if [player] does not have enough light points to place a plant of [stage]. *)
-val plant_plant : Plant.plant_stage -> t -> t
+val grow_plant : Plant.plant_stage -> t -> t
 
 (** [harvest sp player] deducts the appropriate number of light points
     and increases the number of scoring points by [sp]. Raises: [Player.InsufficientLightPoints]
