@@ -33,7 +33,7 @@ let size inv = List.fold_left (fun acc (_, count) -> acc + count) 0 inv
 
 let is_empty inv = size inv = 0
 
-let remove_plant inv stage =
+let remove_plant stage inv =
   List.map
     (fun (inv_stage, count) ->
       if inv_stage = stage then
@@ -42,14 +42,14 @@ let remove_plant inv stage =
       else (inv_stage, count))
     inv
 
-let add_plant inv stage =
+let add_plant stage inv =
   List.map
     (fun (inv_stage, count) ->
       if inv_stage = stage then (inv_stage, count + 1)
       else (inv_stage, count))
     inv
 
-let num_remaining inv stage =
+let num_remaining stage inv =
   let rem =
     List.filter (fun (inv_stage, count) -> inv_stage = stage) inv
   in

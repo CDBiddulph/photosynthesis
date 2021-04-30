@@ -92,24 +92,6 @@ let cell_at game coord =
   | None -> failwith "invalid cell"
   | Some cell -> cell
 
-let harvest coord game =
-  let harvest_game =
-    update_board (Board.harvest game.turn coord game.board) game
-  in
-  (* Should already have failed if harvesting is not possible *)
-  let sp_to_add, scored_game =
-    get_scoring_points harvest_game
-      (coord |> cell_at harvest_game |> Cell.soil)
-  in
-  let scored_player =
-    game.turn |> player_of game |> Player.add_sp sp_to_add
-  in
-  scored_game |> update_player game.turn scored_player
-
-let buy_plant stage game =
-  let player = player_of game game.turn in
-  update_player game.turn (Player.buy_plant player stage) game
-
 let next_in_wraparound_lst lst elem =
   let rec next_in_wraparound_lst_helper first lst elem =
     match lst with
@@ -219,11 +201,32 @@ let grow_plant coord game =
   update_board (Board.grow_plant coord game.turn game.board) game
 
 let plant_seed coord game =
-  if not (can_plant_seed coord game) then raise Board.IllegalGrowPlant else
+  if not (can_plant_seed coord game) then raise Board.IllegalPlacePlant else
   update_board (Board.plant_seed game.turn coord game.board) game
+  |> update_player game.turn (Player.plant_plant Plant.Seed (player_of_turn game))
 
 let plant_small coord game =
+  if not (can_plant_small coord game) then raise Board.IllegalPlacePlant else
   update_board (Board.plant_small game.turn coord game.board) game
+  |> update_player game.turn (Player.plant_plant Plant.Small (player_of_turn game))
+
+let harvest coord game =
+  let harvest_game =
+    update_board (Board.harvest game.turn coord game.board) game
+  in
+  (* Should already have failed if harvesting is not possible *)
+  let sp_to_add, scored_game =
+    get_scoring_points harvest_game
+      (coord |> cell_at harvest_game |> Cell.soil)
+  in
+  let scored_player =
+    game.turn |> player_of game |> Player.harvest sp_to_add
+  in
+  scored_game |> update_player game.turn scored_player
+
+let buy_plant stage game =
+  let player = player_of game game.turn in
+  update_player game.turn (Player.buy_plant stage player) game
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
