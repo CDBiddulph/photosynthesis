@@ -69,7 +69,7 @@ let harvest_game sp =
 
 let test_scoring_points_left name init_sp harvest_soil expected_sp =
   let game =
-    harvest 1
+    harvest 
       { col = 3; diag = harvest_soil - 1 }
       (harvest_game init_sp)
   in
@@ -82,7 +82,7 @@ let test_scoring_points_left name init_sp harvest_soil expected_sp =
 
 let test_scoring_points_player name init_sp harvest_soil expected_sp =
   let game =
-    harvest 1
+    harvest 
       { col = 3; diag = harvest_soil - 1 }
       (harvest_game init_sp)
   in
