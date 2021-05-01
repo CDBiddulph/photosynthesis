@@ -34,7 +34,7 @@ let buy_plant store stage light_points =
     List.mapi
       (fun i count ->
         if i = ind then
-          if count + 1 < List.length (List.nth costs ind) then count + 1
+          if count < List.length (List.nth costs ind) then count + 1
           else raise (OutOfPlant stage)
         else count)
       store

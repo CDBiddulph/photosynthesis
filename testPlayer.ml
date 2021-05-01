@@ -43,6 +43,13 @@ let lp_tests =
     lp_test_exn "grow ILP" (grow_plant Medium) 1
       (Store.InsufficientLightPoints 2);
     lp_test "grow almost ILP" (grow_plant Small) 1 0;
+    lp_test "buy" (buy_plant Large) 10 6;
+    lp_test "buy 2"
+      (fun g -> g |> buy_plant Large |> buy_plant Large)
+      10 1;
+    lp_test_exn "buy ILP" (buy_plant Seed) 0
+      (Store.InsufficientLightPoints 1);
+    lp_test "buy almost ILP" (buy_plant Seed) 1 0;
   ]
 
 let suite = "test suite for HexMap" >::: List.flatten [ lp_tests ]
