@@ -11,6 +11,11 @@ exception OutOfPlant of Plant.plant_stage
     number of starting plants. *)
 val init_plant_inventory : t
 
+(** [_init_plant_inventory nums] is a new plant inventory with the given
+    numbers of starting plants, from Seed to Large. Should only be used
+    for testing. *)
+val _init_plant_inventory : (Plant.plant_stage * int) list -> t
+
 (** [init_plant_inventory_gen stage num inv] is a new plant inventory
     with x amount of plant with stage [stage] *)
 val init_plant_inventory_gen : Plant.plant_stage -> int -> t -> t

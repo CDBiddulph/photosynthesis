@@ -69,9 +69,7 @@ let harvest_game sp =
 
 let test_scoring_points_left name init_sp harvest_soil expected_sp =
   let game =
-    harvest 
-      { col = 3; diag = harvest_soil - 1 }
-      (harvest_game init_sp)
+    harvest { col = 3; diag = harvest_soil - 1 } (harvest_game init_sp)
   in
   "scoring points left: " ^ name >:: fun _ ->
   let soils = [ 1; 2; 3; 4 ] in
@@ -82,9 +80,7 @@ let test_scoring_points_left name init_sp harvest_soil expected_sp =
 
 let test_scoring_points_player name init_sp harvest_soil expected_sp =
   let game =
-    harvest 
-      { col = 3; diag = harvest_soil - 1 }
-      (harvest_game init_sp)
+    harvest { col = 3; diag = harvest_soil - 1 } (harvest_game init_sp)
   in
   "scoring points left: " ^ name >:: fun _ ->
   assert_equal expected_sp
@@ -132,10 +128,10 @@ let player_params =
   ]
 
 let gui =
-  Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ] (Game.sun_dir game4)
-    (Game.cells game4) player_params
+  Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ]
+    (Game.sun_dir game4) (Game.cells game4) player_params
 
-let to_render = true
+let to_render = false
 
 let test =
   if to_render then Gui.render gui;

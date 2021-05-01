@@ -7,53 +7,56 @@ type t
     inventories set to default values. *)
 val init_player : PlayerId.t -> t
 
-(** [cost_to_grow stage] is the number of light points that it
-    costs to grow a plant of stage one below [stage] into [stage] by moving
-    it from the available area to the board. *)
+(** [cost_to_grow stage] is the number of light points that it costs to
+    grow a plant of stage one below [stage] into [stage] by moving it
+    from the available area to the board. *)
 val cost_to_grow : Plant.plant_stage -> int
 
-(** [cost_to_harvest] is the number of light points that it costs
-    to harvest a Large tree. *)
+(** [cost_to_harvest] is the number of light points that it costs to
+    harvest a Large tree. *)
 val cost_to_harvest : int
 
-(** [can_buy_plant stage player] is true iff [player] can buy a
-    plant of [stage] and place it in their available area. *)
+(** [can_buy_plant stage player] is true iff [player] can buy a plant of
+    [stage] and place it in their available area. *)
 val can_buy_plant : Plant.plant_stage -> t -> bool
 
 (** [can_plant_plant stage player] is true iff [player] can plant a
     plant of [stage] from their available area. *)
 val can_plant_plant : Plant.plant_stage -> t -> bool
 
-(** [can_grow_plant stage player] is true iff [player] can grow a 
-    plant with stage one below [stage] into [stage] using a plant of
-    [stage] from their available area. *)
+(** [can_grow_plant stage player] is true iff [player] can grow a plant
+    with stage one below [stage] into [stage] using a plant of [stage]
+    from their available area. *)
 val can_grow_plant : Plant.plant_stage -> t -> bool
 
 (** [can_harvest player] is true iff [player] can harvest a plant. *)
 val can_harvest : t -> bool
 
-(** [buy_plant player stage] moves a plant of [stage] from [player]'s store to
-    their available area, and deducts the appropriate amount of light
-    points from the player's light point total. Raises:
+(** [buy_plant player stage] moves a plant of [stage] from [player]'s
+    store to their available area, and deducts the appropriate amount of
+    light points from the player's light point total. Raises:
     [PlantInventory.OutOfPlant stage] if there are no more plants of
     [stage]; [Player.InsufficientLightPoints] if [player] does not have
     enough light points to make the purchase. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
-(** [plant_plant stage player] moves a plant of [stage] out of [player]'s
-    available area.  Raises: [PlantInventory.OutOfPlant stage] if there 
-    are no more plants of [stage] in the available area. *)
+(** [plant_plant stage player] moves a plant of [stage] out of
+    [player]'s available area. Raises: [PlantInventory.OutOfPlant stage]
+    if there are no more plants of [stage] in the available area. *)
 val plant_plant : Plant.plant_stage -> t -> t
 
-(** [grow_plant stage player] moves a plant of [stage] out of [player]'s available area,
-    and deducts the appropriate amount of light points. Raises: [PlantInventory.OutOfPlant stage]
-    if there are no more plants of [stage] in the available area; [Player.InsufficientLightPoints]
-    if [player] does not have enough light points to place a plant of [stage]. *)
+(** [grow_plant stage player] moves a plant of [stage] out of [player]'s
+    available area, and deducts the appropriate amount of light points.
+    Raises: [PlantInventory.OutOfPlant stage] if there are no more
+    plants of [stage] in the available area;
+    [Player.InsufficientLightPoints] if [player] does not have enough
+    light points to place a plant of [stage]. *)
 val grow_plant : Plant.plant_stage -> t -> t
 
 (** [harvest sp player] deducts the appropriate number of light points
-    and increases the number of scoring points by [sp]. Raises: [Player.InsufficientLightPoints]
-    if [player] does not have enough light points to harvest a plant. *)
+    and increases the number of scoring points by [sp]. Raises:
+    [Player.InsufficientLightPoints] if [player] does not have enough
+    light points to harvest a plant. *)
 val harvest : int -> t -> t
 
 (** [player_id player] is the unique PlayerId of [player]. *)
@@ -93,3 +96,7 @@ val store_capacity : Plant.plant_stage -> t -> int
 (** [is_store_full stage player] is true iff the number of plants of
     [stage] in [player]'s store is at maximum capacity. *)
 val is_store_full : Plant.plant_stage -> t -> bool
+
+(** [_set_available available player] is [player] with its available
+    area set to [available]. Should only be used for testing. *)
+val _set_available : PlantInventory.t -> t -> t

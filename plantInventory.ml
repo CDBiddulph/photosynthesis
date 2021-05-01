@@ -15,6 +15,9 @@ let init_plant_inventory =
     (Plant.Large, 0);
   ]
 
+let _init_plant_inventory (nums : (Plant.plant_stage * int) list) : t =
+  nums
+
 let init_plant_inventory_gen stage num inv =
   List.map
     (fun (inv_stage, count) ->
