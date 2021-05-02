@@ -141,3 +141,6 @@ val sun_dir : t -> HexUtil.dir
     remaining scoring points for each soil type, in order from the next
     available to the last available. *)
 val scoring_points : t -> (Cell.soil * int list) list
+
+(** [is_setup game] is true if [game] is in setup mode. *)
+val is_setup : t -> bool
