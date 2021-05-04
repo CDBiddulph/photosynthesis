@@ -1,6 +1,9 @@
 open OUnit2
 open HexMap
 
+(** [cell_at_test name map coord expected_output] constructs an OUnit
+    test named [name] that asserts the quality of [expected_output] with
+    [cell_at map coord]. *)
 let cell_at_test
     (name : string)
     (map : t)
@@ -8,6 +11,9 @@ let cell_at_test
     (expected_output : Cell.t option) =
   name >:: fun _ -> assert_equal expected_output (cell_at map coord)
 
+(** [set_cell_test name map cell coord] constructs an OUnit test named
+    [name] that asserts the quality of [cell] with
+    [cell_at (set_cell map cell coord) coord]. *)
 let set_cell_test
     (name : string)
     (map : t)
@@ -16,6 +22,9 @@ let set_cell_test
   name >:: fun _ ->
   assert_equal cell (cell_at (set_cell map cell coord) coord)
 
+(** [set_cell_fail name map cell coord] constructs an OUnit test named
+    [name] that asserts that [Failure "Invalid location"] is raised at
+    [set_cell map cell coord]. *)
 let set_cell_fail
     (name : string)
     (map : t)
@@ -23,8 +32,11 @@ let set_cell_fail
     (coord : HexUtil.coord) =
   name >:: fun _ ->
   assert_raises (Failure "Invalid location") (fun _ ->
-      cell_at (set_cell map cell coord) coord)
+      set_cell map cell coord)
 
+(** [block_test name map dir c1 c2 expected_output] constructs an OUnit
+    test named [name] that asserts the quality of [expected_output] with
+    [does_block maap dir c1 c2]. *)
 let block_test
     (name : string)
     (map : t)
@@ -37,6 +49,9 @@ let block_test
     (does_block map dir c1 c2)
     ~printer:string_of_bool
 
+(** [dist_test name map c1 c2 expected_output] constructs an OUnit test
+    named [name] that asserts the quality of [expected_output] with
+    [dist map c1 c2]. *)
 let dist_test
     (name : string)
     (map : t)
@@ -46,6 +61,9 @@ let dist_test
   name >:: fun _ ->
   assert_equal expected_output (dist map c1 c2) ~printer:string_of_int
 
+(** [neighbor_test name map coord dir expected_output] constructs an
+    OUnit test named [name] that asserts the quality of
+    [expected_output] with [neighbor map coord dir]. *)
 let neighbor_test
     (name : string)
     (map : t)
@@ -92,7 +110,7 @@ let does_block_tests =
       { col = 4; diag = 0 } true;
     block_test "horizontal 4 separation block true" i_map 5 c00
       { col = 5; diag = 0 } true;
-    (* TODO: more dirs/distances *)
+    (* TODO: more dirs/distances (if keep does_block) *)
   ]
 
 let center : HexUtil.coord = { col = 3; diag = 3 }
@@ -120,6 +138,8 @@ let dist_tests =
     dist_test "2 dist dir 50" i_map center { col = 5; diag = 4 } 2;
   ]
 
+let c66 : HexUtil.coord = { col = 6; diag = 6 }
+
 let neighbor_tests =
   [
     neighbor_test "center 0 dir" i_map center 0
@@ -134,7 +154,12 @@ let neighbor_tests =
       (Some { col = 3; diag = 2 });
     neighbor_test "center 5 dir" i_map center 5
       (Some { col = 4; diag = 3 });
-    (* TODO: invalid neighbor tests *)
+    neighbor_test "00 2 dir" i_map c00 2 None;
+    neighbor_test "00 3 dir" i_map c00 3 None;
+    neighbor_test "00 4 dir" i_map c00 4 None;
+    neighbor_test "66 0 dir" i_map c66 0 None;
+    neighbor_test "66 1 dir" i_map c66 1 None;
+    neighbor_test "66 5 dir" i_map c66 5 None;
   ]
 
 let suite =
