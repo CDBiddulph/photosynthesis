@@ -1,3 +1,5 @@
+(** A player in the game. *)
+
 (** The abstract type representing a player. *)
 type t
 
@@ -6,9 +8,11 @@ type t
 val init_player : PlayerId.t -> t
 
 (** [buy_plant player stage] moves a plant from [player]'s store to
-    their available area. Raises: [PlantInventory.OutOfPlant stage] if
-    there are no more plants of [stage]; [Store.InsufficientLightPoints]
-    if [player] does not have enough light points to make the purchase. *)
+    their available area, and deducts the appropriate amount of light
+    points from the player's light point total. Raises:
+    [PlantInventory.OutOfPlant stage] if there are no more plants of
+    [stage]; [Store.InsufficientLightPoints] if [player] does not have
+    enough light points to make the purchase. *)
 val buy_plant : t -> Plant.plant_stage -> t
 
 (** [player_id player] is the unique PlayerId of [player]. *)
@@ -29,6 +33,8 @@ val add_lp : int -> t -> t
 (** [add_sp player pts] adds [pts] score points to [player]'s score
     points. *)
 val add_sp : int -> t -> t
+
+val store : t -> Store.t
 
 (** [is_in_available stage player] is true if [player] has a plant of
     [stage] in their available area. *)

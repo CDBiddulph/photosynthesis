@@ -64,6 +64,8 @@ let testing_init_board ruleset cells =
 
 let ruleset board = board.rules
 
+let map board = board.map
+
 let cell_at coord board = HexMap.cell_at board.map coord
 
 let valid_coord coord board = HexMap.valid_coord board.map coord

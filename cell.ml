@@ -1,5 +1,3 @@
-open Plant
-
 type soil = int
 
 type t = {

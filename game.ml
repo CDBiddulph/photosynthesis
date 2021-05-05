@@ -15,19 +15,11 @@ type t = {
   rounds_rule : ruleset;
 }
 
-(* TODO: extended ruleset pull into game *)
-let generate_player_ids num_players =
-  match num_players with
-  | 2 -> [ 1; 2 ]
-  | 3 -> [ 1; 2; 3 ]
-  | 4 -> [ 1; 2; 3; 4 ]
-  | _ -> failwith "Must be 2-4 players"
-
 let players_of_player_ids player_ids =
   List.map (fun id -> (id, Player.init_player id)) player_ids
 
-let init_game num_players shadow_ruleset round_ruleset =
-  let player_ids = generate_player_ids num_players in
+let init_game num_players ruleset =
+  let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
     player_order = player_ids;
@@ -53,9 +45,8 @@ let _init_game_test
     starting_turn
     setup_rounds_left
     scoring_points
-    num_rounds
-    rounds_rule =
-  let player_ids = generate_player_ids num_players in
+    num_rounds =
+  let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
     player_order = player_ids;
@@ -71,6 +62,8 @@ let _init_game_test
 let player_of game id = List.assoc id game.players
 
 let turn game = game.turn
+
+let board game = game.board 
 
 let player_of_turn game = game |> turn |> player_of game
 
@@ -243,6 +236,9 @@ let can_plant_small coord player_id game =
 let can_grow_plant coord player_id game =
   game.num_rounds <= rule_to_rounds game.rounds_rule
   && Board.can_grow_plant player_id coord game.board
+
+let can_harvest coord player_id game =
+  Board.can_harvest player_id coord game.board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 

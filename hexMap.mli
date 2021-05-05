@@ -1,3 +1,5 @@
+(** TODO *)
+
 (** The abstract type representing a hexagonal board. *)
 type t
 
