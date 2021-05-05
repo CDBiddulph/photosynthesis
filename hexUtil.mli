@@ -24,3 +24,6 @@ val move_cw : dir -> dir
 
 (** [dir_of_int n] converts an int into a valid dir. *)
 val dir_of_int : int -> dir
+
+(** [reverse_dir dir] is [dir], reversed *)
+val reverse_dir : dir -> dir

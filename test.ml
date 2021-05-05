@@ -1,5 +1,5 @@
 (* TODO: test plan *)
 let _ =
-  (* TestGame.test; *)
+  TestGame.test;
   TestHexmap.test;
-  TestBoard.test
+  TestPlayer.test

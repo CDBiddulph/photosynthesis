@@ -64,7 +64,7 @@ let player_of game id = List.assoc id game.players
 
 let turn game = game.turn
 
-let board game = game.board 
+let board game = game.board
 
 let player_of_turn game = game |> turn |> player_of game
 
@@ -74,19 +74,12 @@ let update_board board game = { game with board }
 
 let update_players players game = { game with players }
 
+let _update_players_test = update_players
+
 let update_player player_id player game =
   update_players
     ((player_id, player) :: List.remove_assoc player_id game.players)
     game
-
-let grow_plant player_id coord game =
-  update_board (Board.grow_plant coord player_id game.board) game
-
-let plant_seed coord player_id game =
-  update_board (Board.plant_seed coord player_id game.board) game
-
-let plant_small coord player_id game =
-  update_board (Board.plant_small coord player_id game.board) game
 
 (** [get_scoring_points game soil] is a tuple [(sp, new_game)] where
     [sp] is the number of scoring points awarded to the next player to
@@ -109,24 +102,6 @@ let cell_at game coord =
   match Board.cell_at coord game.board with
   | None -> failwith "invalid cell"
   | Some cell -> cell
-
-let harvest player_id coord game =
-  let harvest_game =
-    update_board (Board.harvest player_id coord game.board) game
-  in
-  (* Should already have failed if harvesting is not possible *)
-  let sp_to_add, scored_game =
-    get_scoring_points harvest_game
-      (coord |> cell_at harvest_game |> Cell.soil)
-  in
-  let scored_player =
-    player_id |> player_of game |> Player.add_sp sp_to_add
-  in
-  scored_game |> update_player player_id scored_player
-
-let buy_plant stage game =
-  let player = player_of game game.turn in
-  update_player game.turn (Player.buy_plant player stage) game
 
 let next_in_wraparound_lst lst elem =
   let rec next_in_wraparound_lst_helper first lst elem =
@@ -223,7 +198,7 @@ let end_turn game =
 
 let is_setup game = game.setup_rounds_left > 0
 
-let can_plant_seed coord player_id game =
+let can_plant_seed coord game =
   (not (is_setup game))
   && game.num_rounds <= rule_to_rounds game.rounds_rule
   && Board.can_plant_seed player_id coord game.board
@@ -234,12 +209,60 @@ let can_plant_small coord player_id game =
   && game.num_rounds <= rule_to_rounds game.rounds_rule
   && Board.can_plant_small coord game.board
 
-let can_grow_plant coord player_id game =
-  game.num_rounds <= rule_to_rounds game.rounds_rule
-  && Board.can_grow_plant player_id coord game.board
+let can_grow_plant coord game =
+  (not (is_setup game))
+  && Board.can_grow_plant game.turn coord game.board
 
-let can_harvest coord player_id game =
-  Board.can_harvest player_id coord game.board
+let can_harvest coord game =
+  (not (is_setup game)) && Board.can_harvest game.turn coord game.board
+
+let grow_plant coord game =
+  if not (can_grow_plant coord game) then raise Board.IllegalGrowPlant
+  else
+    let stage =
+      match Board.plant_at coord game.board with
+      | None -> failwith "Unreachable"
+      | Some plant -> plant |> Plant.plant_stage
+    in
+    update_board (Board.grow_plant coord game.turn game.board) game
+    |> update_player game.turn
+         (Player.grow_plant stage (player_of_turn game))
+
+let plant_seed coord game =
+  if not (can_plant_seed coord game) then raise Board.IllegalPlacePlant
+  else
+    update_board (Board.plant_seed game.turn coord game.board) game
+    |> update_player game.turn
+         (Player.plant_plant Plant.Seed (player_of_turn game))
+
+let plant_small coord game =
+  if not (can_plant_small coord game) then raise Board.IllegalPlacePlant
+  else
+    update_board (Board.plant_small game.turn coord game.board) game
+    |> update_player game.turn
+         (Player.plant_plant Plant.Small (player_of_turn game))
+
+let harvest coord game =
+  if not (can_harvest coord game) then raise Board.IllegalHarvest
+  else
+    let harvest_game =
+      update_board (Board.harvest game.turn coord game.board) game
+    in
+    (* Should already have failed if harvesting is not possible *)
+    let sp_to_add, scored_game =
+      get_scoring_points harvest_game
+        (coord |> cell_at harvest_game |> Cell.soil)
+    in
+    let harvest_player =
+      game.turn |> player_of game |> Player.harvest sp_to_add
+    in
+    (* Also should have failed if player doesn't have enough light
+       points *)
+    scored_game |> update_player game.turn harvest_player
+
+let buy_plant stage game =
+  let player = player_of game game.turn in
+  update_player game.turn (Player.buy_plant stage player) game
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 
