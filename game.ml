@@ -18,7 +18,7 @@ type t = {
 let players_of_player_ids player_ids =
   List.map (fun id -> (id, Player.init_player id)) player_ids
 
-let init_game num_players ruleset =
+let init_game num_players shadow_ruleset round_ruleset =
   let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
@@ -45,7 +45,8 @@ let _init_game_test
     starting_turn
     setup_rounds_left
     scoring_points
-    num_rounds =
+    num_rounds 
+    rounds_rule =
   let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;

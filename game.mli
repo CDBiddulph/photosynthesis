@@ -103,7 +103,7 @@ val can_plant_seed : HexUtil.coord -> PlayerId.t -> t -> bool
 (** [can_plant_small coord player_id game] is true if planting a small
     tree at [coord] is a legal move. Will always be [false] if [game] is
     not in setup mode. *)
-val can_plant_small : HexUtil.coord -> t -> bool
+val can_plant_small : HexUtil.coord -> PlayerId.t -> t -> bool
 
 (** [can_grow_plant coord player_id game] is true iff growing the plant
     at [coord] with the player of [player_id] at [coord] is a legal

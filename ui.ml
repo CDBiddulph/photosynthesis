@@ -47,7 +47,7 @@ let update_message (s : t) (p : HexUtil.coord) =
   let pl = Game.player_of_turn s.game in 
   if Game.can_plant_seed p (Player.player_id pl) s.game then 
     "(P) Plant Seed"
-  else if Game.can_plant_small p s.game then
+  else if Game.can_plant_small p (Player.player_id pl) s.game then
     "(P) Plant Small Tree"
   else if Game.can_grow_plant p (Player.player_id pl) s.game then 
     let plnt_stg = Game.cell_at s.game p |> Cell.plant |> extract_plant |> Plant.plant_stage in 
@@ -163,7 +163,7 @@ let plant s =
     let pl_id = Game.player_of_turn s.game |> Player.player_id in 
     if Game.can_plant_seed s.current_position pl_id s.game then
       plant_helper s Game.plant_seed pl_id
-    else if Game.can_plant_small s.current_position s.game then 
+    else if Game.can_plant_small s.current_position pl_id s.game then 
       plant_helper s Game.plant_small pl_id
     else if Game.can_grow_plant s.current_position pl_id s.game then 
       let plnt_stg = Game.cell_at s.game s.current_position |> Cell.plant |> extract_plant |> Plant.plant_stage in 
