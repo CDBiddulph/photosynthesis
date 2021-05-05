@@ -212,40 +212,23 @@ let grow_plant coord player_id board =
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
     the [Plant.t] in [c2] based on size and distance. *)
-let shadows map c1 c2 =
+let shadows board c1 c2 =
   let open Cell in
   let open Plant in
-  let c1_cell_opt = HexMap.cell_at map c1 in
-  let c2_cell_opt = HexMap.cell_at map c2 in
-  match c1_cell_opt with
-  | None -> false
-  | Some cell_1 -> (
-      match c2_cell_opt with
-      | None -> true
-      | Some cell_2 -> (
-          let c1_plnt_opt = plant cell_1 in
-          let c2_plnt_opt = plant cell_2 in
-          match c2_plnt_opt with
-          | None -> true
-          | Some c2_plt -> (
-              let c2_plnt = plant_stage c2_plt in
-              c2_plnt = Seed
-              ||
-              match c1_plnt_opt with
-              | None -> false
-              | Some c1_plt -> (
-                  let c1_plnt = plant_stage c1_plt in
-                  match c1_plnt with
-                  | Seed -> false
-                  | Small ->
-                      c2_plnt = Small && HexMap.dist map c1 c2 = 1
-                  | Medium ->
-                      (c2_plnt = Medium || c2_plnt = Small)
-                      && HexMap.dist map c1 c2 <= 2
-                  | Large ->
-                      (c2_plnt = Large || c2_plnt = Medium
-                     || c2_plnt = Small)
-                      && HexMap.dist map c1 c2 <= 3))))
+  let c1_plnt_opt = plant_at c1 board in
+  let c2_plnt_opt = plant_at c2 board in
+  match c2_plnt_opt with
+  | None -> true
+  | Some c2_plt -> (
+      let c2_plnt = plant_stage c2_plt in
+      c2_plnt = Seed
+      ||
+      match c1_plnt_opt with
+      | None -> false
+      | Some c1_plt ->
+          let c1_plnt = plant_stage c1_plt in
+          HexMap.dist board.map c1 c2 <= plant_to_int c2_plnt
+          && plant_to_int c2_plnt < plant_to_int c1_plnt)
 
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
@@ -257,7 +240,7 @@ let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     let shadowed =
       List.fold_left
         (fun acc neighbors_coord ->
-          shadows board.map neighbors_coord coord || acc)
+          shadows board neighbors_coord coord || acc)
         false neighbors
     in
     if shadowed then None
