@@ -12,13 +12,6 @@ val cell_at : t -> HexUtil.coord -> Cell.t option
     to [cell]. Requires: [coord] is a valid coordinate in [map]. *)
 val set_cell : t -> Cell.t option -> HexUtil.coord -> t
 
-(** [does_block map d c1 c2] is [true] iff it is possible to move on
-    [map] one hex at a time, only in direction [d] and starting from
-    [c1], and eventually land on [c2]. If [c1 = c2], returns false.
-    Requires: [c1] and [c2] are valid coordinates in [map]. *)
-val does_block :
-  t -> HexUtil.dir -> HexUtil.coord -> HexUtil.coord -> bool
-
 (** [dist map c1 c2] is the hex distance between [c1] and [c2], i.e. the
     minimum number of steps to reach [c1] from [c2]. If [c1 = c2],
     returns 0. Requires: [c1] and [c2] are valid coordinates in [map]. *)
@@ -36,7 +29,3 @@ val neighbor : t -> HexUtil.coord -> HexUtil.dir -> HexUtil.coord option
 
 (** [flatten map] is the list of all valid [Cell]s in the [map]. *)
 val flatten : t -> Cell.t list
-
-(** [end_turn board] resets the cells touched in the current turn,
-    allowing the next player to execute their actions. *)
-(* val end_turn : t -> t *)

@@ -34,21 +34,6 @@ let set_cell_fail
   assert_raises (Failure "Invalid location") (fun _ ->
       set_cell map cell coord)
 
-(** [block_test name map dir c1 c2 expected_output] constructs an OUnit
-    test named [name] that asserts the quality of [expected_output] with
-    [does_block maap dir c1 c2]. *)
-let block_test
-    (name : string)
-    (map : t)
-    (dir : HexUtil.dir)
-    (c1 : HexUtil.coord)
-    (c2 : HexUtil.coord)
-    (expected_output : bool) : test =
-  name >:: fun _ ->
-  assert_equal expected_output
-    (does_block map dir c1 c2)
-    ~printer:string_of_bool
-
 (** [dist_test name map c1 c2 expected_output] constructs an OUnit test
     named [name] that asserts the quality of [expected_output] with
     [dist map c1 c2]. *)
@@ -97,20 +82,6 @@ let set_cell_tests =
       (Some (Cell.init_cell 4 None { col = 3; diag = 0 }))
       { col = 3; diag = 0 };
     set_cell_fail "set 5 0 failure" i_map None { col = 5; diag = 0 };
-  ]
-
-let does_block_tests =
-  [
-    block_test "horizontal adjacent block true" i_map 5 c00 c01 true;
-    block_test "horizontal 1 separation block true" i_map 5 c00
-      { col = 2; diag = 0 } true;
-    block_test "horizontal 2 separation block true" i_map 5 c00
-      { col = 3; diag = 0 } true;
-    block_test "horizontal 3 separation block true" i_map 5 c00
-      { col = 4; diag = 0 } true;
-    block_test "horizontal 4 separation block true" i_map 5 c00
-      { col = 5; diag = 0 } true;
-    (* TODO: more dirs/distances (if keep does_block) *)
   ]
 
 let center : HexUtil.coord = { col = 3; diag = 3 }
@@ -165,12 +136,6 @@ let neighbor_tests =
 let suite =
   "test suite for HexMap"
   >::: List.flatten
-         [
-           cell_at_tests;
-           set_cell_tests;
-           does_block_tests;
-           dist_tests;
-           neighbor_tests;
-         ]
+         [ cell_at_tests; set_cell_tests; dist_tests; neighbor_tests ]
 
 let test = run_test_tt_main suite

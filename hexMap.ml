@@ -94,21 +94,6 @@ let set_cell (map : t) cell coord : t =
     map)
   else failwith "Invalid location"
 
-let does_block (map : t) (d : HexUtil.dir) c1 c2 =
-  let open HexUtil in
-  match d with
-  | 0 ->
-      c1.col < c2.col && c1.diag < c2.diag
-      && c2.col - c1.col = c2.diag - c2.col
-  | 1 -> c1.col = c2.col && c2.diag > c1.diag
-  | 2 -> c1.diag = c2.diag && c1.col > c2.col
-  | 3 ->
-      c1.col > c2.col && c1.diag > c2.diag
-      && c2.col - c1.col = c2.diag - c2.col
-  | 4 -> c1.col = c2.col && c1.diag > c2.diag
-  | 5 -> c1.diag = c2.diag && c2.col > c1.col
-  | _ -> failwith "Invalid direction"
-
 let dist (map : t) c1 c2 =
   let open HexUtil in
   if
@@ -142,5 +127,3 @@ let flatten (map : t) =
     done
   done;
   !flat
-
-(* let end_turn map = print_endline "Warning: Unimplemented"; map *)
