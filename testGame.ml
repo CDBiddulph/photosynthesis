@@ -25,7 +25,7 @@ let game4_almost_done =
            { col = 1; diag = 0 };
          Cell.init_cell 1
            (Some (Plant.init_plant 3 Plant.Medium))
-           { col = 3; diag = 0 };
+           { col = 3; diag = 2 };
          Cell.init_cell 1
            (Some (Plant.init_plant 4 Plant.Medium))
            { col = 3; diag = 0 };
@@ -40,9 +40,9 @@ let game4 = game4_almost_done |> end_turn
 let light_points_tests =
   [
     test_light_points "-1 turn" game4_almost_done [ 0; 0; 0; 0 ];
-    (* test_light_points "0 turns" game4 [ 1; 2; 0; 2 ];
-       test_light_points "4 turns" (iter_turns 4 game4) [ 2; 4; 2; 4 ];
-       test_light_points "8 turns" (iter_turns 8 game4) [ 4; 4; 0; 0 ]; *)
+    test_light_points "0 turns" game4 [ 1; 2; 0; 2 ];
+    test_light_points "4 turns" (iter_turns 4 game4) [ 2; 4; 0; 4 ];
+    test_light_points "8 turns" (iter_turns 8 game4) [ 2; 6; 2; 6 ];
   ]
 
 let rec grow_to_stage player_id coord stage board =
@@ -149,7 +149,7 @@ let player_params =
   ]
 
 let gui =
-  let render_game = harvest_game [] in
+  let render_game = iter_turns 8 game4 in
   Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ]
     (Game.sun_dir render_game)
     (Game.cells render_game)
