@@ -57,15 +57,30 @@ let rec grow_to_stage player_id coord stage board =
         Board.grow_plant coord player_id board
         |> grow_to_stage player_id coord stage
 
+let testing_cell stage player_id coord soil =
+  Cell.init_cell soil (Some (Plant.init_plant player_id stage)) coord
+
+let harvest_cell = testing_cell Plant.Large
+
 let harvest_board () =
-  Board.init_board Board.Normal
-  |> grow_to_stage 1 { col = 3; diag = 0 } Plant.Large
-  |> grow_to_stage 1 { col = 3; diag = 1 } Plant.Large
-  |> grow_to_stage 1 { col = 3; diag = 2 } Plant.Large
-  |> grow_to_stage 1 { col = 3; diag = 3 } Plant.Large
+  Board.testing_init_board Board.Normal
+    [
+      harvest_cell 1 { col = 3; diag = 0 } 1;
+      harvest_cell 1 { col = 3; diag = 1 } 2;
+      harvest_cell 1 { col = 3; diag = 2 } 3;
+      harvest_cell 1 { col = 3; diag = 3 } 4;
+    ]
+
+let testing_players num_players =
+  List.map
+    (fun id ->
+      let player = Player.init_player id |> Player.add_lp 20 in
+      (id, player))
+    (PlayerId.generate_player_ids num_players)
 
 let harvest_game sp =
-  Game._init_game_test 2 (harvest_board ()) 1 1 0 sp 0
+  _init_game_test 2 (harvest_board ()) 1 1 0 sp 0
+  |> Game._update_players_test (testing_players 2)
 
 let test_scoring_points_left name init_sp harvest_soil expected_sp =
   let game =
@@ -102,18 +117,21 @@ let almost_empty_sp = [ (1, [ 1 ]); (2, []); (3, []); (4, []) ]
 let empty_sp = [ (1, []); (2, []); (3, []); (4, []) ]
 
 let scoring_points_tests =
-  [ (* test_scoring_points_player "soil 1" basic_sp 1 [ 14; 0 ];
-       test_scoring_points_player "soil 2" basic_sp 2 [ 17; 0 ];
-       test_scoring_points_player "soil 3" basic_sp 3 [ 19; 0 ];
-       test_scoring_points_player "soil 4" basic_sp 4 [ 22; 0 ];
-       test_scoring_points_left "soil 3" basic_sp 3 [ [ 14; 14; 13; 13;
+  [
+    test_scoring_points_player "soil 1" basic_sp 1 [ 14; 0 ];
+    test_scoring_points_player "soil 2" basic_sp 2 [ 17; 0 ];
+    (* test_scoring_points_player "soil 3" basic_sp 3 [ 19; 0 ]; *)
+    (* test_scoring_points_player "soil 4" basic_sp 4 [ 22; 0 ]; *)
+    (* test_scoring_points_left "soil 3" basic_sp 3 [ [ 14; 14; 13; 13;
        13; 12; 12; 12; 12 ]; [ 17; 16; 16; 14; 14; 13; 13 ]; [ 18; 18;
-       17; 17 ]; [ 22; 21; 20 ]; ]; test_scoring_points_player
-       "almost_empty" almost_empty_sp 4 [ 1; 0 ];
-       test_scoring_points_left "almost_empty" almost_empty_sp 4 [ [];
-       []; []; [] ]; test_scoring_points_player "empty" empty_sp 4 [ 0;
-       0 ]; test_scoring_points_left "empty" empty_sp 4 [ []; []; []; []
-       ]; *) ]
+       17; 17 ]; [ 22; 21; 20 ]; ]; *)
+    (* test_scoring_points_player "almost_empty" almost_empty_sp 4 [ 1;
+       0 ]; *)
+    (* test_scoring_points_left "almost_empty" almost_empty_sp 4 [ [];
+       []; []; [] ]; *)
+    (* test_scoring_points_player "empty" empty_sp 4 [ 0; 0 ]; *)
+    (* test_scoring_points_left "empty" empty_sp 4 [ []; []; []; [] ]; *)
+  ]
 
 let suite =
   "test suite for Game"
@@ -128,10 +146,13 @@ let player_params =
   ]
 
 let gui =
+  let render_game = harvest_game [] in
   Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ]
-    (Game.sun_dir game4) (Game.cells game4) player_params
+    (Game.sun_dir render_game)
+    (Game.cells render_game)
+    player_params
 
-let to_render = false
+let to_render = true
 
 let test =
   if to_render then Gui.render gui;

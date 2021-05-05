@@ -24,40 +24,43 @@ val _init_game_test :
   int ->
   t
 
+(** [_update_players_test players game] is a new game with [players].
+    Should only be used for testing. *)
+val _update_players_test : (PlayerId.t * Player.t) list -> t -> t
+
 val board : t -> Board.t
 
-(** [plant_seed coord game] is game with a seed of [player]
-    planted at [coord] and the available seeds of the player decremented
-    by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at
-    [coord] is an illegal move; [PlantInventory.OutOfPlant Plant.Seed]
-    if the player does not have any seeds in their available area. See
+(** [plant_seed coord game] is game with a seed of [player] planted at
+    [coord] and the available seeds of the player decremented by 1.
+    Raises: [Board.IllegalPlacePlant] if planting a seed at [coord] is
+    an illegal move; [PlantInventory.OutOfPlant Plant.Seed] if the
+    player does not have any seeds in their available area. See
     [can_plant_seed] and [is_plant_available]. *)
 val plant_seed : HexUtil.coord -> t -> t
 
-(** [plant_small coord game] is game with a small tree of
-    [player] planted at [coord] and the available seeds of the player
-    decremented by 1. Raises: [Board.IllegalPlacePlant] if planting a
-    seed at [coord] is an illegal move;
-    [PlantInventory.OutOfPlant Plant.Small] if the player does not have
-    any small trees in their available area. See [can_plant_small] and
-    [is_plant_available]. *)
+(** [plant_small coord game] is game with a small tree of [player]
+    planted at [coord] and the available seeds of the player decremented
+    by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at
+    [coord] is an illegal move; [PlantInventory.OutOfPlant Plant.Small]
+    if the player does not have any small trees in their available area.
+    See [can_plant_small] and [is_plant_available]. *)
 val plant_small : HexUtil.coord -> t -> t
 
-(** [grow_plant game coord] is [game] with the plant at
-    [coord] in the board grown to the next stage, the available plants
-    of the next stage of the plant at [coord] of the player
-    corresponding to [player_id] decremented by 1, and the store of the
-    plant stage that [plant] is replacing incremented by 1 if the store
-    of [last_plant] is full (otherwise, it will stay the same, meaning
-    the replaced plant was thrown away). Raises:
-    [Board.IllegalGrowPlant] if growing the plant at [coord] is an
-    illegal or impossible move; [PlantInventory.OutOfPlant next_stage]
-    if the player does not have any of [next_stage] in their available
-    area. See [can_grow_plant] and [is_plant_available]. *)
+(** [grow_plant game coord] is [game] with the plant at [coord] in the
+    board grown to the next stage, the available plants of the next
+    stage of the plant at [coord] of the player whose turn it is
+    decremented by 1, and the store of the plant stage that [plant] is
+    replacing incremented by 1 if the store of [last_plant] is full
+    (otherwise, it will stay the same, meaning the replaced plant was
+    thrown away). Raises: [Board.IllegalGrowPlant] if growing the plant
+    at [coord] is an illegal or impossible move;
+    [PlantInventory.OutOfPlant next_stage] if the player does not have
+    any of [next_stage] in their available area. See [can_grow_plant]
+    and [is_plant_available]. *)
 val grow_plant : HexUtil.coord -> t -> t
 
-(** [harvest coord game] is [game] with the plant at [coord]
-    removed and the scoring points of player of [player_id] increased
+(** [harvest coord game] is [game] with the plant at [coord] removed and
+    the scoring points of player whose turn it is increased
     appropriately. Raises: [Board.IllegalHarvest] if harvesting from
     [coord] with the current player of [game] is illegal. *)
 val harvest : HexUtil.coord -> t -> t
@@ -87,10 +90,10 @@ val end_turn : t -> t
 
 (* Getter functions. *)
 
-(** [can_plant_seed coord game] is true if planting a
-    seed with the player of [player_id] at [coord] is a legal move,
-    disregarding whether the player actually has a seed in their
-    available area. Will always be [false] if [game] is in setup mode. *)
+(** [can_plant_seed coord game] is true if planting a seed with the
+    player of [player_id] at [coord] is a legal move, disregarding
+    whether the player actually has a seed in their available area. Will
+    always be [false] if [game] is in setup mode. *)
 val can_plant_seed : HexUtil.coord -> t -> bool
 
 (** [can_plant_small coord player_id game] is true if planting a small
@@ -105,7 +108,8 @@ val can_plant_small : HexUtil.coord -> t -> bool
 val can_grow_plant : HexUtil.coord -> t -> bool
 
 (** [can_harvest coord player_id game] is true iff harvesting the plant
-    at [coord] with the player of [player_id] at [coord] is a legal move. *)
+    at [coord] with the player of [player_id] at [coord] is a legal
+    move. *)
 val can_harvest : HexUtil.coord -> t -> bool
 
 (** [turn game] is the player_id of the player whose turn it is in

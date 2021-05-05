@@ -274,7 +274,7 @@ let get_photo_lp sun_dir players board =
 
 let can_harvest player c board =
   (not (List.mem c board.touched_cells))
-  &&
+  && 
   match cell_at c board with
   | None -> false
   | Some cell -> (
