@@ -120,17 +120,20 @@ let scoring_points_tests =
   [
     test_scoring_points_player "soil 1" basic_sp 1 [ 14; 0 ];
     test_scoring_points_player "soil 2" basic_sp 2 [ 17; 0 ];
-    (* test_scoring_points_player "soil 3" basic_sp 3 [ 19; 0 ]; *)
-    (* test_scoring_points_player "soil 4" basic_sp 4 [ 22; 0 ]; *)
-    (* test_scoring_points_left "soil 3" basic_sp 3 [ [ 14; 14; 13; 13;
-       13; 12; 12; 12; 12 ]; [ 17; 16; 16; 14; 14; 13; 13 ]; [ 18; 18;
-       17; 17 ]; [ 22; 21; 20 ]; ]; *)
-    (* test_scoring_points_player "almost_empty" almost_empty_sp 4 [ 1;
-       0 ]; *)
-    (* test_scoring_points_left "almost_empty" almost_empty_sp 4 [ [];
-       []; []; [] ]; *)
-    (* test_scoring_points_player "empty" empty_sp 4 [ 0; 0 ]; *)
-    (* test_scoring_points_left "empty" empty_sp 4 [ []; []; []; [] ]; *)
+    test_scoring_points_player "soil 3" basic_sp 3 [ 19; 0 ];
+    test_scoring_points_player "soil 4" basic_sp 4 [ 22; 0 ];
+    test_scoring_points_left "soil 3" basic_sp 3
+      [
+        [ 14; 14; 13; 13; 13; 12; 12; 12; 12 ];
+        [ 17; 16; 16; 14; 14; 13; 13 ];
+        [ 18; 18; 17; 17 ];
+        [ 22; 21; 20 ];
+      ];
+    test_scoring_points_player "almost_empty" almost_empty_sp 4 [ 1; 0 ];
+    test_scoring_points_left "almost_empty" almost_empty_sp 4
+      [ []; []; []; [] ];
+    test_scoring_points_player "empty" empty_sp 4 [ 0; 0 ];
+    test_scoring_points_left "empty" empty_sp 4 [ []; []; []; [] ];
   ]
 
 let suite =
