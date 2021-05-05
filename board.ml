@@ -231,7 +231,9 @@ let shadows map c1 c2 =
 let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
   let single_cell_shadowed coord =
-    let neighbors = neighbors_in_dir board coord sun_dir in
+    let neighbors =
+      neighbors_in_dir board coord (HexUtil.reverse_dir sun_dir)
+    in
     let shadowed =
       List.fold_left
         (fun acc neighbors_coord ->

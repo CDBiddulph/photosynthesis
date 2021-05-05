@@ -1,3 +1,4 @@
 let _ =
   TestGame.test;
-  TestHexmap.test
+  TestHexmap.test;
+  TestPlayer.test;
