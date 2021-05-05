@@ -32,7 +32,7 @@ let game4_almost_done =
        ])
     1 1 2
     [ (1, []); (2, []); (3, []); (4, []) ]
-    0
+    0 Game.Normal
   |> iter_turns 7
 
 let game4 = game4_almost_done |> end_turn

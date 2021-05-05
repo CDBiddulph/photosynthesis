@@ -82,6 +82,9 @@ let cell_at (map : t) coord : Cell.t option =
 
 let valid_coord (map : t) c = cell_at map c <> None
 
+(* TODO: should prevent None set? Shouldn't ever happen, but would
+   permanently reduce the board *)
+
 (** Requires: [coord] is a valid coordinate in the map (i.e. does not
     refer to a [None] cell) *)
 let set_cell (map : t) cell coord : t =
@@ -90,29 +93,13 @@ let set_cell (map : t) cell coord : t =
     map.(coord.col).(coord.diag) <- cell;
     map)
   else failwith "Invalid location"
-
-let does_block (map : t) (d : HexUtil.dir) c1 c2 =
-  let open HexUtil in
-  match d with
-  | 0 ->
-      c1.col < c2.col && c1.diag < c2.diag
-      && c2.col - c1.col = c2.diag - c2.col
-  | 1 -> c1.col = c2.col && c2.diag > c1.diag
-  | 2 -> c1.diag = c2.diag && c1.col > c2.col
-  | 3 ->
-      c1.col > c2.col && c1.diag > c2.diag
-      && c2.col - c1.col = c2.diag - c2.col
-  | 4 -> c1.col = c2.col && c1.diag > c2.diag
-  | 5 -> c1.diag = c2.diag && c2.col > c1.col
-  | _ -> failwith "Invalid direction"
-
-
+  
 let dist (map : t) c1 c2 =
   let open HexUtil in
   if
     Int.abs (c1.col - c2.col) = Int.abs (c1.diag - c2.diag)
     && ((c1.col > c2.col && c1.diag < c2.diag)
-        || (c1.col < c2.col && c1.diag > c2.diag))
+       || (c1.col < c2.col && c1.diag > c2.diag))
   then Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
   else max (Int.abs (c1.col - c2.col)) (Int.abs (c1.diag - c2.diag))
 
@@ -140,7 +127,3 @@ let flatten (map : t) =
     done
   done;
   !flat
-
-let end_turn map =
-  print_endline "Warning: Unimplemented";
-  map

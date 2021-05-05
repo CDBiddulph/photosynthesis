@@ -1,3 +1,8 @@
+type ruleset =
+  | Normal
+  | Extended
+
+(** TODO: Documentation for t *)
 type t = {
   players : (PlayerId.t * Player.t) list;
   player_order : PlayerId.t list;
@@ -7,17 +12,18 @@ type t = {
   setup_rounds_left : int;
   scoring_points : (Cell.soil * int list) list;
   num_rounds : int;
+  rounds_rule : ruleset;
 }
 
 let players_of_player_ids player_ids =
   List.map (fun id -> (id, Player.init_player id)) player_ids
 
-let init_game num_players ruleset =
+let init_game num_players shadow_ruleset round_ruleset =
   let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
     player_order = player_ids;
-    board = Board.init_board ruleset;
+    board = Board.init_board shadow_ruleset;
     turn = List.nth player_ids 0;
     starting_turn = List.nth player_ids 0;
     setup_rounds_left = 2;
@@ -29,6 +35,7 @@ let init_game num_players ruleset =
         (4, if num_players > 2 then [ 22; 21; 20 ] else []);
       ];
     num_rounds = 0;
+    rounds_rule = round_ruleset;
   }
 
 let _init_game_test
@@ -38,7 +45,8 @@ let _init_game_test
     starting_turn
     setup_rounds_left
     scoring_points
-    num_rounds =
+    num_rounds 
+    rounds_rule =
   let player_ids = PlayerId.generate_player_ids num_players in
   {
     players = players_of_player_ids player_ids;
@@ -49,6 +57,7 @@ let _init_game_test
     setup_rounds_left;
     scoring_points;
     num_rounds;
+    rounds_rule;
   }
 
 let player_of game id = List.assoc id game.players
@@ -177,10 +186,13 @@ let end_turn_setup natural_next_turn is_new_round game =
     setup_rounds_left = new_setup_rounds_left;
   }
 
+let rule_to_rounds = function Normal -> 18 | Extended -> 24
+
 let end_turn game =
   let turn_after_this = turn_after game game.turn in
   let is_new_round = turn_after_this = game.starting_turn in
-  if game.setup_rounds_left = 0 then
+  if game.num_rounds > rule_to_rounds game.rounds_rule then game
+  else if game.setup_rounds_left = 0 then
     end_turn_normal turn_after_this is_new_round game
   else end_turn_setup turn_after_this is_new_round game
 
@@ -188,10 +200,14 @@ let is_setup game = game.setup_rounds_left > 0
 
 let can_plant_seed coord game =
   (not (is_setup game))
-  && Board.can_plant_seed game.turn coord game.board
+  && game.num_rounds <= rule_to_rounds game.rounds_rule
+  && Board.can_plant_seed player_id coord game.board
 
-let can_plant_small coord game =
-  is_setup game && Board.can_plant_small coord game.board
+let can_plant_small coord player_id game =
+  is_setup game
+  (* game isn't over *)
+  && game.num_rounds <= rule_to_rounds game.rounds_rule
+  && Board.can_plant_small coord game.board
 
 let can_grow_plant coord game =
   (not (is_setup game))
@@ -253,3 +269,17 @@ let next_scoring_points game soil = fst (get_scoring_points game soil)
 let cells game = Board.cells game.board
 
 let scoring_points game = game.scoring_points
+
+let winner game =
+  if game.num_rounds > rule_to_rounds game.rounds_rule then
+    List.map
+      (fun (id, player) -> (id, Player.score_points player))
+      game.players
+    |> List.fold_left
+         (fun (max_id, max_points) (id, points) ->
+           if points > max_points then (id, points)
+           else (max_id, max_points))
+         (0, 0)
+    |> function
+    | id, points -> Some id
+  else None

@@ -53,8 +53,8 @@ let rec get_ruleset () =
   "Invalid Input. Must be Normal or Extended \n> "; get_ruleset ()
   | str ->
     match String.lowercase_ascii str with 
-    | "normal" | "n" | "" -> Board.Normal
-    | "extended" | "e" -> Board.Extended
+    | "normal" | "n" | "" -> Game.Normal
+    | "extended" | "e" -> Game.Extended
     | _ -> 
       ANSITerminal.print_string [ ANSITerminal.red ]
   "Invalid Input. Must be Normal or Extended \n> "; get_ruleset ()
@@ -64,7 +64,7 @@ let main1 () =
     "\n\nWelcome to Photosynthesis\n";
   let num_players = get_num_players () in 
   let ruleset = get_ruleset () in 
-  let game = Game.init_game num_players ruleset in 
+  let game = Game.init_game num_players Board.Normal ruleset in 
   let hex_map = HexMap.init_map () in
   let gui =
     init_gui

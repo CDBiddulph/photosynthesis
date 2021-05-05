@@ -4,14 +4,20 @@
 (** Type of the game state *)
 type t
 
+(** The type [ruleset] represents the ruleset (extended or normal) used
+    in the game. *)
+type ruleset =
+  | Normal
+  | Extended
+
 (* Setter functions*)
 
-(** [init_game num_players] is a new game with [num_players] players and
-    all initial defaults. *)
-val init_game : int -> Board.ruleset -> t
+(** [init_game num_players shadow_ruleset round_ruleset] is a new game
+    with [num_players] players and all initial defaults. *)
+val init_game : int -> Board.ruleset -> ruleset -> t
 
 (** [_init_game_test num_players board turn starting_turn
-    setup_rounds_left scoring_points num_rounds]
+    setup_rounds_left scoring_points num_rounds rounds_rule]
     is a new game with all of those things. Should only be used for
     testing. *)
 val _init_game_test :
@@ -22,6 +28,7 @@ val _init_game_test :
   int ->
   (Cell.soil * int list) list ->
   int ->
+  ruleset ->
   t
 
 (** [_update_players_test players game] is a new game with [players].
@@ -99,7 +106,7 @@ val can_plant_seed : HexUtil.coord -> t -> bool
 (** [can_plant_small coord player_id game] is true if planting a small
     tree at [coord] is a legal move. Will always be [false] if [game] is
     not in setup mode. *)
-val can_plant_small : HexUtil.coord -> t -> bool
+val can_plant_small : HexUtil.coord -> PlayerId.t -> t -> bool
 
 (** [can_grow_plant coord player_id game] is true iff growing the plant
     at [coord] with the player of [player_id] at [coord] is a legal
@@ -148,3 +155,7 @@ val scoring_points : t -> (Cell.soil * int list) list
 
 (** [is_setup game] is true if [game] is in setup mode. *)
 val is_setup : t -> bool
+
+(** [winner game] is the winner of the game. If the game isn't over,
+    then returns [None]. *)
+val winner : t -> PlayerId.t option

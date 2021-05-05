@@ -6,7 +6,7 @@ type t
 (** The type [ruleset] represents the ruleset used in the game. *)
 type ruleset =
   | Normal
-  | Extended
+  | Shadows
 
 (** Raised when an illegal plant placement is attempted. *)
 exception IllegalPlacePlant
@@ -25,6 +25,9 @@ val map : t -> HexMap.t
 (** [testing_init_board ruleset cells] initializes a board with the
     given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
 val testing_init_board : ruleset -> Cell.t list -> t
+
+(** [ruleset board] is the ruleset used for [board]. *)
+val ruleset : t -> ruleset
 
 (** [plant_seed stage board coord player_id] places a seed belonging to
     [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
