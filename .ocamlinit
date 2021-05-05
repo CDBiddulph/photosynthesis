@@ -3,4 +3,5 @@
 #require "yojson";;
 #require "ANSITerminal";;
 #require "bisect_ppx.runtime";;
+#require "ocamlgraph";;
 #load "gui.cmo";;

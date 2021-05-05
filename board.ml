@@ -1,11 +1,28 @@
+(* open Graph.Flow *)
+
 type ruleset =
   | Normal
-  | Extended
+  | Shadows
 
 (** The type [round_phase] represents the part of the round. *)
 type round_phase =
   | Photosynthesis
   | Life_Cycle
+
+(* module V = struct open HexUtil
+
+   type t = HexUtil.coord
+
+   let equal c1 c2 = c1.col = c2.col && c1.diag = c2.diag
+
+   let hash c = (10 * c.col) + c.diag end
+
+   module E = struct end *)
+
+(* module PlantGraph : G_FORD_FULKERSON = struct module V = V module E =
+   E
+
+   end *)
 
 (** A record type representing a game and its data. [sun_dir] indicates
     the direction that shadows are cast. *)
@@ -13,7 +30,12 @@ type t = {
   map : HexMap.t;
   rules : ruleset;
   touched_cells : HexUtil.coord list;
+      (* plant_graph : Ford_Fulkerson () *)
 }
+
+(* TODO: map planted seeds to candidate plants; if single candidate,
+   move to touched and clean map; max flow; if max flow = planted seeds,
+   move to touched; max flow must always equal number of involved seeds *)
 
 exception IllegalPlacePlant
 
