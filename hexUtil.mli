@@ -27,3 +27,5 @@ val dir_of_int : int -> dir
 
 (** [reverse_dir dir] is [dir], reversed *)
 val reverse_dir : dir -> dir
+
+val string_of_coord : coord -> string

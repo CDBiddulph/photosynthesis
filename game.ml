@@ -165,7 +165,7 @@ let end_turn_normal natural_next_turn is_new_round game =
     }
   in
   let new_players =
-    if is_new_round then photosynthesis game else game.players
+    if is_new_round then photosynthesis move_sun_game else game.players
   in
   { move_sun_game with players = new_players }
 

@@ -99,17 +99,14 @@ let within_radius p_id coord board =
     (* check if has plant owned by player; if not, false; if so, match
        plant size -> allowed distance *)
       (fun acc neighbor_coord ->
-      match cell_at neighbor_coord board with
-      | None -> failwith "Should never happen"
-      | Some cell -> (
-          match Cell.plant cell with
-          | None -> acc
-          | Some plant ->
-              if Plant.player_id plant = p_id then
-                acc
-                || HexMap.dist board.map neighbor_coord coord
-                   <= plant_to_int (plant_stage plant)
-              else acc))
+      match plant_at neighbor_coord board with
+      | None -> acc
+      | Some plant ->
+          if Plant.player_id plant = p_id then
+            acc
+            || HexMap.dist board.map neighbor_coord coord
+               <= plant_to_int (plant_stage plant)
+          else acc)
     false all_neighbors
 
 let can_plant_seed player_id coord board =
@@ -165,31 +162,33 @@ let can_grow_plant player_id coord board =
 
 let grow_plant coord player_id board =
   if can_grow_plant player_id coord board then
-    match cell_at coord board with
-    | None -> failwith "Impossible"
-    | Some old_cell ->
-        let old_plant =
-          match Cell.plant old_cell with
-          | None -> failwith "Impossible"
-          | Some p -> p
-        in
-        let next_plant =
-          Some
-            (Plant.init_plant player_id
-               (match
-                  old_plant |> Plant.plant_stage |> Plant.next_stage
-                with
-               | None -> failwith "Impossible"
-               | Some p -> p))
-        in
-        {
-          board with
-          map =
-            HexMap.set_cell board.map
-              (Some (Cell.set_plant old_cell next_plant))
-              coord;
-          touched_cells = coord :: board.touched_cells;
-        }
+    let old_cell =
+      match cell_at coord board with
+      | None -> failwith "should not happen"
+      | Some c -> c
+    in
+    let old_plant =
+      match plant_at coord board with
+      | None -> failwith "Impossible"
+      | Some p -> p
+    in
+    let next_plant =
+      Some
+        (Plant.init_plant player_id
+           (match
+              old_plant |> Plant.plant_stage |> Plant.next_stage
+            with
+           | None -> failwith "Impossible"
+           | Some p -> p))
+    in
+    {
+      board with
+      map =
+        HexMap.set_cell board.map
+          (Some (Cell.set_plant old_cell next_plant))
+          coord;
+      touched_cells = coord :: board.touched_cells;
+    }
   else raise IllegalGrowPlant
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
@@ -209,19 +208,20 @@ let shadows board c1 c2 =
       | None -> false
       | Some c1_plt ->
           let c1_plnt = plant_stage c1_plt in
-          HexMap.dist board.map c1 c2 <= plant_to_int c2_plnt
-          && plant_to_int c2_plnt < plant_to_int c1_plnt)
+          HexMap.dist board.map c1 c2 <= plant_to_int c1_plnt
+          && plant_to_int c2_plnt <= plant_to_int c1_plnt)
 
 (** [neighbors_in_dir_r board coord sun_dir dist] is the list of the
     [dist] neighbors in direction [sun_dir]. If there are fewer than
     [dist] legal neighbors, return only the legal neighbors. *)
-let rec neighbors_in_dir_r board coord sun_dir dist =
+let rec neighbors_in_dir_r board coord dir dist =
   if dist = 0 then []
   else
-    match HexMap.neighbor board.map coord sun_dir with
+    match HexMap.neighbor board.map coord dir with
     | None -> []
     | Some neigh_coord ->
-        neigh_coord :: neighbors_in_dir_r board coord sun_dir (dist - 1)
+        neigh_coord
+        :: neighbors_in_dir_r board neigh_coord dir (dist - 1)
 
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
