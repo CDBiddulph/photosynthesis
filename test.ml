@@ -1,4 +1,4 @@
 let _ =
-  TestGame.test;
+  (* TestGame.test; *)
   TestHexmap.test;
   TestPlayer.test

@@ -52,6 +52,16 @@ let lp_tests =
     lp_test "buy almost ILP" (buy_plant Seed) 1 0;
   ]
 
-let suite = "test suite for HexMap" >::: List.flatten [ lp_tests ]
+let sp_tests =
+  [
+    ( "harvest 10" >:: fun _ ->
+      let player = lp_player 20 in
+      assert_equal 10
+        (player |> harvest 10 |> score_points)
+        ~printer:string_of_int );
+  ]
+
+let suite =
+  "test suite for HexMap" >::: List.flatten [ lp_tests; sp_tests ]
 
 let test = run_test_tt_main suite
