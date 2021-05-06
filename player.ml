@@ -112,3 +112,5 @@ let harvest sp player =
   else raise (Store.InsufficientLightPoints cost_to_harvest)
 
 let _set_available available player = { player with available }
+
+let _available player = player.available

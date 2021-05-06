@@ -100,3 +100,5 @@ val is_store_full : Plant.plant_stage -> t -> bool
 (** [_set_available available player] is [player] with its available
     area set to [available]. Should only be used for testing. *)
 val _set_available : PlantInventory.t -> t -> t
+
+val _available : t -> PlantInventory.t

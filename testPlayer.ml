@@ -28,7 +28,25 @@ let lp_test_exn
   let player = lp_player starting_lp in
   assert_raises expected_exn (fun () -> f player)
 
+let avail_player avail =
+  Player.init_player 1
+  |> _set_available
+       (PlantInventory._init_plant_inventory
+          (List.map2 (fun s n -> (s, n)) Plant.all_stages avail))
+  |> add_lp 20
+
+let avail_test name f starting_avail expected_avail =
+  name >:: fun _ ->
+  let player = avail_player starting_avail in
+  assert_equal expected_avail
+    (player |> f |> _available |> PlantInventory._contents
+   |> List.map snd)
+    ~printer:(TestUtil.pp_list string_of_int)
+
 let player = Player.init_player 1 |> add_lp 25
+
+let available_tests =
+  [ avail_test "harvest" (harvest 10) [ 1; 1; 1; 1 ] [ 1; 1; 1; 1 ] ]
 
 let lp_tests =
   [
@@ -62,6 +80,7 @@ let sp_tests =
   ]
 
 let suite =
-  "test suite for HexMap" >::: List.flatten [ lp_tests; sp_tests ]
+  "test suite for HexMap"
+  >::: List.flatten [ lp_tests; sp_tests; available_tests ]
 
 let test = run_test_tt_main suite

@@ -1,4 +1,4 @@
-MODULES=board cell hexMap plant player raster store plantInventory playerId game authors ui gui hexUtil
+MODULES=board cell hexMap plant player raster store plantInventory playerId game authors ui gui hexUtil testUtil
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
