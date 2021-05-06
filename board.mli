@@ -1,6 +1,6 @@
 (** TODO *)
 
-(** The abstract type representing the game's board. *)
+(* * The abstract type representing the game's board. *)
 type t
 
 (** The type [ruleset] represents the ruleset used in the game. *)
