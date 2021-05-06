@@ -32,7 +32,7 @@ let game4_almost_done =
        ])
     1 1 2
     [ (1, []); (2, []); (3, []); (4, []) ]
-    0
+    0 Game.Normal
   |> iter_turns 7
 
 let game4 = game4_almost_done |> end_turn
@@ -79,7 +79,7 @@ let testing_players num_players =
     (PlayerId.generate_player_ids num_players)
 
 let harvest_game sp =
-  _init_game_test 2 (harvest_board ()) 1 1 0 sp 0
+  _init_game_test 2 (harvest_board ()) 1 1 0 sp 0 Game.Normal
   |> Game._update_players_test (testing_players 2)
 
 let test_scoring_points_left name init_sp harvest_soil expected_sp =
