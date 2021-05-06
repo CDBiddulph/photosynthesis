@@ -81,24 +81,6 @@ let cell_if_empty coord board =
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
-(** [neighbors_in_dir board coord sun_dir] is the list of the three
-    neighbors in direction [sun_dir]. If there are fewer than three
-    legal neighbors, return only the legal neighbors. *)
-let neighbors_in_dir board coord sun_dir =
-  match HexMap.neighbor board.map coord sun_dir with
-  | None -> []
-  | Some fst_neigh_coord ->
-      fst_neigh_coord
-      ::
-      (match HexMap.neighbor board.map fst_neigh_coord sun_dir with
-      | None -> []
-      | Some snd_neigh_coord ->
-          snd_neigh_coord
-          ::
-          (match HexMap.neighbor board.map snd_neigh_coord sun_dir with
-          | None -> []
-          | Some thd_neigh_coord -> [ thd_neigh_coord ]))
-
 (** TODO *)
 let neighbors_in_radius board coord radius =
   List.map
@@ -230,6 +212,17 @@ let shadows board c1 c2 =
           HexMap.dist board.map c1 c2 <= plant_to_int c2_plnt
           && plant_to_int c2_plnt < plant_to_int c1_plnt)
 
+(** [neighbors_in_dir_r board coord sun_dir dist] is the list of the
+    [dist] neighbors in direction [sun_dir]. If there are fewer than
+    [dist] legal neighbors, return only the legal neighbors. *)
+let rec neighbors_in_dir_r board coord sun_dir dist =
+  if dist = 0 then []
+  else
+    match HexMap.neighbor board.map coord sun_dir with
+    | None -> []
+    | Some neigh_coord ->
+        neigh_coord :: neighbors_in_dir_r board coord sun_dir (dist - 1)
+
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
@@ -237,7 +230,7 @@ let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
   let single_cell_shadowed coord =
     let neighbors =
-      neighbors_in_dir board coord (HexUtil.reverse_dir sun_dir)
+      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
     in
     let shadowed =
       List.fold_left
