@@ -21,19 +21,20 @@ let init_store =
 
 let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
 
-let cost store stage =
+let cost stage store =
   let ind = int_of_plant_stage stage in
   List.nth (List.nth costs ind) (List.nth store ind)
 
 let buy_plant store stage light_points =
-  if cost store stage > light_points then
-    raise (InsufficientLightPoints (cost store stage))
+  let cost_to_buy = cost stage store in
+  if cost_to_buy > light_points then
+    raise (InsufficientLightPoints cost_to_buy)
   else
     let ind = int_of_plant_stage stage in
     List.mapi
       (fun i count ->
         if i = ind then
-          if count + 1 < List.length (List.nth costs ind) then count + 1
+          if count < List.length (List.nth costs ind) then count + 1
           else raise (OutOfPlant stage)
         else count)
       store

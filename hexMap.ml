@@ -1,9 +1,12 @@
-(** A 2-dimensional [Cell.t array] to represent a hexagonal board with
-    minimum width 4 and height 7. Lower indices (for purposes of
+(** The hexmap of the game, represented by a
+    [Cell.t option array array]. *)
+
+(** A 2-dimensional [Cell.t option array] to represent a hexagonal board
+    with minimum width 4 and height 7. Lower indices (for purposes of
     representation and easier understanding) indicate closeness to the
     "top" and "left" side of of the board. "Columns" of [HexUtil.coord]
-    are the first index in the [Cell.t array array], and the diagonals
-    are the second.*)
+    are the first index in the [Cell.t option array array], and the
+    "diagonals" are the second.*)
 type t = Cell.t option array array
 
 let init_map () : t =
@@ -93,7 +96,7 @@ let set_cell (map : t) cell coord : t =
     map.(coord.col).(coord.diag) <- cell;
     map)
   else failwith "Invalid location"
-  
+
 let dist (map : t) c1 c2 =
   let open HexUtil in
   if
