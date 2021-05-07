@@ -61,6 +61,9 @@ let add_plant stage store =
       else count)
     store
 
+let add_plant_if_not_full stage store =
+  try add_plant stage store with FullOfPlant _ -> store
+
 let num_remaining stage store =
   let ind = int_of_plant_stage stage in
   List.length (List.nth costs ind) - List.nth store ind

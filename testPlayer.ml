@@ -37,6 +37,13 @@ let store_tests =
     store_test "buy" (buy_plant Small) [ 1; 1; 1; 1 ] [ 1; 0; 1; 1 ];
     store_test_exn "buy empty" (buy_plant Medium) [ 1; 1; 0; 1 ]
       (PlantInventory.OutOfPlant Medium);
+    store_test "grow" (grow_plant Large) [ 1; 1; 2; 1 ] [ 1; 1; 3; 1 ];
+    store_test "grow full" (grow_plant Medium) [ 1; 4; 1; 1 ]
+      [ 1; 4; 1; 1 ];
+    store_test "plant seed" (plant_plant Seed) [ 1; 1; 1; 1 ]
+      [ 1; 1; 1; 1 ];
+    store_test "plant small" (plant_plant Small) [ 1; 1; 1; 1 ]
+      [ 1; 1; 1; 1 ];
   ]
 
 let avail_test name f starting_avail expected_avail =

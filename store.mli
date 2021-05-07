@@ -35,6 +35,10 @@ val buy_plant : Plant.plant_stage -> int -> t -> t
     be added to [store]. *)
 val add_plant : Plant.plant_stage -> t -> t
 
+(** [add_plant_if_not_full stage store] adds one plant of [stage] to
+    [store]. If no additional plants can be added, does nothing. *)
+val add_plant_if_not_full : Plant.plant_stage -> t -> t
+
 (** [num_remaining stage store] is the number of plants of [stage]
     remaining in [store]. *)
 val num_remaining : Plant.plant_stage -> t -> int

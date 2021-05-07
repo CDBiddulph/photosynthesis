@@ -93,7 +93,10 @@ let grow_plant stage player =
   if can_grow_plant stage player then
     {
       player with
-      store = Store.add_plant (Plant.last_stage stage) player.store;
+      store =
+        Store.add_plant_if_not_full
+          (Plant.last_stage stage)
+          player.store;
       available = PlantInventory.remove_plant stage player.available;
       light_points = player.light_points - cost;
     }
@@ -103,14 +106,9 @@ let grow_plant stage player =
 
 let harvest sp player =
   if can_harvest player then
-    let new_store =
-      if Store.remaining_capacity Large player.store > 0 then
-        Store.add_plant Large player.store
-      else player.store
-    in
     {
       player with
-      store = new_store;
+      store = Store.add_plant_if_not_full Large player.store;
       score_points = player.score_points + sp;
       light_points = player.light_points - cost_to_harvest;
     }
