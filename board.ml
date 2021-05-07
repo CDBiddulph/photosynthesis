@@ -62,9 +62,11 @@ let testing_init_board ruleset cells =
   in
   { board with map = new_map }
 
+let map board = board.map
+
 let ruleset board = board.rules
 
-let map board = board.map
+let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
 let cell_at coord board = HexMap.cell_at board.map coord
 
@@ -308,8 +310,6 @@ let harvest player_id coord board =
           touched_cells = coord :: board.touched_cells;
         }
   else raise IllegalHarvest
-
-let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
 let end_turn board = { board with touched_cells = [] }
 

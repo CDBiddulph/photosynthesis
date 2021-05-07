@@ -5,6 +5,10 @@ let c00 : HexUtil.coord = { col = 0; diag = 0 }
 
 let c04 : HexUtil.coord = { col = 0; diag = 4 }
 
+let c11 : HexUtil.coord = { col = 1; diag = 1 }
+
+let c32 : HexUtil.coord = { col = 3; diag = 2 }
+
 let c33 : HexUtil.coord = { col = 3; diag = 3 }
 
 let empty_normal = init_board Normal
@@ -25,17 +29,23 @@ let with_1large_33 =
   testing_init_board Normal
     [ Cell.init_cell 1 (Some (Plant.init_plant 1 Plant.Large)) c33 ]
 
-(** TODO *)
+(** [getter_1arg_test name board f expected_output] constructs an OUnit
+    test named [name] that asserts the quality of [expected_output] with
+    [f board]. *)
 let getter_1arg_test (name : string) (board : Board.t) f expected_output
     : test =
   name >:: fun _ -> assert_equal expected_output (f board)
 
-(** TODO *)
+(** [getter_2arg_test name arg1 arg2 f expected_output] constructs an
+    OUnit test named [name] that asserts the quality of
+    [expected_output] with [f arg1 arg2]. *)
 let getter_2arg_test (name : string) arg1 arg2 f expected_output : test
     =
   name >:: fun _ -> assert_equal expected_output (f arg1 arg2)
 
-(** TODO *)
+(** [can_plant_seed_test name player_id coord board expected_output]
+    constructs an OUnit test named [name] that asserts the quality of
+    [expected_output] with [can_plant_seed player_id coord board]. *)
 let can_plant_seed_test
     (name : string)
     (player_id : PlayerId.t)
@@ -47,7 +57,9 @@ let can_plant_seed_test
     (can_plant_seed player_id coord board)
     ~printer:string_of_bool
 
-(** TODO *)
+(** [can_plant_small_test name coord board expected_output] constructs
+    an OUnit test named [name] that asserts the quality of
+    [expected_output] with [can_plant_small coord board]. *)
 let can_plant_small_test
     (name : string)
     (coord : HexUtil.coord)
@@ -57,6 +69,71 @@ let can_plant_small_test
   assert_equal expected_output
     (can_plant_small coord board)
     ~printer:string_of_bool
+
+(** [plant_test name id coord board stage f] constructs an OUnit test
+    named [name] that asserts the quality of
+    [Some (Plant.init_plant id stage)] with
+    [(plant_at coord (f id coord board))]. *)
+let plant_test
+    (name : string)
+    (id : PlayerId.t)
+    (coord : HexUtil.coord)
+    (board : t)
+    (stage : Plant.plant_stage)
+    f =
+  name >:: fun _ ->
+  assert_equal
+    (Some (Plant.init_plant id stage))
+    (plant_at coord (f id coord board))
+
+(** [plant_fail name id coord board f] constructs an OUnit test named
+    [name] that asserts that [IllegalPlacePlant] is raised at
+    [f id coord board]. *)
+let plant_fail
+    (name : string)
+    (id : PlayerId.t)
+    (coord : HexUtil.coord)
+    (board : t)
+    f : test =
+  name >:: fun _ ->
+  assert_raises IllegalPlacePlant (fun _ -> f id coord board)
+
+(** [can_grow_test name id coord board expected_output] constructs an
+    OUnit test named [name] that asserts the quality of
+    [expected_output] with [can_grow_plant id coord board]. *)
+let can_grow_test
+    (name : string)
+    (id : PlayerId.t)
+    (coord : HexUtil.coord)
+    (board : t)
+    (expected_output : bool) : test =
+  name >:: fun _ ->
+  assert_equal expected_output
+    (can_grow_plant id coord board)
+    ~printer:string_of_bool
+
+(** [grow_test name id coord board next] constructs an OUnit test named
+    [name] that asserts the quality of [next] with
+    [plant_at coord (grow_plant coord id board)]. *)
+let grow_test
+    (name : string)
+    (id : PlayerId.t)
+    (coord : HexUtil.coord)
+    (board : t)
+    (next : Plant.t option) : test =
+  name >:: fun _ ->
+  assert_equal next (plant_at coord (grow_plant coord id board))
+
+(** [grow_fail name coord id board] constructs an OUnit test named
+    [name] that asserts that [IllegalGrowPlant] is raised at
+    [grow_plant coord id board]. *)
+let grow_fail
+    (name : string)
+    (coord : HexUtil.coord)
+    (id : PlayerId.t)
+    (board : t) : test =
+  name >:: fun _ ->
+  assert_raises IllegalGrowPlant (fun _ -> grow_plant coord id board)
 
 let getter_1arg_tests =
   [
@@ -152,9 +229,53 @@ let can_plant_tests =
     can_plant_small_test "small with seed at 00" c00 with_1seed_00 false;
   ]
 
+let plant_tests =
+  [
+    plant_test "plant small 00 empty board" 1 c00 empty_normal
+      Plant.Small plant_small;
+    plant_fail "plant small 00 occupied" 1 c00 with_1seed_00 plant_small;
+    plant_fail "plant small invalid" 1 c04 empty_normal plant_small;
+    plant_test "plant seed 32 with small at 33" 1 c32 with_1small_33
+      Plant.Seed plant_seed;
+    plant_test "plant seed 11 with large at 33" 1 c11 with_1large_33
+      Plant.Seed plant_seed;
+    plant_fail "plant p2 seed 11 with p1 large at 33" 2 c11
+      with_1large_33 plant_seed;
+    plant_fail "plant seed 11 out of range" 1 c11 with_1small_33
+      plant_seed;
+    plant_fail "plant seed invalid" 1 c04 empty_normal plant_seed;
+    plant_fail "plant seed 00 occupied" 1 c00 with_1seed_00 plant_seed;
+  ]
+
+let can_grow_tests =
+  [
+    can_grow_test "can grow seed correct id" 1 c00 with_1seed_00 true;
+    can_grow_test "can grow small correct id" 1 c33 with_1small_33 true;
+    can_grow_test "can grow small wrong id" 2 c33 with_1small_33 false;
+    can_grow_test "can grow no plant" 1 c00 with_1small_33 false;
+  ]
+
+let grow_tests =
+  [
+    grow_test "grow seed 00" 1 c00 with_1seed_00
+      (Some (Plant.init_plant 1 Plant.Small));
+    grow_test "grow small 33" 1 c33 with_1small_33
+      (Some (Plant.init_plant 1 Plant.Medium));
+    grow_test "grow medium 33" 1 c33 with_1medium_33
+      (Some (Plant.init_plant 1 Plant.Large));
+    grow_fail "grow wrong id" c00 2 with_1seed_00;
+  ]
+
 let suite =
   "test suite for Board"
   >::: List.flatten
-         [ getter_1arg_tests; getter_2arg_tests; can_plant_tests ]
+         [
+           getter_1arg_tests;
+           getter_2arg_tests;
+           can_plant_tests;
+           plant_tests;
+           can_grow_tests;
+           grow_tests;
+         ]
 
 let test = run_test_tt_main suite
