@@ -12,33 +12,41 @@ exception FullOfPlant of Plant.plant_stage
     plants. *)
 val init_store : t
 
+(** [_init_store nums] is a store with the plant quantities of [nums].
+    Precondition: each num is less than the corresponding capacity. *)
+val _init_store : int list -> t
+
 (** [costs] is the list of costs for plants. *)
 val costs : int list list
 
-(** [cost stage] is the cost in light points to buy the next plant
-    of [stage]. *)
+(** [cost stage] is the cost in light points to buy the next plant of
+    [stage]. *)
 val cost : Plant.plant_stage -> t -> int
 
-(** [buy_plant store stage light_points] removes one plant of [stage]
+(** [buy_plant stage light_points store] removes one plant of [stage]
     from [store]. Raises: [PlantInventory.OutOfPlant stage] if there are
     no more plants of [stage] in the store;
-    [Player.InsufficientLightPoints] if [light_points] is less than the amount
-    necessary to buy a plant of [stage]. *)
-val buy_plant : t -> Plant.plant_stage -> int -> t
+    [Player.InsufficientLightPoints] if [light_points] is less than the
+    amount necessary to buy a plant of [stage]. *)
+val buy_plant : Plant.plant_stage -> int -> t -> t
 
-(** [add_plant store stage] adds one plant of [stage] to [store].
+(** [add_plant stage store] adds one plant of [stage] to [store].
     Raises: [FullOfPlant stage] if no additional plants of [stage] can
     be added to [store]. *)
-val add_plant : t -> Plant.plant_stage -> t
+val add_plant : Plant.plant_stage -> t -> t
 
-(** [num_remaining store stage] is the number of plants of [stage]
+(** [add_plant_if_not_full stage store] adds one plant of [stage] to
+    [store]. If no additional plants can be added, does nothing. *)
+val add_plant_if_not_full : Plant.plant_stage -> t -> t
+
+(** [num_remaining stage store] is the number of plants of [stage]
     remaining in [store]. *)
-val num_remaining : t -> Plant.plant_stage -> int
+val num_remaining : Plant.plant_stage -> t -> int
 
-(** [capacity store stage] is the maximum number of plants of [stage]
-    that can be held at one time in [store]. *)
+(** [capacity stage] is the maximum number of plants of [stage] that can
+    be held at one time. *)
 val capacity : Plant.plant_stage -> int
 
-(** [remaining_capacity store stage] is the number empty slots of plants
+(** [remaining_capacity stage store] is the number empty slots of plants
     of [stage] in the [store] *)
-val remaining_capacity : t -> Plant.plant_stage -> int
+val remaining_capacity : Plant.plant_stage -> t -> int

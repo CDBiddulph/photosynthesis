@@ -1,5 +1,3 @@
-open PlantInventory
-
 type t = {
   id : PlayerId.t;
   light_points : int;
@@ -36,22 +34,22 @@ let is_in_available stage player =
 let num_in_available stage player =
   PlantInventory.num_remaining stage player.available
 
-let num_in_store stage player = Store.num_remaining player.store stage
+let num_in_store stage player = Store.num_remaining stage player.store
 
 let store_capacity stage player = Store.capacity stage
 
 let is_store_full stage player =
-  Store.remaining_capacity player.store stage = 0
+  Store.remaining_capacity stage player.store = 0
 
 (** [cost_to_grow stage] is the cost in light points to grow a plant to
     [stage] from the stage before [stage], if it exists. *)
 let cost_to_grow stage =
-  Plant.(
-    match stage with
-    | Seed -> failwith "Cannot \"grow to\" a Seed"
-    | Small -> 1
-    | Medium -> 2
-    | Large -> 3)
+  let open Plant in
+  match stage with
+  | Seed -> failwith "Cannot \"grow to\" a Seed"
+  | Small -> 1
+  | Medium -> 2
+  | Large -> 3
 
 let cost_to_harvest = 4
 
@@ -74,7 +72,7 @@ let buy_plant stage player =
   if can_buy_plant stage player then
     {
       player with
-      store = Store.buy_plant player.store stage player.light_points;
+      store = Store.buy_plant stage player.light_points player.store;
       available = PlantInventory.add_plant stage player.available;
       light_points = player.light_points - cost;
     }
@@ -95,6 +93,10 @@ let grow_plant stage player =
   if can_grow_plant stage player then
     {
       player with
+      store =
+        Store.add_plant_if_not_full
+          (Plant.last_stage stage)
+          player.store;
       available = PlantInventory.remove_plant stage player.available;
       light_points = player.light_points - cost;
     }
@@ -106,9 +108,16 @@ let harvest sp player =
   if can_harvest player then
     {
       player with
+      store = Store.add_plant_if_not_full Large player.store;
       score_points = player.score_points + sp;
       light_points = player.light_points - cost_to_harvest;
     }
   else raise (Store.InsufficientLightPoints cost_to_harvest)
 
 let _set_available available player = { player with available }
+
+let _available player = player.available
+
+let _set_store store player = { player with store }
+
+let _store player = player.store
