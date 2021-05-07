@@ -74,9 +74,6 @@ val score_points : t -> int
     points. *)
 val add_lp : int -> t -> t
 
-(* TODO: can we remove this? *)
-val store : t -> Store.t
-
 (** [is_in_available stage player] is true if [player] has a plant of
     [stage] in their available area. *)
 val is_in_available : Plant.plant_stage -> t -> bool
