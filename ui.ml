@@ -63,6 +63,8 @@ let update_message (s : t) (coord : HexUtil.coord) =
 let scroll s d =
   let map = Game.board s.game |> Board.map in
   let new_pos = HexMap.neighbor map s.current_position d in
+  let pl = Game.player_of_turn s.game in
+  let pl_id = Player.player_id pl in
   match new_pos with
   | None ->
       let new_gui =
@@ -162,11 +164,8 @@ let plant_helper_exn (s : t) f plnt_stg =
 
 let plant s =
   try
-    if
-      Game.can_plant_seed s.current_position
-        (Game.player_of_turn s.game |> Player.player_id)
-        s.game
-    then plant_helper s Game.plant_seed
+    if Game.can_plant_seed s.current_position s.game then
+      plant_helper s Game.plant_seed
     else if Game.can_plant_small s.current_position s.game then
       plant_helper s Game.plant_small
     else if Game.can_grow_plant s.current_position s.game then
