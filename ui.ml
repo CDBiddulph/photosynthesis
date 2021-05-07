@@ -226,6 +226,12 @@ let end_turn s =
          ANSITerminal.White
   in
   render new_gui;
+  let new_gui =
+    Gui.update_message
+      (update_message s s.current_position)
+      ANSITerminal.White s.gui
+  in
+  render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
   new_state
 
