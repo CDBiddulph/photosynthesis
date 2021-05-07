@@ -4,11 +4,6 @@ type ruleset =
   | Normal
   | Shadows
 
-(** The type [round_phase] represents the part of the round. *)
-type round_phase =
-  | Photosynthesis
-  | Life_Cycle
-
 (* module V = struct open HexUtil
 
    type t = HexUtil.coord
