@@ -128,7 +128,9 @@ let can_plant_small coord board =
   | None -> false
   | Some c -> Cell.soil c = 1
 
-(** TODO *)
+(** [place_plant can_place plant coord board] places [plant] at [coord]
+    on [board] if [can_place] is true, otherwise raises
+    [IllegalPlacePlant]. *)
 let place_plant can_place plant coord board =
   if can_place then
     match cell_at coord board with
