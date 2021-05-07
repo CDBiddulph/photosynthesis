@@ -7,6 +7,10 @@ type t
     inventories set to default values. *)
 val init_player : PlayerId.t -> t
 
+(** [cost_to_buy stage player] is the number of light points that it
+    costs to buy a plant of [stage] with [player]. *)
+val cost_to_buy : Plant.plant_stage -> t -> int
+
 (** [cost_to_grow stage] is the number of light points that it costs to
     grow a plant of stage one below [stage] into [stage] by moving it
     from the available area to the board. *)
@@ -15,6 +19,12 @@ val cost_to_grow : Plant.plant_stage -> int
 (** [cost_to_harvest] is the number of light points that it costs to
     harvest a Large tree. *)
 val cost_to_harvest : int
+
+(** [cost_to_buy_and_grow stage player] is the number of light points
+    that it costs to grow (or plant when [stage = Seed]) a plant of
+    [stage], plus the cost of buying it, if and only if the available
+    area does not already contain any plants of [stage]. *)
+val cost_to_buy_and_grow : Plant.plant_stage -> t -> int
 
 (** [can_buy_plant stage player] is true iff [player] can buy a plant of
     [stage] and place it in their available area. *)
@@ -32,7 +42,7 @@ val can_grow_plant : Plant.plant_stage -> t -> bool
 (** [can_harvest player] is true iff [player] can harvest a plant. *)
 val can_harvest : t -> bool
 
-(** [buy_plant player stage] moves a plant of [stage] from [player]'s
+(** [buy_plant stage player] moves a plant of [stage] from [player]'s
     store to their available area, and deducts the appropriate amount of
     light points from the player's light point total. Raises:
     [PlantInventory.OutOfPlant stage] if there are no more plants of
@@ -61,6 +71,15 @@ val grow_plant : Plant.plant_stage -> t -> t
     at capacity. Raises: [Player.InsufficientLightPoints price] if
     [player] does not have enough light points to harvest a plant. *)
 val harvest : int -> t -> t
+
+(** [buy_and_grow_plant stage player] first checks to see if the
+    available area has any plants of [stage]. If it does not,
+    [buy_plant stage] is performed on [player]. Then, if [stage = Seed],
+    [plant_plant stage] is performed on [player]. Otherwise, if
+    [stage <> Seed], [grow_plant stage] is performed. Raises:
+    [PlantInventory.OutOfPlant] or [Player.InsufficientLightPoints], as
+    described in [buy_plant]. [plant_plant], and [grow_plant]. *)
+val buy_and_grow_plant : Plant.plant_stage -> t -> t
 
 (** [player_id player] is the unique PlayerId of [player]. *)
 val player_id : t -> PlayerId.t
