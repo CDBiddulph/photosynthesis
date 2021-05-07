@@ -18,6 +18,8 @@ let init_plant_inventory =
 let _init_plant_inventory (nums : (Plant.plant_stage * int) list) : t =
   nums
 
+let _contents (inv : t) : (Plant.plant_stage * int) list = inv
+
 let init_plant_inventory_gen stage num inv =
   List.map
     (fun (inv_stage, count) ->
