@@ -8,6 +8,30 @@ let lp_player starting_lp =
           (List.map (fun s -> (s, 1)) Plant.all_stages))
   |> add_lp starting_lp
 
+let player_id_test
+    (name : string)
+    (p : Player.t)
+    (expected_output : PlayerId.t) : test =
+  name >:: fun _ ->
+  assert_equal expected_output (player_id p) ~printer:string_of_int
+
+let score_points_test
+    (name : string)
+    (p : Player.t)
+    (expected_output : int) : test =
+  name >:: fun _ ->
+  assert_equal expected_output (score_points p) ~printer:string_of_int
+
+let is_in_available_test
+    (name : string)
+    (plant : Plant.plant_stage)
+    (p : Player.t)
+    (expected_output : bool) : test =
+  name >:: fun _ ->
+  assert_equal expected_output
+    (is_in_available plant p)
+    ~printer:string_of_bool
+
 let lp_test
     (name : string)
     (f : t -> t)
