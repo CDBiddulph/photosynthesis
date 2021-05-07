@@ -97,11 +97,11 @@ val end_turn : t -> t
 
 (* Getter functions. *)
 
-(** [can_plant_seed coord player_id game] is true if planting a seed
-    with the player of [player_id] at [coord] is a legal move,
+(** [can_plant_seed coord game] is true if planting a seed with the
+    player of the current turn of [game] at [coord] is a legal move,
     disregarding whether the player actually has a seed in their
     available area. Will always be [false] if [game] is in setup mode. *)
-val can_plant_seed : HexUtil.coord -> PlayerId.t -> t -> bool
+val can_plant_seed : HexUtil.coord -> t -> bool
 
 (** [can_plant_small coord game] is true if planting a small tree at
     [coord] is a legal move. Will always be [false] if [game] is not in
