@@ -41,7 +41,11 @@ let num_remaining_store (p : Player.t) =
   List.map (fun stage -> Player.num_in_store stage p) Plant.all_stages
 
 let update_message (s : t) (coord : HexUtil.coord) =
-  if Game.can_plant_seed coord s.game then "(P) Plant Seed"
+  if
+    Game.can_plant_seed coord
+      (Game.player_of_turn s.game |> Player.player_id)
+      s.game
+  then "(P) Plant Seed"
   else if Game.can_plant_small coord s.game then "(P) Plant Small Tree"
   else if Game.can_grow_plant coord s.game then
     let plnt_stg =
@@ -69,10 +73,25 @@ let scroll s d =
       new_state
   | Some pos ->
       let p = Game.player_of_turn s.game |> Player.player_id in
+      let hlo =
+        let plnt_opt =
+          s.current_position |> Game.cell_at s.game |> Cell.plant
+        in
+        match plnt_opt with
+        | None -> None
+        | Some plant ->
+            if Plant.player_id plant <> pl_id then None
+            else
+              let plnt_stg = plant |> Plant.plant_stage in
+              if Player.is_in_available plnt_stg pl then
+                Some (false, plnt_stg)
+              else Some (true, plnt_stg)
+      in
       let new_gui =
         Gui.update_cursor new_pos s.gui
         |> Gui.update_message (update_message s pos) ANSITerminal.White
         |> Gui.update_player_sp p |> Gui.update_player_lp p
+        |> Gui.update_plant_highlight hlo
       in
       render new_gui;
       let new_state =
@@ -143,8 +162,11 @@ let plant_helper_exn (s : t) f plnt_stg =
 
 let plant s =
   try
-    if Game.can_plant_seed s.current_position s.game then
-      plant_helper s Game.plant_seed
+    if
+      Game.can_plant_seed s.current_position
+        (Game.player_of_turn s.game |> Player.player_id)
+        s.game
+    then plant_helper s Game.plant_seed
     else if Game.can_plant_small s.current_position s.game then
       plant_helper s Game.plant_small
     else if Game.can_grow_plant s.current_position s.game then
