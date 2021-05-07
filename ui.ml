@@ -221,15 +221,6 @@ let end_turn s =
       (Player.score_points pl)
       num_store_remaining num_available hlo s.gui
     |> Gui.update_sun sun_dir
-    |> Gui.update_message
-         (update_message s s.current_position)
-         ANSITerminal.White
-  in
-  render new_gui;
-  let new_gui =
-    Gui.update_message
-      (update_message s s.current_position)
-      ANSITerminal.White s.gui
   in
   render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
