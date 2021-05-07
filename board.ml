@@ -172,11 +172,7 @@ let grow_plant coord player_id board =
         let next_plant =
           Some
             (Plant.init_plant player_id
-               (match
-                  old_plant |> Plant.plant_stage |> Plant.next_stage
-                with
-               | None -> failwith "Impossible"
-               | Some p -> p))
+               (old_plant |> Plant.plant_stage |> Plant.next_stage))
         in
         {
           board with
