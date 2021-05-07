@@ -43,10 +43,26 @@ let avail_test name f starting_avail expected_avail =
    |> List.map snd)
     ~printer:(TestUtil.pp_list string_of_int)
 
+let avail_test_exn name f starting_avail expected_exn =
+  name >:: fun _ ->
+  let player = avail_player starting_avail in
+  assert_raises expected_exn (fun () -> f player)
+
 let player = Player.init_player 1 |> add_lp 25
 
 let available_tests =
-  [ avail_test "harvest" (harvest 10) [ 1; 1; 1; 1 ] [ 1; 1; 1; 1 ] ]
+  [
+    avail_test "harvest" (harvest 10) [ 1; 1; 1; 1 ] [ 1; 1; 1; 1 ];
+    avail_test "plant seed" (plant_plant Seed) [ 1; 2; 3; 4 ]
+      [ 0; 2; 3; 4 ];
+    avail_test "plant small" (plant_plant Small) [ 1; 2; 3; 4 ]
+      [ 1; 1; 3; 4 ];
+    avail_test "grow medium" (grow_plant Medium) [ 1; 2; 3; 4 ]
+      [ 1; 2; 2; 4 ];
+    avail_test "grow large" (grow_plant Large) [ 1; 2; 3; 4 ]
+      [ 1; 2; 3; 3 ];
+    avail_test "buy seed" (buy_plant Seed) [ 1; 2; 3; 4 ] [ 2; 2; 3; 4 ];
+  ]
 
 let lp_tests =
   [
