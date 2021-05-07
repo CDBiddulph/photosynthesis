@@ -75,13 +75,16 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
+(** [cell_if_empty coord board] is the [Cell.t option] of the cell at
+    [coord]. If the cell has a plant or is invalid, returns [None]. *)
 let cell_if_empty coord board =
   match cell_at board coord with
   | None -> None
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
-(** TODO *)
+(** [neighbors_in_radius board coord radius] gets all legal neighbors of
+    [coord] within [radius] of [coord]. *)
 let neighbors_in_radius board coord radius =
   List.map
     (fun cell -> Cell.coord cell)
@@ -123,6 +126,7 @@ let can_plant_small coord board =
   | None -> false
   | Some c -> Cell.soil c = 1
 
+(** TODO *)
 let place_plant can_place plant coord board =
   if can_place then
     match cell_at coord board with

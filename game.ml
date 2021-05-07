@@ -228,7 +228,7 @@ let grow_plant coord game =
     |> update_player game.turn
          (Player.grow_plant stage (player_of_turn game))
 
-let plant_seed coord player_id game =
+let plant_seed player_id coord game =
   if not (can_plant_seed coord player_id game) then
     raise Board.IllegalPlacePlant
   else

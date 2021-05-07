@@ -1,6 +1,6 @@
-(** TODO *)
+(** The game board. Handles part of the game logic. *)
 
-(* * The abstract type representing the game's board. *)
+(** The abstract type representing the game's board. *)
 type t
 
 (** The type [ruleset] represents the ruleset used in the game. *)
@@ -20,14 +20,33 @@ exception IllegalHarvest
 (** [init_board ruleset] initializes a game with the given ruleset. *)
 val init_board : ruleset -> t
 
-val map : t -> HexMap.t
-
 (** [testing_init_board ruleset cells] initializes a board with the
     given ruleset and cells. USED ONLY FOR TESTING PURPOSES. *)
 val testing_init_board : ruleset -> Cell.t list -> t
 
+(* Getter functions *)
+
+(** [map board] is [board]'s HexMap. *)
+val map : t -> HexMap.t
+
 (** [ruleset board] is the ruleset used for [board]. *)
 val ruleset : t -> ruleset
+
+(** [cells board] is a list of the Cells in [board], in any order. *)
+val cells : t -> Cell.t list
+
+(** [cell_at board coord] is the cell at [coord] in [board]. *)
+val cell_at : HexUtil.coord -> t -> Cell.t option
+
+(** [valid_coord board coord] is true if [coord] is a valid coordinate
+    in [board]. *)
+val valid_coord : HexUtil.coord -> t -> bool
+
+(** [plant_at board coord] is the plant at [coord] on [board], if it
+    exists. *)
+val plant_at : HexUtil.coord -> t -> Plant.t option
+
+(* Actions *)
 
 (** [plant_seed stage board coord player_id] places a seed belonging to
     [player] at [coord] on [board]. Raises: [IllegalPlacePlant] if
@@ -83,20 +102,6 @@ val get_photo_lp :
   PlayerId.t list ->
   t ->
   (PlayerId.t * (HexUtil.coord * int) list) list
-
-(** [cells board] is a list of the Cells in [board], in any order. *)
-val cells : t -> Cell.t list
-
-(** [cell_at board coord] is the cell at [coord] in [board]. *)
-val cell_at : HexUtil.coord -> t -> Cell.t option
-
-(** [valid_coord board coord] is true if [coord] is a valid coordinate
-    in [board]. *)
-val valid_coord : HexUtil.coord -> t -> bool
-
-(** [plant_at board coord] is the plant at [coord] on [board], if it
-    exists. *)
-val plant_at : HexUtil.coord -> t -> Plant.t option
 
 (** [end_turn board] resets the cells touched in the current turn,
     allowing the next player to execute their actions. *)

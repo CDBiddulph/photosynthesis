@@ -43,7 +43,7 @@ val board : t -> Board.t
     [coord] is an illegal move; [PlantInventory.OutOfPlant Plant.Seed]
     if the player does not have any seeds in their available area. See
     [can_plant_seed] and [is_plant_available]. *)
-val plant_seed : HexUtil.coord -> PlayerId.t -> t -> t
+val plant_seed : PlayerId.t -> HexUtil.coord -> t -> t
 
 (** [plant_small coord game] is game with a small tree of [player]
     planted at [coord] and the available seeds of the player decremented
