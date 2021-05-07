@@ -29,7 +29,10 @@ let _init_store nums =
 
 let cost stage store =
   let ind = int_of_plant_stage stage in
-  List.nth (List.nth costs ind) (List.nth store ind)
+  let stage_costs = List.nth costs ind in
+  let remaining_of_stage = List.nth store ind in
+  try List.nth stage_costs remaining_of_stage
+  with Failure _ -> raise (PlantInventory.OutOfPlant stage)
 
 let buy_plant stage light_points store =
   let cost_to_buy = cost stage store in

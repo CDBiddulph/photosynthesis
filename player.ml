@@ -103,9 +103,14 @@ let grow_plant stage player =
 
 let harvest sp player =
   if can_harvest player then
+    let new_store =
+      if Store.remaining_capacity Large player.store > 0 then
+        Store.add_plant Large player.store
+      else player.store
+    in
     {
       player with
-      store = Store.add_plant Large player.store;
+      store = new_store;
       score_points = player.score_points + sp;
       light_points = player.light_points - cost_to_harvest;
     }

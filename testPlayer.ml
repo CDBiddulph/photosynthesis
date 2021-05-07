@@ -33,8 +33,10 @@ let store_test_exn name f starting_store expected_exn =
 let store_tests =
   [
     store_test "harvest" (harvest 10) [ 1; 1; 1; 1 ] [ 1; 1; 1; 2 ];
-    store_test_exn "harvest full" (harvest 10) [ 1; 1; 1; 2 ]
-      (Store.FullOfPlant Large);
+    store_test "harvest full" (harvest 10) [ 1; 1; 1; 2 ] [ 1; 1; 1; 2 ];
+    store_test "buy" (buy_plant Small) [ 1; 1; 1; 1 ] [ 1; 0; 1; 1 ];
+    store_test_exn "buy empty" (buy_plant Medium) [ 1; 1; 0; 1 ]
+      (PlantInventory.OutOfPlant Medium);
   ]
 
 let avail_test name f starting_avail expected_avail =
