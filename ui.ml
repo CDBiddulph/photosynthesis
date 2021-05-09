@@ -70,7 +70,6 @@ let scroll s d =
       let new_state = { s with gui = new_gui } in
       new_state
   | Some pos ->
-      let p = Game.player_of_turn s.game |> Player.player_id in
       let hlo =
         let plnt_opt = pos |> Game.cell_at s.game |> Cell.plant in
         match plnt_opt with
@@ -86,7 +85,8 @@ let scroll s d =
       let new_gui =
         Gui.update_cursor new_pos s.gui
         |> Gui.update_message (update_message s pos) ANSITerminal.White
-        |> Gui.update_player_sp p |> Gui.update_player_lp p
+        |> Gui.update_player_sp pl_id
+        |> Gui.update_player_lp pl_id
         |> Gui.update_plant_highlight hlo
       in
       render new_gui;
