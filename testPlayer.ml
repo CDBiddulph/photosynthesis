@@ -65,6 +65,12 @@ let store_tests =
     store_test "buy and grow small - do not buy"
       (buy_and_grow_plant Small)
       [ 1; 1; 1; 1 ] [ 2; 1; 1; 1 ];
+    test_exn "buy and plant seed - do buy, no seeds in store"
+      (buy_and_grow_plant Seed)
+      20 [ 0; 1; 1; 1 ] [ 0; 1; 1; 1 ] (PlantInventory.OutOfPlant Seed);
+    test_exn "buy and plant seed - do buy, ILP"
+      (buy_and_grow_plant Seed)
+      0 [ 0; 1; 1; 1 ] [ 1; 1; 1; 1 ] (Store.InsufficientLightPoints 2);
   ]
 
 let avail_test name f starting_avail expected_avail =

@@ -78,7 +78,10 @@ val harvest : int -> t -> t
     [plant_plant stage] is performed on [player]. Otherwise, if
     [stage <> Seed], [grow_plant stage] is performed. Raises:
     [PlantInventory.OutOfPlant] or [Player.InsufficientLightPoints], as
-    described in [buy_plant]. [plant_plant], and [grow_plant]. *)
+    described in [buy_plant], except that in
+    [Player.InsufficientLightPoints cost],
+    [cost = cost_to_buy_and_grow stage player]. [plant_plant], and
+    [grow_plant]. *)
 val buy_and_grow_plant : Plant.plant_stage -> t -> t
 
 (** [player_id player] is the unique PlayerId of [player]. *)

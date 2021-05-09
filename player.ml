@@ -127,13 +127,17 @@ let harvest sp player =
   else raise (Store.InsufficientLightPoints cost_to_harvest)
 
 let buy_and_grow_plant stage player =
-  (if PlantInventory.is_empty stage player.available then
-   buy_plant stage player
-  else player)
-  |>
-  match stage with
-  | Seed -> plant_plant stage
-  | Small | Medium | Large -> grow_plant stage
+  try
+    (if PlantInventory.is_empty stage player.available then
+     buy_plant stage player
+    else player)
+    |>
+    match stage with
+    | Seed -> plant_plant stage
+    | Small | Medium | Large -> grow_plant stage
+  with Store.InsufficientLightPoints _ ->
+    raise
+      (Store.InsufficientLightPoints (cost_to_buy_and_grow stage player))
 
 let _set_available available player = { player with available }
 

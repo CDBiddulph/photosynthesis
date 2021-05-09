@@ -59,6 +59,15 @@ val plant_small : HexUtil.coord -> t -> t
     and [is_plant_available]. *)
 val grow_plant : HexUtil.coord -> t -> t
 
+(** [buy_and_grow_plant coord game] first checks to see if the available
+    area has any plants of the stage at [coord], called [stage]. If it
+    does not, a plant of [stage] is bought by the current player of
+    [game]. Then, if [stage = Seed], the player plants a seed at
+    [coord]. Otherwise, if [stage <> Seed], the plant at [coord] is
+    grown. Raises: [PlantInventory.OutOfPlant] or
+    [Player.InsufficientLightPoints]. *)
+val buy_and_grow_plant : HexUtil.coord -> t -> t
+
 (** [harvest coord game] is [game] with the plant at [coord] removed and
     the scoring points of player whose turn it is increased
     appropriately. Raises: [Board.IllegalHarvest] if harvesting from
@@ -68,10 +77,11 @@ val harvest : HexUtil.coord -> t -> t
 (** [buy_plant stage game] is [game] where the current player of [game]
     has one less plant of [stage] in their store and one more plant of
     [stage] in their available area. Raises:
-    [Store.InsufficientLightPoints] if Player does not have enough light
-    points to buy a plant of [stage];
-    [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
-    does not have any of [Plant.plant_stage plant] in their store. *)
+    [Store.InsufficientLightPoints cost] if Player does not have enough
+    light points to buy a plant of [stage], with [cost] being the cost
+    to buy it; [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if
+    the player does not have any of [Plant.plant_stage plant] in their
+    store. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
 (* In the future, we may want to alert the UI that photosynthesis is
