@@ -3,6 +3,7 @@
 (** Represents a store. *)
 type t
 
+(** Raised when a plant is bought without enough light points for it. *)
 exception InsufficientLightPoints of int
 
 (** Raised when a plant is added to a store without capacity for it. *)
@@ -15,15 +16,15 @@ val init_store : t
 (** [costs] is the list of costs for plants. *)
 val costs : int list list
 
-(** [cost stage] is the cost in light points to buy the next plant
-    of [stage]. *)
+(** [cost stage] is the cost in light points to buy the next plant of
+    [stage]. *)
 val cost : Plant.plant_stage -> t -> int
 
 (** [buy_plant store stage light_points] removes one plant of [stage]
     from [store]. Raises: [PlantInventory.OutOfPlant stage] if there are
     no more plants of [stage] in the store;
-    [Player.InsufficientLightPoints] if [light_points] is less than the amount
-    necessary to buy a plant of [stage]. *)
+    [Player.InsufficientLightPoints] if [light_points] is less than the
+    amount necessary to buy a plant of [stage]. *)
 val buy_plant : t -> Plant.plant_stage -> int -> t
 
 (** [add_plant store stage] adds one plant of [stage] to [store].
