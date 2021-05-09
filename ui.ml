@@ -72,9 +72,7 @@ let scroll s d =
   | Some pos ->
       let p = Game.player_of_turn s.game |> Player.player_id in
       let hlo =
-        let plnt_opt =
-          s.current_position |> Game.cell_at s.game |> Cell.plant
-        in
+        let plnt_opt = pos |> Game.cell_at s.game |> Cell.plant in
         match plnt_opt with
         | None -> None
         | Some plant ->
@@ -190,42 +188,6 @@ let plant_helper_exn (s : t) f plnt_stg =
       render new_gui;
       { s with gui = new_gui }
 
-let plant s =
-  try
-    if Game.can_plant_seed s.current_position s.game then
-      plant_helper s Game.plant_seed
-    else if Game.can_plant_small s.current_position s.game then
-      plant_helper s Game.plant_small
-    else if Game.can_grow_plant s.current_position s.game then
-      let plnt_stg =
-        Game.cell_at s.game s.current_position
-        |> Cell.plant |> extract_plant |> Plant.plant_stage
-      in
-      match plnt_stg with
-      | Seed -> plant_helper s Game.grow_plant
-      | Small -> plant_helper s Game.grow_plant
-      | Medium -> plant_helper s Game.grow_plant
-      | Large -> failwith "Should Not Happen"
-    else if Game.can_harvest s.current_position s.game then
-      plant_helper s Game.harvest
-    else s
-  with
-  | Board.IllegalPlacePlant ->
-      let new_gui =
-        Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
-          s.gui
-      in
-      render new_gui;
-      { s with gui = new_gui }
-  | PlantInventory.OutOfPlant Plant.Seed ->
-      plant_helper_exn s Game.plant_seed Plant.Seed
-  | PlantInventory.OutOfPlant Plant.Small ->
-      plant_helper_exn s Game.plant_small Plant.Small
-  | PlantInventory.OutOfPlant Plant.Medium ->
-      plant_helper_exn s Game.grow_plant Plant.Medium
-  | PlantInventory.OutOfPlant Plant.Large ->
-      plant_helper_exn s Game.grow_plant Plant.Large
-
 let end_turn s =
   let new_game = Game.end_turn s.game in
   let pl = Game.player_of_turn new_game in
@@ -264,6 +226,43 @@ let end_turn s =
   render new2_gui;
   let new2_state = { s with game = new_game; gui = new2_gui } in
   new2_state
+
+let plant s =
+  try
+    if Game.can_plant_seed s.current_position s.game then
+      plant_helper s Game.plant_seed
+    else if Game.can_plant_small s.current_position s.game then
+      plant_helper s Game.plant_small
+    else if Game.can_grow_plant s.current_position s.game then
+      let plnt_stg =
+        Game.cell_at s.game s.current_position
+        |> Cell.plant |> extract_plant |> Plant.plant_stage
+      in
+      match plnt_stg with
+      | Seed -> plant_helper s Game.grow_plant
+      | Small -> plant_helper s Game.grow_plant
+      | Medium -> plant_helper s Game.grow_plant
+      | Large -> failwith "Should Not Happen"
+    else if Game.can_harvest s.current_position s.game then
+      plant_helper s Game.harvest
+    else s
+  with
+  | Board.IllegalPlacePlant ->
+      let new_gui =
+        Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
+          s.gui
+      in
+      render new_gui;
+      { s with gui = new_gui }
+  | PlantInventory.OutOfPlant Plant.Seed ->
+      plant_helper_exn s Game.plant_seed Plant.Seed
+  | PlantInventory.OutOfPlant Plant.Small ->
+      if Game.is_setup s.game then end_turn s
+      else plant_helper_exn s Game.grow_plant Plant.Small
+  | PlantInventory.OutOfPlant Plant.Medium ->
+      plant_helper_exn s Game.grow_plant Plant.Medium
+  | PlantInventory.OutOfPlant Plant.Large ->
+      plant_helper_exn s Game.grow_plant Plant.Large
 
 let handle_char s c =
   match c with

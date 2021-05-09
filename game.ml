@@ -222,7 +222,7 @@ let grow_plant coord game =
     let stage =
       match Board.plant_at coord game.board with
       | None -> failwith "Unreachable"
-      | Some plant -> plant |> Plant.plant_stage
+      | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
     in
     update_board (Board.grow_plant coord game.turn game.board) game
     |> update_player game.turn
