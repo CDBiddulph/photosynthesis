@@ -10,7 +10,7 @@ type t = (Plant.plant_stage * int) list
 let init_plant_inventory =
   [
     (Plant.Seed, 2);
-    (Plant.Small, 2);
+    (Plant.Small, 4);
     (Plant.Medium, 1);
     (Plant.Large, 0);
   ]
