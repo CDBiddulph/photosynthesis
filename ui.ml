@@ -99,9 +99,24 @@ let scroll s d =
 
 let plant_helper s f =
   let pl = Game.player_of_turn s.game in
+  let pl_id = Player.player_id pl in
   let new_game = f s.current_position s.game in
   let num_store_remaining = num_remaining_store pl in
   let num_available = num_remaining_available pl in
+  let hlo =
+    let plnt_opt =
+      s.current_position |> Game.cell_at s.game |> Cell.plant
+    in
+    match plnt_opt with
+    | None -> None
+    | Some plant ->
+        if Plant.player_id plant <> pl_id then None
+        else
+          let plnt_stg = plant |> Plant.plant_stage in
+          if Player.is_in_available plnt_stg pl then
+            Some (false, plnt_stg)
+          else Some (true, plnt_stg)
+  in
   let new_gui =
     let cells = Game.cells new_game in
     Gui.update_cells cells s.gui
@@ -112,6 +127,7 @@ let plant_helper s f =
     |> Gui.update_store_remaining num_store_remaining
     |> Gui.update_player_lp (Player.light_points pl)
     |> Gui.update_player_sp (Player.score_points pl)
+    |> Gui.update_plant_highlight hlo
   in
   render new_gui;
   let new_state = { s with gui = new_gui; game = new_game } in
@@ -120,10 +136,25 @@ let plant_helper s f =
 let plant_helper_exn (s : t) f plnt_stg =
   try
     let pl = Game.player_of_turn s.game in
+    let pl_id = Player.player_id pl in
     let num_store_remaining = num_remaining_store pl in
     let num_available = num_remaining_available pl in
     let new_game =
       Game.buy_plant plnt_stg s.game |> f s.current_position
+    in
+    let hlo =
+      let plnt_opt =
+        s.current_position |> Game.cell_at s.game |> Cell.plant
+      in
+      match plnt_opt with
+      | None -> None
+      | Some plant ->
+          if Plant.player_id plant <> pl_id then None
+          else
+            let plnt_stg = plant |> Plant.plant_stage in
+            if Player.is_in_available plnt_stg pl then
+              Some (false, plnt_stg)
+            else Some (true, plnt_stg)
     in
     let new_gui =
       let cells = Game.cells new_game in
@@ -133,6 +164,7 @@ let plant_helper_exn (s : t) f plnt_stg =
       |> Gui.update_store_remaining num_store_remaining
       |> Gui.update_player_lp (Player.light_points pl)
       |> Gui.update_player_sp (Player.score_points pl)
+      |> Gui.update_plant_highlight hlo
     in
     render new_gui;
     let new_state =
@@ -224,7 +256,14 @@ let end_turn s =
   in
   render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
-  new_state
+  let new2_gui =
+    Gui.update_message
+      (update_message new_state new_state.current_position)
+      ANSITerminal.White new_gui
+  in
+  render new2_gui;
+  let new2_state = { s with game = new_game; gui = new2_gui } in
+  new2_state
 
 let handle_char s c =
   match c with
