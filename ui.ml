@@ -96,14 +96,14 @@ let scroll s d =
       new_state
 
 let plant_helper s f =
-  let pl = Game.player_of_turn s.game in
-  let pl_id = Player.player_id pl in
   let new_game = f s.current_position s.game in
+  let pl = Game.player_of_turn new_game in
+  let pl_id = Player.player_id pl in
   let num_store_remaining = num_remaining_store pl in
   let num_available = num_remaining_available pl in
   let hlo =
     let plnt_opt =
-      s.current_position |> Game.cell_at s.game |> Cell.plant
+      s.current_position |> Game.cell_at new_game |> Cell.plant
     in
     match plnt_opt with
     | None -> None
@@ -133,16 +133,16 @@ let plant_helper s f =
 
 let plant_helper_exn (s : t) f plnt_stg =
   try
-    let pl = Game.player_of_turn s.game in
-    let pl_id = Player.player_id pl in
-    let num_store_remaining = num_remaining_store pl in
-    let num_available = num_remaining_available pl in
     let new_game =
       Game.buy_plant plnt_stg s.game |> f s.current_position
     in
+    let pl = Game.player_of_turn new_game in
+    let pl_id = Player.player_id pl in
+    let num_store_remaining = num_remaining_store pl in
+    let num_available = num_remaining_available pl in
     let hlo =
       let plnt_opt =
-        s.current_position |> Game.cell_at s.game |> Cell.plant
+        s.current_position |> Game.cell_at new_game |> Cell.plant
       in
       match plnt_opt with
       | None -> None
@@ -194,10 +194,10 @@ let end_turn s =
   let pl_id = Player.player_id pl in
   let num_store_remaining = num_remaining_store pl in
   let num_available = num_remaining_available pl in
-  let sun_dir = Game.sun_dir s.game in
+  let sun_dir = Game.sun_dir new_game in
   let hlo =
     let plnt_opt =
-      s.current_position |> Game.cell_at s.game |> Cell.plant
+      s.current_position |> Game.cell_at new_game |> Cell.plant
     in
     match plnt_opt with
     | None -> None
@@ -232,7 +232,7 @@ let plant s =
     if Game.can_plant_seed s.current_position s.game then
       plant_helper s Game.plant_seed
     else if Game.can_plant_small s.current_position s.game then
-      plant_helper s Game.plant_small
+      plant_helper s Game.plant_small |> end_turn
     else if Game.can_grow_plant s.current_position s.game then
       let plnt_stg =
         Game.cell_at s.game s.current_position
