@@ -1,23 +1,22 @@
 (* open Graph.Flow *)
+open Map
+open Flow
 
 type ruleset =
   | Normal
   | Shadows
 
-(* module V = struct open HexUtil
+module OrderedCoord = struct
+  open HexUtil
 
-   type t = HexUtil.coord
+  type t = HexUtil.coord
 
-   let equal c1 c2 = c1.col = c2.col && c1.diag = c2.diag
+  let hash c = (c.col * 10) + c.diag
 
-   let hash c = (10 * c.col) + c.diag end
+  let compare x y = compare (hash x) (hash y)
+end
 
-   module E = struct end *)
-
-(* module PlantGraph : G_FORD_FULKERSON = struct module V = V module E =
-   E
-
-   end *)
+module PlantTrackMap = Map.Make (OrderedCoord)
 
 (** A record type representing a game and its data. [sun_dir] indicates
     the direction that shadows are cast. *)
@@ -25,7 +24,8 @@ type t = {
   map : HexMap.t;
   rules : ruleset;
   touched_cells : HexUtil.coord list;
-      (* plant_graph : Ford_Fulkerson () *)
+  planted : HexUtil.coord list PlantTrackMap.t;
+  graph : BaseGraph.t;
 }
 
 (* TODO: map planted seeds to candidate plants; if single candidate,
@@ -45,7 +45,13 @@ let plant_to_int (plant : Plant.plant_stage) : int =
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 let init_board ruleset =
-  { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
+  {
+    map = HexMap.init_map ();
+    rules = ruleset;
+    touched_cells = [];
+    planted = PlantTrackMap.empty;
+    graph = BaseGraph.create ();
+  }
 
 let testing_init_board ruleset cells =
   let board = init_board ruleset in
