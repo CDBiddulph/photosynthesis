@@ -168,15 +168,20 @@ let plant_helper_exn (s : t) f plnt_stg =
     in
     new_state
   with
-  | Store.InsufficientLightPoints plnt_stg ->
+  | Store.InsufficientLightPoints cost ->
       let new_gui =
-        Gui.update_message "Insufficient Light Points" ANSITerminal.Red
-          s.gui
+        Gui.update_message
+          ("Action requires " ^ string_of_int cost ^ " light points")
+          ANSITerminal.Red s.gui
       in
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant plnt_stg ->
       let new_gui =
-        Gui.update_message "Out of Plant" ANSITerminal.Red s.gui
+        Gui.update_message
+          ("Out of Plant "
+          ^ (plnt_stg |> Plant.string_of_plant_stage
+           |> String.capitalize_ascii))
+          ANSITerminal.Red s.gui
       in
       { s with gui = new_gui }
 
