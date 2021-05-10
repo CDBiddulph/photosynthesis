@@ -15,26 +15,17 @@ exception InsufficientLightPoints of int
 
 exception FullOfPlant of Plant.plant_stage
 
-let init_store = [ 0; 0; 0; 0 ]
+let init_store =
+  let open Plant in
+  [ 0; 0; 0; 0 ]
 
 let costs = [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
 
-let _init_store nums =
-  List.map2
-    (fun num c_row ->
-      let capacity = List.length c_row in
-      assert (capacity >= num);
-      capacity - num)
-    nums costs
-
 let cost stage store =
   let ind = int_of_plant_stage stage in
-  let stage_costs = List.nth costs ind in
-  let remaining_of_stage = List.nth store ind in
-  try List.nth stage_costs remaining_of_stage
-  with Failure _ -> raise (PlantInventory.OutOfPlant stage)
+  List.nth (List.nth costs ind) (List.nth store ind)
 
-let buy_plant stage light_points store =
+let buy_plant store stage light_points =
   let cost_to_buy = cost stage store in
   if cost_to_buy > light_points then
     raise (InsufficientLightPoints cost_to_buy)
@@ -52,7 +43,7 @@ let plant_is_full stage store =
   let ind = int_of_plant_stage stage in
   List.nth store ind = 0
 
-let add_plant stage store =
+let add_plant store stage =
   let ind = int_of_plant_stage stage in
   List.mapi
     (fun i count ->
@@ -61,15 +52,12 @@ let add_plant stage store =
       else count)
     store
 
-let add_plant_if_not_full stage store =
-  try add_plant stage store with FullOfPlant _ -> store
-
-let num_remaining stage store =
+let num_remaining store stage =
   let ind = int_of_plant_stage stage in
   List.length (List.nth costs ind) - List.nth store ind
 
 let capacity stage =
   List.nth costs (Plant.int_of_plant_stage stage) |> List.length
 
-let remaining_capacity stage store =
+let remaining_capacity store stage =
   int_of_plant_stage stage |> List.nth store

@@ -198,10 +198,10 @@ let end_turn game =
 
 let is_setup game = game.setup_rounds_left > 0
 
-let can_plant_seed coord game =
+let can_plant_seed coord player_id game =
   (not (is_setup game))
   && game.num_rounds <= rule_to_rounds game.rounds_rule
-  && Board.can_plant_seed game.turn coord game.board
+  && Board.can_plant_seed player_id coord game.board
 
 let can_plant_small coord game =
   is_setup game
@@ -222,14 +222,15 @@ let grow_plant coord game =
     let stage =
       match Board.plant_at coord game.board with
       | None -> failwith "Unreachable"
-      | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
+      | Some plant -> plant |> Plant.plant_stage
     in
     update_board (Board.grow_plant coord game.turn game.board) game
     |> update_player game.turn
          (Player.grow_plant stage (player_of_turn game))
 
-let plant_seed coord game =
-  if not (can_plant_seed coord game) then raise Board.IllegalPlacePlant
+let plant_seed player_id coord game =
+  if not (can_plant_seed coord player_id game) then
+    raise Board.IllegalPlacePlant
   else
     update_board (Board.plant_seed game.turn coord game.board) game
     |> update_player game.turn
