@@ -16,10 +16,6 @@ val init_plant_inventory : t
     for testing. *)
 val _init_plant_inventory : (Plant.plant_stage * int) list -> t
 
-(** [_contents inv] is a list of the plant stages in [inv] with their
-    corresponding quantities. Should only be used for testing. *)
-val _contents : t -> (Plant.plant_stage * int) list
-
 (** [init_plant_inventory_gen stage num inv] is a new plant inventory
     with x amount of plant with stage [stage] *)
 val init_plant_inventory_gen : Plant.plant_stage -> int -> t -> t
