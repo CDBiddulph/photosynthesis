@@ -1,5 +1,6 @@
 open Graph
 open Graph.Flow
+open Graph.Sig
 
 module Coord = struct
   open HexUtil
@@ -27,7 +28,7 @@ module Int = struct
   let default = 0
 end
 
-module BaseGraph = Imperative.Digraph.ConcreteLabeled (Coord) (Int)
+module BaseGraph = Persistent.Digraph.ConcreteLabeled (Coord) (Int)
 
 module FlowMin = struct
   type t = Int.t
@@ -51,11 +52,19 @@ end
 
 module MaxFlow = Ford_Fulkerson (BaseGraph) (FlowMin)
 
-(* let a = Test.create ()
-
-   let c00 : HexUtil.coord = { col = 0; diag = 0 }
+(* let c00 : HexUtil.coord = { col = 0; diag = 0 }
 
    let c10 : HexUtil.coord = { col = 1; diag = 0 }
 
-   let b = Test.add_vertex a c00; Test.add_vertex a c10; Test.add_edge a
-   c00 c10 *)
+   let c01 : HexUtil.coord = { col = 0; diag = 1 }
+
+   let c11 : HexUtil.coord = { col = 1; diag = 1 }
+
+   let a = BaseGraph.add_vertex (BaseGraph.add_vertex BaseGraph.empty
+   c00) c11
+
+   let b = BaseGraph.add_vertex (BaseGraph.add_vertex a c01) c10
+
+   let c = BaseGraph.add_edge (BaseGraph.add_edge b c00 c01) c00 c10
+
+   let d = BaseGraph.add_edge (BaseGraph.add_edge c c10 c11) c01 c11 *)
