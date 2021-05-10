@@ -135,7 +135,9 @@ let valid_plant seed cands board =
   let g_with = add_all seed cands g board.src_sink in
   let src, sink = board.src_sink in
   let _, n = MaxFlow.maxflow g_with src sink in
-  n = board.n_planted
+  print_endline
+    (string_of_int n ^ " " ^ string_of_int (board.n_planted + 1));
+  n = board.n_planted + 1
 
 (** TODO *)
 let get_usable_neighbors player_id coord board =
@@ -152,7 +154,10 @@ let get_usable_neighbors player_id coord board =
 let can_plant_seed player_id coord board =
   let usable_neighbors = get_usable_neighbors player_id coord board in
   (not (List.mem coord board.touched_cells))
-  && valid_plant coord usable_neighbors board
+  &&
+  let x = valid_plant coord usable_neighbors board in
+  print_endline (string_of_bool x);
+  x
   && cell_if_empty board coord <> None
   && within_radius player_id coord board
 
@@ -236,11 +241,7 @@ let grow_plant coord player_id board =
     let next_plant =
       Some
         (Plant.init_plant player_id
-           (match
-              old_plant |> Plant.plant_stage |> Plant.next_stage
-            with
-           | None -> failwith "Impossible"
-           | Some p -> p))
+           (old_plant |> Plant.plant_stage |> Plant.next_stage))
     in
     let new_graph = BaseGraph.remove_vertex board.graph coord in
     {
