@@ -93,7 +93,7 @@ let lp_tests =
     lp_test_exn "harvest ILP" (harvest 10) 3
       (Store.InsufficientLightPoints 4);
     lp_test_default "harvest almost ILP" (harvest 10) 4 0;
-    lp_test_default "plant 1" (plant_plant Seed) 10 10;
+    lp_test_default "plant 1" (plant_plant Seed) 10 9;
     lp_test_default "plant 2" (plant_plant Small) 0 0;
     lp_test_default "grow" (grow_plant Large) 10 7;
     lp_test_exn "grow ILP" (grow_plant Medium) 1
