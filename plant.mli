@@ -3,6 +3,8 @@
 (** The abstract type representing a plant. *)
 type t
 
+exception StageDoesNotExist
+
 (** The type [plant_stage] represents the growth stage of a plant. *)
 type plant_stage =
   | Seed
@@ -32,5 +34,13 @@ val next_stage : plant_stage -> plant_stage option
 
 (** TODO *)
 val all_stages : plant_stage list
+
+(** [last_stage stage] is the stage before [stage]. Raises:
+    [StageDoesNotExist] if [stage = Seed]. *)
+val last_stage : plant_stage -> plant_stage
+
+(** [next_stage stage] is the stage after [stage]. Raises:
+    [StageDoesNotExist] if [stage = Large]. *)
+val next_stage : plant_stage -> plant_stage
 
 val to_string : plant_stage -> string -> unit
