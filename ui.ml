@@ -66,7 +66,6 @@ let scroll s d =
       let new_gui =
         Gui.update_message "Invalid Direction" ANSITerminal.Red s.gui
       in
-      render new_gui;
       let new_state = { s with gui = new_gui } in
       new_state
   | Some pos ->
@@ -85,11 +84,8 @@ let scroll s d =
       let new_gui =
         Gui.update_cursor new_pos s.gui
         |> Gui.update_message (update_message s pos) ANSITerminal.White
-        |> Gui.update_player_sp pl_id
-        |> Gui.update_player_lp pl_id
         |> Gui.update_plant_highlight hlo
       in
-      render new_gui;
       let new_state =
         { s with current_position = pos; gui = new_gui }
       in
@@ -127,7 +123,6 @@ let plant_helper s f =
     |> Gui.update_player_sp (Player.score_points pl)
     |> Gui.update_plant_highlight hlo
   in
-  render new_gui;
   let new_state = { s with gui = new_gui; game = new_game } in
   new_state
 
@@ -164,7 +159,6 @@ let plant_helper_exn (s : t) f plnt_stg =
       |> Gui.update_player_sp (Player.score_points pl)
       |> Gui.update_plant_highlight hlo
     in
-    render new_gui;
     let new_state =
       {
         current_position = s.current_position;
@@ -179,13 +173,11 @@ let plant_helper_exn (s : t) f plnt_stg =
         Gui.update_message "Insufficient Light Points" ANSITerminal.Red
           s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant plnt_stg ->
       let new_gui =
         Gui.update_message "Out of Plant" ANSITerminal.Red s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
 
 let end_turn s =
@@ -216,14 +208,12 @@ let end_turn s =
       num_store_remaining num_available hlo s.gui
     |> Gui.update_sun sun_dir
   in
-  render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
   let new2_gui =
     Gui.update_message
       (update_message new_state new_state.current_position)
       ANSITerminal.White new_gui
   in
-  render new2_gui;
   let new2_state = { s with game = new_game; gui = new2_gui } in
   new2_state
 
@@ -252,7 +242,6 @@ let plant s =
         Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
           s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
       plant_helper_exn s Game.plant_seed Plant.Seed
@@ -282,9 +271,10 @@ let rec read_char (s : t) =
   while true do
     try
       let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
-      if a.Graphics.keypressed then
+      if a.Graphics.keypressed then (
         let new_state = handle_char s a.Graphics.key in
-        read_char new_state
+        render new_state.gui;
+        read_char new_state)
       else read_char s
     with End -> Graphics.close_graph ()
   done
