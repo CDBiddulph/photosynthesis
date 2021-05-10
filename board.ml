@@ -1,28 +1,22 @@
 (* open Graph.Flow *)
+open Map
+open Flow
 
 type ruleset =
   | Normal
   | Shadows
 
-(** The type [round_phase] represents the part of the round. *)
-type round_phase =
-  | Photosynthesis
-  | Life_Cycle
+module OrderedCoord = struct
+  open HexUtil
 
-(* module V = struct open HexUtil
+  type t = HexUtil.coord
 
-   type t = HexUtil.coord
+  let hash c = (c.col * 10) + c.diag
 
-   let equal c1 c2 = c1.col = c2.col && c1.diag = c2.diag
+  let compare x y = compare (hash x) (hash y)
+end
 
-   let hash c = (10 * c.col) + c.diag end
-
-   module E = struct end *)
-
-(* module PlantGraph : G_FORD_FULKERSON = struct module V = V module E =
-   E
-
-   end *)
+module PlantTrackMap = Map.Make (OrderedCoord)
 
 (** A record type representing a game and its data. [sun_dir] indicates
     the direction that shadows are cast. *)
@@ -30,7 +24,9 @@ type t = {
   map : HexMap.t;
   rules : ruleset;
   touched_cells : HexUtil.coord list;
-      (* plant_graph : Ford_Fulkerson () *)
+  n_planted : int;
+  graph : BaseGraph.t;
+  src_sink : HexUtil.coord * HexUtil.coord;
 }
 
 (* TODO: map planted seeds to candidate plants; if single candidate,
@@ -50,7 +46,14 @@ let plant_to_int (plant : Plant.plant_stage) : int =
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 let init_board ruleset =
-  { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
+  {
+    map = HexMap.init_map ();
+    rules = ruleset;
+    touched_cells = [];
+    n_planted = 0;
+    graph = BaseGraph.empty;
+    src_sink = ({ col = -1; diag = 0 }, { col = 0; diag = -1 });
+  }
 
 let testing_init_board ruleset cells =
   let board = init_board ruleset in
@@ -62,9 +65,11 @@ let testing_init_board ruleset cells =
   in
   { board with map = new_map }
 
+let map board = board.map
+
 let ruleset board = board.rules
 
-let map board = board.map
+let cells (board : t) : Cell.t list = HexMap.flatten board.map
 
 let cell_at coord board = HexMap.cell_at board.map coord
 
@@ -75,31 +80,16 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
+(** [cell_if_empty coord board] is the [Cell.t option] of the cell at
+    [coord]. If the cell has a plant or is invalid, returns [None]. *)
 let cell_if_empty coord board =
   match cell_at board coord with
   | None -> None
   | Some c -> (
       match Cell.plant c with None -> Some c | Some p -> None)
 
-(** [neighbors_in_dir board coord sun_dir] is the list of the three
-    neighbors in direction [sun_dir]. If there are fewer than three
-    legal neighbors, return only the legal neighbors. *)
-let neighbors_in_dir board coord sun_dir =
-  match HexMap.neighbor board.map coord sun_dir with
-  | None -> []
-  | Some fst_neigh_coord ->
-      fst_neigh_coord
-      ::
-      (match HexMap.neighbor board.map fst_neigh_coord sun_dir with
-      | None -> []
-      | Some snd_neigh_coord ->
-          snd_neigh_coord
-          ::
-          (match HexMap.neighbor board.map snd_neigh_coord sun_dir with
-          | None -> []
-          | Some thd_neigh_coord -> [ thd_neigh_coord ]))
-
-(** TODO *)
+(** [neighbors_in_radius board coord radius] gets all legal neighbors of
+    [coord] within [radius] of [coord]. *)
 let neighbors_in_radius board coord radius =
   List.map
     (fun cell -> Cell.coord cell)
@@ -117,38 +107,77 @@ let within_radius p_id coord board =
     (* check if has plant owned by player; if not, false; if so, match
        plant size -> allowed distance *)
       (fun acc neighbor_coord ->
-      match cell_at neighbor_coord board with
-      | None -> failwith "Should never happen"
-      | Some cell -> (
-          match Cell.plant cell with
-          | None -> acc
-          | Some plant ->
-              if Plant.player_id plant = p_id then
-                acc
-                || HexMap.dist board.map neighbor_coord coord
-                   <= plant_to_int (plant_stage plant)
-              else acc))
+      match plant_at neighbor_coord board with
+      | None -> acc
+      | Some plant ->
+          if Plant.player_id plant = p_id then
+            acc
+            || HexMap.dist board.map neighbor_coord coord
+               <= plant_to_int (plant_stage plant)
+          else acc)
     false all_neighbors
 
+(** TODO *)
+let add_all seed cands graph (src, sink) =
+  let with_seed =
+    BaseGraph.add_edge (BaseGraph.add_vertex graph seed) src seed
+  in
+  List.fold_left
+    (fun acc cand ->
+      BaseGraph.add_edge
+        (BaseGraph.add_edge (BaseGraph.add_vertex acc cand) seed cand)
+        cand sink)
+    with_seed cands
+
+(** TODO *)
+let valid_plant seed cands board =
+  let g = board.graph in
+  let g_with = add_all seed cands g board.src_sink in
+  let src, sink = board.src_sink in
+  let _, n = MaxFlow.maxflow g_with src sink in
+  n = board.n_planted
+
+(** TODO *)
+let get_usable_neighbors player_id coord board =
+  let neighbors = neighbors_in_radius board coord 3 in
+  List.filter
+    (fun c ->
+      match plant_at c board with
+      | None -> false
+      | Some p ->
+          Plant.player_id p = player_id
+          && not (List.mem c board.touched_cells))
+    neighbors
+
 let can_plant_seed player_id coord board =
+  let usable_neighbors = get_usable_neighbors player_id coord board in
   (not (List.mem coord board.touched_cells))
+  && valid_plant coord usable_neighbors board
   && cell_if_empty board coord <> None
   && within_radius player_id coord board
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
-    [coord] in [board] and the cell has soil of type [1]. *)
+    [coord] in [board] and the cell has soil of type [1]. Should only be
+    called in setup phase. *)
 let can_plant_small coord board =
-  (not (List.mem coord board.touched_cells))
-  &&
   match cell_if_empty board coord with
   | None -> false
   | Some c -> Cell.soil c = 1
 
+(** [place_plant can_place plant coord board] places [plant] at [coord]
+    on [board] if [can_place] is true, otherwise raises
+    [IllegalPlacePlant]. *)
 let place_plant can_place plant coord board =
   if can_place then
     match cell_at coord board with
     | None -> failwith "Unreachable"
     | Some old_cell ->
+        let usable_neighbors =
+          get_usable_neighbors (Plant.player_id plant) coord board
+        in
+        let new_graph =
+          add_all coord usable_neighbors board.graph board.src_sink
+        in
         {
           board with
           map =
@@ -156,6 +185,8 @@ let place_plant can_place plant coord board =
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
           touched_cells = coord :: board.touched_cells;
+          graph = new_graph;
+          n_planted = board.n_planted + 1;
         }
   else raise IllegalPlacePlant
 
@@ -173,6 +204,15 @@ let plant_small player_id coord board =
 
 let can_grow_plant player_id coord board =
   (not (List.mem coord board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow
+         (BaseGraph.remove_vertex board.graph coord)
+         src sink
+     in
+     n = board.n_planted)
   &&
   match plant_at coord board with
   | None -> false
@@ -183,27 +223,35 @@ let can_grow_plant player_id coord board =
 
 let grow_plant coord player_id board =
   if can_grow_plant player_id coord board then
-    match cell_at coord board with
-    | None -> failwith "Impossible"
-    | Some old_cell ->
-        let old_plant =
-          match Cell.plant old_cell with
-          | None -> failwith "Impossible"
-          | Some p -> p
-        in
-        let next_plant =
-          Some
-            (Plant.init_plant player_id
-               (old_plant |> Plant.plant_stage |> Plant.next_stage))
-        in
-        {
-          board with
-          map =
-            HexMap.set_cell board.map
-              (Some (Cell.set_plant old_cell next_plant))
-              coord;
-          touched_cells = coord :: board.touched_cells;
-        }
+    let old_cell =
+      match cell_at coord board with
+      | None -> failwith "should not happen"
+      | Some c -> c
+    in
+    let old_plant =
+      match plant_at coord board with
+      | None -> failwith "Impossible"
+      | Some p -> p
+    in
+    let next_plant =
+      Some
+        (Plant.init_plant player_id
+           (match
+              old_plant |> Plant.plant_stage |> Plant.next_stage
+            with
+           | None -> failwith "Impossible"
+           | Some p -> p))
+    in
+    let new_graph = BaseGraph.remove_vertex board.graph coord in
+    {
+      board with
+      map =
+        HexMap.set_cell board.map
+          (Some (Cell.set_plant old_cell next_plant))
+          coord;
+      touched_cells = coord :: board.touched_cells;
+      graph = new_graph;
+    }
   else raise IllegalGrowPlant
 
 (** [shadows map c1 c2] determines if the [Plant.t] in [c1] would shadow
@@ -223,8 +271,20 @@ let shadows board c1 c2 =
       | None -> false
       | Some c1_plt ->
           let c1_plnt = plant_stage c1_plt in
-          HexMap.dist board.map c1 c2 <= plant_to_int c2_plnt
-          && plant_to_int c2_plnt < plant_to_int c1_plnt)
+          HexMap.dist board.map c1 c2 <= plant_to_int c1_plnt
+          && plant_to_int c2_plnt <= plant_to_int c1_plnt)
+
+(** [neighbors_in_dir_r board coord sun_dir dist] is the list of the
+    [dist] neighbors in direction [sun_dir]. If there are fewer than
+    [dist] legal neighbors, return only the legal neighbors. *)
+let rec neighbors_in_dir_r board coord dir dist =
+  if dist = 0 then []
+  else
+    match HexMap.neighbor board.map coord dir with
+    | None -> []
+    | Some neigh_coord ->
+        neigh_coord
+        :: neighbors_in_dir_r board neigh_coord dir (dist - 1)
 
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
@@ -233,7 +293,7 @@ let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
     (HexUtil.coord * int) list =
   let single_cell_shadowed coord =
     let neighbors =
-      neighbors_in_dir board coord (HexUtil.reverse_dir sun_dir)
+      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
     in
     let shadowed =
       List.fold_left
@@ -281,6 +341,13 @@ let get_photo_lp sun_dir players board =
 
 let can_harvest player c board =
   (not (List.mem c board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow (BaseGraph.remove_vertex board.graph c) src sink
+     in
+     n = board.n_planted)
   &&
   match cell_at c board with
   | None -> false
@@ -308,9 +375,13 @@ let harvest player_id coord board =
         }
   else raise IllegalHarvest
 
-let cells (board : t) : Cell.t list = HexMap.flatten board.map
-
-let end_turn board = { board with touched_cells = [] }
+let end_turn board =
+  {
+    board with
+    touched_cells = [];
+    graph = BaseGraph.empty;
+    n_planted = 0;
+  }
 
 let actionable_cells board =
   List.filter

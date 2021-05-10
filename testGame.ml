@@ -42,7 +42,7 @@ let light_points_tests =
     test_light_points "-1 turn" game4_almost_done [ 0; 0; 0; 0 ];
     test_light_points "0 turns" game4 [ 1; 2; 0; 2 ];
     test_light_points "4 turns" (iter_turns 4 game4) [ 2; 4; 0; 4 ];
-    test_light_points "8 turns" (iter_turns 8 game4) [ 2; 6; 2; 6 ];
+    test_light_points "8 turns" (iter_turns 8 game4) [ 2; 4; 2; 6 ];
   ]
 
 let rec grow_to_stage player_id coord stage board =

@@ -1,4 +1,4 @@
-(** TODO *)
+(** The hexmap of the game, where plants are placed and removed. *)
 
 (** The abstract type representing a hexagonal board. *)
 type t

@@ -3,6 +3,7 @@
 (** Represents a store. *)
 type t
 
+(** Raised when a plant is bought without enough light points for it. *)
 exception InsufficientLightPoints of int
 
 (** Raised when a plant is added to a store without capacity for it. *)
