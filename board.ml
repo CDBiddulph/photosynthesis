@@ -24,8 +24,9 @@ type t = {
   map : HexMap.t;
   rules : ruleset;
   touched_cells : HexUtil.coord list;
-  planted : HexUtil.coord list PlantTrackMap.t;
+  n_planted : int;
   graph : BaseGraph.t;
+  src_sink : HexUtil.coord * HexUtil.coord;
 }
 
 (* TODO: map planted seeds to candidate plants; if single candidate,
@@ -49,8 +50,9 @@ let init_board ruleset =
     map = HexMap.init_map ();
     rules = ruleset;
     touched_cells = [];
-    planted = PlantTrackMap.empty;
-    graph = BaseGraph.create ();
+    n_planted = 0;
+    graph = BaseGraph.empty;
+    src_sink = ({ col = -1; diag = 0 }, { col = 0; diag = -1 });
   }
 
 let testing_init_board ruleset cells =
@@ -115,16 +117,49 @@ let within_radius p_id coord board =
           else acc)
     false all_neighbors
 
+(** TODO *)
+let add_all seed cands graph (src, sink) =
+  let with_seed =
+    BaseGraph.add_edge (BaseGraph.add_vertex graph seed) src seed
+  in
+  List.fold_left
+    (fun acc cand ->
+      BaseGraph.add_edge
+        (BaseGraph.add_edge (BaseGraph.add_vertex acc cand) seed cand)
+        cand sink)
+    with_seed cands
+
+(** TODO *)
+let valid_plant seed cands board =
+  let g = board.graph in
+  let g_with = add_all seed cands g board.src_sink in
+  let src, sink = board.src_sink in
+  let _, n = MaxFlow.maxflow g_with src sink in
+  n = board.n_planted
+
+(** TODO *)
+let get_usable_neighbors player_id coord board =
+  let neighbors = neighbors_in_radius board coord 3 in
+  List.filter
+    (fun c ->
+      match plant_at c board with
+      | None -> false
+      | Some p ->
+          Plant.player_id p = player_id
+          && not (List.mem c board.touched_cells))
+    neighbors
+
 let can_plant_seed player_id coord board =
+  let usable_neighbors = get_usable_neighbors player_id coord board in
   (not (List.mem coord board.touched_cells))
+  && valid_plant coord usable_neighbors board
   && cell_if_empty board coord <> None
   && within_radius player_id coord board
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
-    [coord] in [board] and the cell has soil of type [1]. *)
+    [coord] in [board] and the cell has soil of type [1]. Should only be
+    called in setup phase. *)
 let can_plant_small coord board =
-  (not (List.mem coord board.touched_cells))
-  &&
   match cell_if_empty board coord with
   | None -> false
   | Some c -> Cell.soil c = 1
@@ -137,6 +172,12 @@ let place_plant can_place plant coord board =
     match cell_at coord board with
     | None -> failwith "Unreachable"
     | Some old_cell ->
+        let usable_neighbors =
+          get_usable_neighbors (Plant.player_id plant) coord board
+        in
+        let new_graph =
+          add_all coord usable_neighbors board.graph board.src_sink
+        in
         {
           board with
           map =
@@ -144,6 +185,8 @@ let place_plant can_place plant coord board =
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
           touched_cells = coord :: board.touched_cells;
+          graph = new_graph;
+          n_planted = board.n_planted + 1;
         }
   else raise IllegalPlacePlant
 
@@ -161,6 +204,15 @@ let plant_small player_id coord board =
 
 let can_grow_plant player_id coord board =
   (not (List.mem coord board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow
+         (BaseGraph.remove_vertex board.graph coord)
+         src sink
+     in
+     n = board.n_planted)
   &&
   match plant_at coord board with
   | None -> false
@@ -190,6 +242,7 @@ let grow_plant coord player_id board =
            | None -> failwith "Impossible"
            | Some p -> p))
     in
+    let new_graph = BaseGraph.remove_vertex board.graph coord in
     {
       board with
       map =
@@ -197,6 +250,7 @@ let grow_plant coord player_id board =
           (Some (Cell.set_plant old_cell next_plant))
           coord;
       touched_cells = coord :: board.touched_cells;
+      graph = new_graph;
     }
   else raise IllegalGrowPlant
 
@@ -287,6 +341,13 @@ let get_photo_lp sun_dir players board =
 
 let can_harvest player c board =
   (not (List.mem c board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow (BaseGraph.remove_vertex board.graph c) src sink
+     in
+     n = board.n_planted)
   &&
   match cell_at c board with
   | None -> false
@@ -314,7 +375,13 @@ let harvest player_id coord board =
         }
   else raise IllegalHarvest
 
-let end_turn board = { board with touched_cells = [] }
+let end_turn board =
+  {
+    board with
+    touched_cells = [];
+    graph = BaseGraph.empty;
+    n_planted = 0;
+  }
 
 let actionable_cells board =
   List.filter
