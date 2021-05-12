@@ -41,6 +41,8 @@ let store_capacity stage player = Store.capacity stage
 let is_store_full stage player =
   Store.remaining_capacity stage player.store = 0
 
+let cost_to_plant_seed = 1
+
 let cost_to_buy stage player = Store.cost stage player.store
 
 (** [cost_to_grow stage] is the cost in light points to grow a plant to
@@ -57,10 +59,12 @@ let cost_to_harvest = 4
 
 let cost_to_buy_and_grow stage player =
   let open Plant in
+  (* cost to grow or plant *)
   (match stage with
-  | Seed -> 0
+  | Seed -> cost_to_plant_seed
   | Small | Medium | Large -> cost_to_grow stage)
   +
+  (* cost to buy *)
   if PlantInventory.is_empty stage player.available then
     Store.cost stage player.store
   else 0
@@ -69,8 +73,6 @@ let can_buy_plant stage player =
   num_in_store stage player > 0
   && player.light_points >= Store.cost stage player.store
 
-(* Planting, i.e. putting a plant on an empty cell, never costs light
-   points *)
 let can_plant_plant stage player = num_in_available stage player > 0
 
 let can_grow_plant stage player =

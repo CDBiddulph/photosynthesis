@@ -13,7 +13,9 @@ val cost_to_buy : Plant.plant_stage -> t -> int
 
 (** [cost_to_grow stage] is the number of light points that it costs to
     grow a plant of stage one below [stage] into [stage] by moving it
-    from the available area to the board. *)
+    from the available area to the board. Raises:
+    [PlantInventory.OutOfPlant stage] if there are no more plants of
+    [stage] in [player]'s store.*)
 val cost_to_grow : Plant.plant_stage -> int
 
 (** [cost_to_harvest] is the number of light points that it costs to
@@ -23,7 +25,9 @@ val cost_to_harvest : int
 (** [cost_to_buy_and_grow stage player] is the number of light points
     that it costs to grow (or plant when [stage = Seed]) a plant of
     [stage], plus the cost of buying it, if and only if the available
-    area does not already contain any plants of [stage]. *)
+    area does not already contain any plants of [stage]. Raises:
+    [PlantInventory.OutOfPlant stage] if there are no more plants of
+    [stage] in [player]'s store. *)
 val cost_to_buy_and_grow : Plant.plant_stage -> t -> int
 
 (** [can_buy_plant stage player] is true iff [player] can buy a plant of
