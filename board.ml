@@ -159,7 +159,7 @@ let can_grow_plant player_id coord board =
       let not_large = Plant.plant_stage old_plant <> Plant.Large in
       old_player_id = player_id && not_large
 
-let grow_plant coord player_id board =
+let grow_plant player_id coord board =
   if can_grow_plant player_id coord board then
     match cell_at coord board with
     | None -> failwith "Impossible"
