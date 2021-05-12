@@ -55,8 +55,10 @@ val plant_small : HexUtil.coord -> t -> t
     thrown away). Raises: [Board.IllegalGrowPlant] if growing the plant
     at [coord] is an illegal or impossible move;
     [PlantInventory.OutOfPlant next_stage] if the player does not have
-    any of [next_stage] in their available area. See [can_grow_plant]
-    and [is_plant_available]. *)
+    any of [next_stage] in their available area;
+    [Player.InsufficientLightPoints cost] if the current player does not
+    have enough light points to grow the plant. See [can_grow_plant] and
+    [is_plant_available]. *)
 val grow_plant : HexUtil.coord -> t -> t
 
 (** [buy_and_grow_plant coord game] first checks to see if the available

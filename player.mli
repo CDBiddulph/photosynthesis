@@ -50,13 +50,15 @@ val can_harvest : t -> bool
     store to their available area, and deducts the appropriate amount of
     light points from the player's light point total. Raises:
     [PlantInventory.OutOfPlant stage] if there are no more plants of
-    [stage]; [Player.InsufficientLightPoints price] if [player] does not
+    [stage]; [Player.InsufficientLightPoints cost] if [player] does not
     have enough light points to make the purchase. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
 (** [plant_plant stage player] moves a plant of [stage] out of
     [player]'s available area. Raises: [PlantInventory.OutOfPlant stage]
-    if there are no more plants of [stage] in the available area. *)
+    if there are no more plants of [stage] in the available area;
+    [Player.InsufficientLightPoints cost] if [player] does not have
+    enough light points to place a plant of [stage]. *)
 val plant_plant : Plant.plant_stage -> t -> t
 
 (** [grow_plant stage player] moves a plant of [stage] out of [player]'s
@@ -64,15 +66,15 @@ val plant_plant : Plant.plant_stage -> t -> t
     Increments the number of trees of the stage previous to [stage] in
     the store of [player], if it is not already at capacity. Raises:
     [PlantInventory.OutOfPlant stage] if there are no more plants of
-    [stage] in the available area;
-    [Player.InsufficientLightPoints price] if [player] does not have
-    enough light points to place a plant of [stage]. *)
+    [stage] in the available area; [Player.InsufficientLightPoints cost]
+    if [player] does not have enough light points to grow a plant to
+    [stage]. *)
 val grow_plant : Plant.plant_stage -> t -> t
 
 (** [harvest sp player] deducts the appropriate number of light points
     and increases the number of scoring points by [sp]. Increments the
     number of Large trees in the store of [player], if it is not already
-    at capacity. Raises: [Player.InsufficientLightPoints price] if
+    at capacity. Raises: [Player.InsufficientLightPoints cost] if
     [player] does not have enough light points to harvest a plant. *)
 val harvest : int -> t -> t
 

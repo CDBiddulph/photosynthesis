@@ -95,10 +95,18 @@ let buy_plant stage player =
   else raise (Store.InsufficientLightPoints cost)
 
 let plant_plant stage player =
+  let open Plant in
+  let cost =
+    match stage with
+    | Seed -> cost_to_plant_seed
+    | Small -> 0
+    | Medium | Large -> failwith "Cannot plant a medium or a large tree"
+  in
   if can_plant_plant stage player then
     {
       player with
       available = PlantInventory.remove_plant stage player.available;
+      light_points = player.light_points - cost;
     }
   else raise (PlantInventory.OutOfPlant stage)
 
