@@ -48,10 +48,6 @@ let buy_plant stage light_points store =
         else count)
       store
 
-let plant_is_full stage store =
-  let ind = int_of_plant_stage stage in
-  List.nth store ind = 0
-
 let add_plant stage store =
   let ind = int_of_plant_stage stage in
   List.mapi

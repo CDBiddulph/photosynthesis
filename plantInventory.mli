@@ -27,9 +27,9 @@ val init_plant_inventory_gen : Plant.plant_stage -> int -> t -> t
 (** [empty] is an empty plant inventory. *)
 val empty : t
 
-(** [is_empty inv] returns true if the inventory is empty and false if
-    the inventory contains elements. *)
-val is_empty : t -> bool
+(** [is_empty stage inv] returns true if there are no plants of [stage]
+    in [inv]. *)
+val is_empty : Plant.plant_stage -> t -> bool
 
 (** [size inv] is the number of plants in [inv] *)
 val size : t -> int

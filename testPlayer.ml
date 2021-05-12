@@ -16,9 +16,14 @@ let test_exn name f init_lp init_avail init_store expected_exn =
 
 let avail_store_player = lp_avail_store_player 20
 
-let store_test name f starting_store expected_store =
+let store_test
+    ?(starting_avail = [ 1; 1; 1; 1 ])
+    name
+    f
+    starting_store
+    expected_store =
   "store_test " ^ name >:: fun _ ->
-  let player = avail_store_player [ 1; 1; 1; 1 ] starting_store in
+  let player = avail_store_player starting_avail starting_store in
   assert_equal expected_store
     ( player |> f |> _store |> fun store ->
       List.map ((Fun.flip Store.num_remaining) store) Plant.all_stages
@@ -44,6 +49,35 @@ let store_tests =
       [ 1; 1; 1; 1 ];
     store_test "plant small" (plant_plant Small) [ 1; 1; 1; 1 ]
       [ 1; 1; 1; 1 ];
+    store_test "plant small" (plant_plant Small) [ 1; 1; 1; 1 ]
+      [ 1; 1; 1; 1 ];
+    store_test ~starting_avail:[ 0; 1; 1; 1 ]
+      "buy and plant seed - do buy"
+      (buy_and_grow_plant Seed)
+      [ 1; 1; 1; 1 ] [ 0; 1; 1; 1 ];
+    store_test "buy and plant seed - do not buy"
+      (buy_and_grow_plant Seed)
+      [ 1; 1; 1; 1 ] [ 1; 1; 1; 1 ];
+    store_test ~starting_avail:[ 1; 0; 1; 1 ]
+      "buy and grow small - do buy"
+      (buy_and_grow_plant Small)
+      [ 1; 1; 1; 1 ] [ 2; 0; 1; 1 ];
+    store_test "buy and grow small - do not buy"
+      (buy_and_grow_plant Small)
+      [ 1; 1; 1; 1 ] [ 2; 1; 1; 1 ];
+    test_exn "buy and plant seed - do buy, no seeds in store"
+      (buy_and_grow_plant Seed)
+      20 [ 0; 1; 1; 1 ] [ 0; 1; 1; 1 ] (PlantInventory.OutOfPlant Seed);
+    test_exn "buy and plant seed - do buy, ILP"
+      (buy_and_grow_plant Seed)
+      0 [ 0; 1; 1; 1 ] [ 1; 1; 1; 1 ] (Store.InsufficientLightPoints 3);
+    test_exn "buy and plant medium - do buy, no mediums in store"
+      (buy_and_grow_plant Medium)
+      20 [ 1; 1; 0; 1 ] [ 1; 1; 0; 1 ]
+      (PlantInventory.OutOfPlant Medium);
+    test_exn "buy and plant medium - do buy, ILP"
+      (buy_and_grow_plant Medium)
+      0 [ 1; 1; 0; 1 ] [ 1; 1; 1; 1 ] (Store.InsufficientLightPoints 6);
   ]
 
 let avail_test name f starting_avail expected_avail =
@@ -71,6 +105,18 @@ let available_tests =
     avail_test "grow large" (grow_plant Large) [ 1; 2; 3; 4 ]
       [ 1; 2; 3; 3 ];
     avail_test "buy seed" (buy_plant Seed) [ 1; 2; 3; 4 ] [ 2; 2; 3; 4 ];
+    avail_test "buy and plant seed - do buy"
+      (buy_and_grow_plant Seed)
+      [ 0; 2; 3; 4 ] [ 0; 2; 3; 4 ];
+    avail_test "buy and plant seed - do not buy"
+      (buy_and_grow_plant Seed)
+      [ 1; 2; 3; 4 ] [ 0; 2; 3; 4 ];
+    avail_test "buy and grow small - do buy"
+      (buy_and_grow_plant Small)
+      [ 1; 0; 3; 4 ] [ 1; 0; 3; 4 ];
+    avail_test "buy and plant small - do not buy"
+      (buy_and_grow_plant Small)
+      [ 1; 2; 3; 4 ] [ 1; 1; 3; 4 ];
   ]
 
 let lp_test name f init_lp init_avail init_store expected_lp =
@@ -106,6 +152,24 @@ let lp_tests =
     lp_test_exn "buy ILP" (buy_plant Seed) 1
       (Store.InsufficientLightPoints 2);
     lp_test_default "buy almost ILP" (buy_plant Seed) 2 0;
+    lp_test "buy and plant seed - do buy"
+      (buy_and_grow_plant Seed)
+      3 [ 0; 0; 0; 0 ] [ 1; 1; 1; 1 ] 0;
+    lp_test_default "buy and plant seed - do not buy"
+      (buy_and_grow_plant Seed)
+      3 2;
+    lp_test "buy and grow small - do buy"
+      (buy_and_grow_plant Small)
+      4 [ 0; 0; 0; 0 ] [ 1; 1; 1; 1 ] 0;
+    lp_test_default "buy and grow small - do not buy"
+      (buy_and_grow_plant Small)
+      1 0;
+    lp_test "buy and grow large - do buy"
+      (buy_and_grow_plant Large)
+      8 [ 0; 0; 0; 0 ] [ 1; 1; 1; 1 ] 0;
+    lp_test_default "buy and grow large - do not buy"
+      (buy_and_grow_plant Large)
+      3 0;
   ]
 
 let sp_tests =

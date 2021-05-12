@@ -224,7 +224,7 @@ let grow_plant coord game =
       | None -> failwith "Unreachable"
       | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
     in
-    update_board (Board.grow_plant coord game.turn game.board) game
+    update_board (Board.grow_plant game.turn coord game.board) game
     |> update_player game.turn
          (Player.grow_plant stage (player_of_turn game))
 
@@ -261,8 +261,25 @@ let harvest coord game =
     scored_game |> update_player game.turn harvest_player
 
 let buy_plant stage game =
-  let player = player_of game game.turn in
+  let player = player_of_turn game in
   update_player game.turn (Player.buy_plant stage player) game
+
+let buy_and_grow_plant coord game =
+  let next_stage =
+    match Board.plant_at coord game.board with
+    | None -> Plant.Seed
+    | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
+  in
+  let player_id = turn game in
+  let player =
+    player_of_turn game |> Player.buy_and_grow_plant next_stage
+  in
+  let board =
+    match next_stage with
+    | Seed -> game.board |> Board.plant_seed player_id coord
+    | _ -> game.board |> Board.grow_plant player_id coord
+  in
+  game |> update_player player_id player |> update_board board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 

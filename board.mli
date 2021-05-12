@@ -65,7 +65,7 @@ val plant_small : PlayerId.t -> HexUtil.coord -> t -> t
     [player] at [coord] on [board]. Raises: [IllegalGrowPlant] if
     placing a seed as [player] in [coord] on [board] is not a legal
     move. *)
-val grow_plant : HexUtil.coord -> PlayerId.t -> t -> t
+val grow_plant : PlayerId.t -> HexUtil.coord -> t -> t
 
 (** [harvest board player coord] removes the plant at [coord] on
     [board]. Raises: [IllegalHarvest] if removing the plant in [coord]
