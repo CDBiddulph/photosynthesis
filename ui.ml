@@ -41,11 +41,7 @@ let num_remaining_store (p : Player.t) =
   List.map (fun stage -> Player.num_in_store stage p) Plant.all_stages
 
 let update_message (s : t) (coord : HexUtil.coord) =
-  if
-    Game.can_plant_seed coord
-      (Game.player_of_turn s.game |> Player.player_id)
-      s.game
-  then "(P) Plant Seed"
+  if Game.can_plant_seed coord s.game then "(P) Plant Seed"
   else if Game.can_plant_small coord s.game then "(P) Plant Small Tree"
   else if Game.can_grow_plant coord s.game then
     let plnt_stg =
@@ -228,14 +224,8 @@ let end_turn s =
 
 let plant s =
   try
-    if
-      Game.can_plant_seed s.current_position
-        (Game.player_of_turn s.game |> Player.player_id)
-        s.game
-    then
-      plant_helper s
-        (Game.plant_seed
-           (Game.player_of_turn s.game |> Player.player_id))
+    if Game.can_plant_seed s.current_position s.game then
+      plant_helper s Game.plant_seed
     else if Game.can_plant_small s.current_position s.game then
       plant_helper s Game.plant_small |> end_turn
     else if Game.can_grow_plant s.current_position s.game then
@@ -259,10 +249,7 @@ let plant s =
       in
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
-      plant_helper_exn s
-        (Game.plant_seed
-           (Game.player_of_turn s.game |> Player.player_id))
-        Plant.Seed
+      plant_helper_exn s Game.plant_seed Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->
       if Game.is_setup s.game then end_turn s
       else plant_helper_exn s Game.grow_plant Plant.Small
