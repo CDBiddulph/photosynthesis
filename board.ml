@@ -135,7 +135,7 @@ let valid_plant seed cands board =
   let g_with = add_all seed cands g board.src_sink in
   let src, sink = board.src_sink in
   let _, n = MaxFlow.maxflow g_with src sink in
-  n = board.n_planted
+  n = board.n_planted + 1
 
 (** TODO *)
 let get_usable_neighbors player_id coord board =
@@ -146,7 +146,9 @@ let get_usable_neighbors player_id coord board =
       | None -> false
       | Some p ->
           Plant.player_id p = player_id
-          && not (List.mem c board.touched_cells))
+          && (not (List.mem c board.touched_cells))
+          && HexMap.dist board.map c coord
+             <= plant_to_int (Plant.plant_stage p))
     neighbors
 
 let can_plant_seed player_id coord board =
