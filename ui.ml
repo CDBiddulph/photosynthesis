@@ -127,57 +127,6 @@ let plant_helper s f =
   let newer_state = { s with gui = new_gui; game = new_game } in
   newer_state
 
-let plant_helper_exn (s : t) f plnt_stg =
-  try
-    let new_game =
-      Game.buy_plant plnt_stg s.game |> f s.current_position
-    in
-    let pl = Game.player_of_turn new_game in
-    let pl_id = Player.player_id pl in
-    let num_store_remaining = num_remaining_store pl in
-    let num_available = num_remaining_available pl in
-    let hlo =
-      let plnt_opt =
-        s.current_position |> Game.cell_at new_game |> Cell.plant
-      in
-      match plnt_opt with
-      | None -> None
-      | Some plant ->
-          if Plant.player_id plant <> pl_id then None
-          else
-            let plnt_stg = plant |> Plant.plant_stage in
-            if Player.is_in_available plnt_stg pl then
-              Some (false, plnt_stg)
-            else Some (true, plnt_stg)
-    in
-    let new_gui =
-      let cells = Game.cells new_game in
-      Gui.update_cells cells s.gui
-      |> Gui.update_message "" ANSITerminal.White
-      |> Gui.update_available num_available
-      |> Gui.update_store_remaining num_store_remaining
-      |> Gui.update_player_lp (Player.light_points pl)
-      |> Gui.update_player_sp (Player.score_points pl)
-      |> Gui.update_plant_highlight hlo
-    in
-    let new_state =
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = new_game;
-      }
-    in
-    new_state
-  with PlantInventory.OutOfPlant plnt_stg ->
-    let new_gui =
-      Gui.update_message
-        ("Out of Plant "
-        ^ (plnt_stg |> Plant.string_of_plant_stage
-         |> String.capitalize_ascii))
-        ANSITerminal.Red s.gui
-    in
-    { s with gui = new_gui }
-
 let end_turn s =
   let new_game = Game.end_turn s.game in
   let pl = Game.player_of_turn new_game in
