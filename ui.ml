@@ -222,6 +222,12 @@ let end_turn s =
   let new2_state = { s with game = new_game; gui = new2_gui } in
   new2_state
 
+let out_of_plant_exn s plnt_stg =
+  let str = "Out of " ^ Plant.string_of_plant_stage plnt_stg in
+  let new_gui = Gui.update_message str ANSITerminal.Red s.gui in
+  render new_gui;
+  { s with gui = new_gui }
+
 let plant s =
   try
     if Game.can_plant_seed s.current_position s.game then
@@ -247,16 +253,25 @@ let plant s =
         Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
           s.gui
       in
+      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
-      plant_helper_exn s Game.plant_seed Plant.Seed
+      out_of_plant_exn s Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->
       if Game.is_setup s.game then end_turn s
-      else plant_helper_exn s Game.grow_plant Plant.Small
+      else out_of_plant_exn s Plant.Small
   | PlantInventory.OutOfPlant Plant.Medium ->
-      plant_helper_exn s Game.grow_plant Plant.Medium
+      out_of_plant_exn s Plant.Medium
   | PlantInventory.OutOfPlant Plant.Large ->
-      plant_helper_exn s Game.grow_plant Plant.Large
+      out_of_plant_exn s Plant.Large
+  | Store.InsufficientLightPoints cost ->
+      let new_gui =
+        Gui.update_message
+          ("Action requires " ^ string_of_int cost ^ " light points")
+          ANSITerminal.Red s.gui
+      in
+      render new_gui;
+      { s with gui = new_gui }
 
 let handle_char s c =
   match c with
