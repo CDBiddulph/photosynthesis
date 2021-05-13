@@ -308,8 +308,7 @@ let rec read_char (s : t) =
     try
       let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
       let new_state = handle_char s a.Graphics.key in
-      (* render new_state.gui; *)
-      new_state.gui |> update_end_screen [ 1 ] |> render;
+      render new_state.gui;
       read_char new_state
     with
     | Invalid_Key -> read_char s
