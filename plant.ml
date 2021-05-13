@@ -44,6 +44,3 @@ let next_stage stage =
   | Large -> raise StageDoesNotExist
 
 let all_stages = [ Seed; Small; Medium; Large ]
-
-let to_string (stage : plant_stage) =
-  Format.fprintf Format.std_formatter "%s"

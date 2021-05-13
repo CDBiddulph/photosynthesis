@@ -3,6 +3,7 @@
 (** The abstract type representing a plant. *)
 type t
 
+(** Raised when access to a non-existant stage is attempted. *)
 exception StageDoesNotExist
 
 (** The type [plant_stage] represents the growth stage of a plant. *)
@@ -30,8 +31,8 @@ val string_of_plant_stage : plant_stage -> string
     [Plant.Seed] maps to 0, [Plant.Small] maps to 1, and so on. *)
 val int_of_plant_stage : plant_stage -> int
 
-(** [next_stage stage] is the plant stage following [stage]. If [stage]
-    is [Plant.Large], returns [None]. *)
+(** [next_stage stage] is the plant stage following [stage]. Raises:
+    [StageDoesNotExist] if [stage] is [Plant.Large]. *)
 val next_stage : plant_stage -> plant_stage option
 
 (** [all_stages] is the list of all possible plant stages. *)
@@ -44,5 +45,3 @@ val last_stage : plant_stage -> plant_stage
 (** [next_stage stage] is the stage after [stage]. Raises:
     [StageDoesNotExist] if [stage = Large]. *)
 val next_stage : plant_stage -> plant_stage
-
-val to_string : plant_stage -> string -> unit
