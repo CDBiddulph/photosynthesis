@@ -5,7 +5,8 @@ open ANSITerminal
 (** Type representing the GUI state *)
 type t
 
-(** [init_gui store_costs init_available init_next_sp sun_dir cells player_params]
+(** [init_gui store_costs init_available init_next_sp init_cursor 
+    init_instructions sun_dir cells player_params]
     is the GUI for a board of cells, constructed from the ground up. A
     hexagon will be created in every place corresponding to a Some value
     in [cells]. Then, [update_cells cells] will be called. The colors
@@ -19,12 +20,16 @@ type t
     of plants in each row, in order of [Plant.all_stages]. The displayed
     scoring points will be initialized to [init_next_sp], which should
     be given in the order of the soil types 1, 2, 3, 4, but will be
-    displayed in the order of 4, 3, 2, 1. Precondition: for all values
-    [sp] in [init_next_sp], [sp >= 0 && sp < 100] *)
+    displayed in the order of 4, 3, 2, 1. [update_cursor init_cursor]
+    and [update_instructions init_instructions] will also be called.
+    Precondition: for all values [sp] in [init_next_sp],
+    [sp >= 0 && sp < 100] *)
 val init_gui :
   int list list ->
   int list ->
   int list ->
+  HexUtil.coord option ->
+  bool ->
   HexUtil.dir ->
   Cell.t list ->
   (PlayerId.t * (char * color)) list ->
@@ -116,6 +121,11 @@ val update_player_lp : int -> t -> t
 (** [update_player_sp sp gui] is [gui] with the scoring points of the
     current player overwritten with [sp]. *)
 val update_player_sp : int -> t -> t
+
+(** [update_instructions to_show gui] is [gui] with the instructions
+    shown if [to_show = True]. Otherwise, the instructions will be
+    hidden. *)
+val update_instructions : bool -> t -> t
 
 (** [photosynthesis lp gui] is [gui] with numbers under each of the
     trees at the coordinates in the color of the proper player id -

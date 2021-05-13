@@ -16,12 +16,15 @@ exception Invalid_Cell
 
 type t = {
   current_position : HexUtil.coord;
+  instr : bool;
   game : Game.t;
   gui : Gui.t;
 }
 
-let init_state (gui : Gui.t) (game : Game.t) : t =
-  { current_position = { col = 2; diag = 2 }; game; gui }
+let init_cursor = { col = 0; diag = 0 }
+
+let init_state (instr : bool) (gui : Gui.t) (game : Game.t) : t =
+  { current_position = init_cursor; instr; game; gui }
 
 let extract (c : HexUtil.coord option) : HexUtil.coord =
   match c with Some i -> i | None -> raise Invalid_Direction
@@ -159,14 +162,12 @@ let plant_helper_exn (s : t) f plnt_stg =
       |> Gui.update_player_sp (Player.score_points pl)
       |> Gui.update_plant_highlight hlo
     in
-    let new_state =
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = new_game;
-      }
-    in
-    new_state
+    {
+      s with
+      current_position = s.current_position;
+      gui = new_gui;
+      game = new_game;
+    }
   with
   | Store.InsufficientLightPoints cost ->
       let new_gui =
@@ -273,6 +274,14 @@ let plant s =
       render new_gui;
       { s with gui = new_gui }
 
+let toggle_instructions s =
+  let new_instr = not s.instr in
+  {
+    s with
+    gui = update_instructions new_instr s.gui;
+    instr = new_instr;
+  }
+
 let handle_char s c =
   match c with
   | 'q' -> scroll s 3
@@ -284,6 +293,7 @@ let handle_char s c =
   | 'p' -> plant s
   | 'f' -> end_turn s
   | 'x' -> raise End
+  | 'i' -> toggle_instructions s
   | _ -> s
 
 let rec read_char (s : t) =

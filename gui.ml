@@ -320,6 +320,12 @@ let draw_player_sign layer_name player_id gui =
     (render_color player_id gui)
     gui
 
+let set_visible visible layer_name gui =
+  { gui with rend = Renderer.set_visible visible layer_name gui.rend }
+
+let update_instructions to_show gui =
+  set_visible to_show "instructions" gui
+
 let photosynthesis lp gui =
   List.fold_left
     (fun g_o (p_id, coord_lps) ->
@@ -361,10 +367,12 @@ let init_gui
     store_costs
     init_available
     init_next_sp
+    init_cursor
+    init_instructions
     sun_dir
     cells
     player_params =
-  let layer_names =
+  let vis_layer_names =
     [
       "background";
       "sun";
@@ -383,9 +391,14 @@ let init_gui
       "message";
     ]
   in
+  let invis_layer_names = [ "instructions" ] in
+  let layer_info =
+    List.map (fun n -> (n, true)) vis_layer_names
+    @ List.map (fun n -> (n, false)) invis_layer_names
+  in
   let gui =
     {
-      rend = init_rend layer_names { x = 119; y = 44 };
+      rend = init_rend layer_info { x = 119; y = 44 };
       offsets =
         [
           ("board", { x = 5; y = 1 });
@@ -398,6 +411,7 @@ let init_gui
           ("player_lp", { x = 73; y = 3 });
           ("player_sp", { x = 7; y = 3 });
           ("message", { x = 0; y = 43 });
+          ("instructions", { x = 20; y = 10 });
         ];
       player_params;
       turn = PlayerId.first;
@@ -419,5 +433,12 @@ let init_gui
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
        None
   |> update_sun sun_dir
+  |> update_cursor init_cursor
+  |> fun g ->
+  draw_at_point "instructions"
+    (get_graphic_fill_color "instructions" ANSITerminal.White gui.rend)
+    g
+    (get_offset "instructions" g)
+  |> update_instructions init_instructions
 
 let render gui = render gui.rend
