@@ -80,6 +80,15 @@ let plant_at board coord =
   | None -> None
   | Some cell -> Cell.plant cell
 
+let get_all_trees board id =
+  List.filter
+    (fun cell ->
+      match Cell.plant cell with
+      | None -> false
+      | Some plant -> Plant.player_id plant = id)
+    (cells board)
+  |> List.map (fun cell -> Cell.coord cell)
+
 (** [cell_if_empty coord board] is the [Cell.t option] of the cell at
     [coord]. If the cell has a plant or is invalid, returns [None]. *)
 let cell_if_empty coord board =

@@ -168,6 +168,6 @@ val scoring_points : t -> (Cell.soil * int list) list
 (** [is_setup game] is true if [game] is in setup mode. *)
 val is_setup : t -> bool
 
-(** [winner game] is the winner of the game. If the game isn't over,
-    then returns [None]. *)
-val winner : t -> PlayerId.t option
+(** [winner game] is the list of winners of the game. If the game isn't
+    over, then returns [None]. *)
+val winner : t -> PlayerId.t list option

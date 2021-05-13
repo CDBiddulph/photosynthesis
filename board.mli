@@ -46,6 +46,10 @@ val valid_coord : HexUtil.coord -> t -> bool
     exists. *)
 val plant_at : HexUtil.coord -> t -> Plant.t option
 
+(** [get_all_trees board id] is the list of coordinates where the player
+    with id [id] has a plant. *)
+val get_all_trees : t -> PlayerId.t -> HexUtil.coord list
+
 (* Actions *)
 
 (** [plant_seed stage board coord player_id] places a seed belonging to
