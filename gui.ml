@@ -114,7 +114,7 @@ let rec draw_text_lines layer_name point lines color gui =
 
 let update_message text color gui =
   gui |> set_blank "message"
-  |> draw_text "message" { x = 0; y = 0 } text color
+  |> draw_text "message" (get_offset "message" gui) text color
 
 let update_sun dir gui =
   let gui' = set_blank "sun" gui in
@@ -357,8 +357,13 @@ let update_turn
   |> update_plant_highlight highlight_loc_opt
   |> update_player_lp lp |> update_player_sp sp
 
-let init_gui store_costs init_available init_next_sp sun_dir cells player_params
-    =
+let init_gui
+    store_costs
+    init_available
+    init_next_sp
+    sun_dir
+    cells
+    player_params =
   let layer_names =
     [
       "background";
@@ -383,15 +388,16 @@ let init_gui store_costs init_available init_next_sp sun_dir cells player_params
       rend = init_rend layer_names { x = 119; y = 44 };
       offsets =
         [
-          ("board", { x = 5; y = 2 });
-          ("store", { x = 85; y = 2 });
-          ("available", { x = 85; y = 23 });
+          ("board", { x = 5; y = 1 });
+          ("store", { x = 85; y = 1 });
+          ("available", { x = 85; y = 22 });
           ("plant_num", { x = 5; y = 5 });
-          ("player_sign", { x = 109; y = 1 });
-          ("sun", { x = 3; y = 1 });
-          ("next_sp", { x = 7; y = 38 });
-          ("player_lp", { x = 73; y = 4 });
-          ("player_sp", { x = 7; y = 4 });
+          ("player_sign", { x = 109; y = 0 });
+          ("sun", { x = 3; y = 0 });
+          ("next_sp", { x = 7; y = 37 });
+          ("player_lp", { x = 73; y = 3 });
+          ("player_sp", { x = 7; y = 3 });
+          ("message", { x = 0; y = 43 });
         ];
       player_params;
       turn = PlayerId.first;
