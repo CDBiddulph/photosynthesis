@@ -285,22 +285,24 @@ let toggle_instructions s =
   }
 
 let handle_char s c =
-  if s.instr then
-    match c with 'i' -> toggle_instructions s | _ -> raise Invalid_Key
-  else
-    match c with
-    | 'q' -> scroll s 3
-    | 'e' -> scroll s 5
-    | 'w' -> scroll s 4
-    | 'a' -> scroll s 2
-    | 's' -> scroll s 1
-    | 'd' -> scroll s 0
-    | 'p' -> plant s
-    | 'f' ->
-        if Game.is_setup s.game then raise Invalid_Key else end_turn s
-    | 'x' -> raise End
-    | 'i' -> toggle_instructions s
-    | _ -> raise Invalid_Key
+  match c with
+  | 'i' -> toggle_instructions s
+  | 'x' -> raise End
+  | _ -> (
+      if s.instr then raise Invalid_Key
+      else
+        match c with
+        | 'q' -> scroll s 3
+        | 'e' -> scroll s 5
+        | 'w' -> scroll s 4
+        | 'a' -> scroll s 2
+        | 's' -> scroll s 1
+        | 'd' -> scroll s 0
+        | 'p' -> plant s
+        | 'f' ->
+            if Game.is_setup s.game then raise Invalid_Key
+            else end_turn s
+        | _ -> raise Invalid_Key)
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
