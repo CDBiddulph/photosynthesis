@@ -29,10 +29,6 @@ type t = {
   src_sink : HexUtil.coord * HexUtil.coord;
 }
 
-(* TODO: map planted seeds to candidate plants; if single candidate,
-   move to touched and clean map; max flow; if max flow = planted seeds,
-   move to touched; max flow must always equal number of involved seeds *)
-
 exception IllegalPlacePlant
 
 exception IllegalGrowPlant
