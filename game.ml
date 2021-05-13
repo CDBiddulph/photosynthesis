@@ -198,10 +198,10 @@ let end_turn game =
 
 let is_setup game = game.setup_rounds_left > 0
 
-let can_plant_seed coord player_id game =
+let can_plant_seed coord game =
   (not (is_setup game))
   && game.num_rounds <= rule_to_rounds game.rounds_rule
-  && Board.can_plant_seed player_id coord game.board
+  && Board.can_plant_seed game.turn coord game.board
 
 let can_plant_small coord game =
   is_setup game
@@ -222,15 +222,14 @@ let grow_plant coord game =
     let stage =
       match Board.plant_at coord game.board with
       | None -> failwith "Unreachable"
-      | Some plant -> plant |> Plant.plant_stage
+      | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
     in
-    update_board (Board.grow_plant coord game.turn game.board) game
+    update_board (Board.grow_plant game.turn coord game.board) game
     |> update_player game.turn
          (Player.grow_plant stage (player_of_turn game))
 
-let plant_seed player_id coord game =
-  if not (can_plant_seed coord player_id game) then
-    raise Board.IllegalPlacePlant
+let plant_seed coord game =
+  if not (can_plant_seed coord game) then raise Board.IllegalPlacePlant
   else
     update_board (Board.plant_seed game.turn coord game.board) game
     |> update_player game.turn
@@ -262,8 +261,25 @@ let harvest coord game =
     scored_game |> update_player game.turn harvest_player
 
 let buy_plant stage game =
-  let player = player_of game game.turn in
+  let player = player_of_turn game in
   update_player game.turn (Player.buy_plant stage player) game
+
+let buy_and_grow_plant coord game =
+  let next_stage =
+    match Board.plant_at coord game.board with
+    | None -> Plant.Seed
+    | Some plant -> plant |> Plant.plant_stage |> Plant.next_stage
+  in
+  let player_id = turn game in
+  let player =
+    player_of_turn game |> Player.buy_and_grow_plant next_stage
+  in
+  let board =
+    match next_stage with
+    | Seed -> game.board |> Board.plant_seed player_id coord
+    | _ -> game.board |> Board.grow_plant player_id coord
+  in
+  game |> update_player player_id player |> update_board board
 
 let next_scoring_points game soil = fst (get_scoring_points game soil)
 

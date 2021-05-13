@@ -16,6 +16,10 @@ val init_plant_inventory : t
     for testing. *)
 val _init_plant_inventory : (Plant.plant_stage * int) list -> t
 
+(** [_contents inv] is a list of the plant stages in [inv] with their
+    corresponding quantities. Should only be used for testing. *)
+val _contents : t -> (Plant.plant_stage * int) list
+
 (** [init_plant_inventory_gen stage num inv] is a new plant inventory
     with x amount of plant with stage [stage] *)
 val init_plant_inventory_gen : Plant.plant_stage -> int -> t -> t
@@ -23,9 +27,9 @@ val init_plant_inventory_gen : Plant.plant_stage -> int -> t -> t
 (** [empty] is an empty plant inventory. *)
 val empty : t
 
-(** [is_empty inv] returns true if the inventory is empty and false if
-    the inventory contains elements. *)
-val is_empty : t -> bool
+(** [is_empty stage inv] returns true if there are no plants of [stage]
+    in [inv]. *)
+val is_empty : Plant.plant_stage -> t -> bool
 
 (** [size inv] is the number of plants in [inv] *)
 val size : t -> int

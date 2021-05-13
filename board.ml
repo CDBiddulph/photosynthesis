@@ -1,23 +1,22 @@
 (* open Graph.Flow *)
+open Map
+open Flow
 
 type ruleset =
   | Normal
   | Shadows
 
-(* module V = struct open HexUtil
+module OrderedCoord = struct
+  open HexUtil
 
-   type t = HexUtil.coord
+  type t = HexUtil.coord
 
-   let equal c1 c2 = c1.col = c2.col && c1.diag = c2.diag
+  let hash c = (c.col * 10) + c.diag
 
-   let hash c = (10 * c.col) + c.diag end
+  let compare x y = compare (hash x) (hash y)
+end
 
-   module E = struct end *)
-
-(* module PlantGraph : G_FORD_FULKERSON = struct module V = V module E =
-   E
-
-   end *)
+module PlantTrackMap = Map.Make (OrderedCoord)
 
 (** A record type representing a game and its data. [sun_dir] indicates
     the direction that shadows are cast. *)
@@ -25,7 +24,9 @@ type t = {
   map : HexMap.t;
   rules : ruleset;
   touched_cells : HexUtil.coord list;
-      (* plant_graph : Ford_Fulkerson () *)
+  n_planted : int;
+  graph : BaseGraph.t;
+  src_sink : HexUtil.coord * HexUtil.coord;
 }
 
 (* TODO: map planted seeds to candidate plants; if single candidate,
@@ -45,7 +46,14 @@ let plant_to_int (plant : Plant.plant_stage) : int =
   match plant with Seed -> 0 | Small -> 1 | Medium -> 2 | Large -> 3
 
 let init_board ruleset =
-  { map = HexMap.init_map (); rules = ruleset; touched_cells = [] }
+  {
+    map = HexMap.init_map ();
+    rules = ruleset;
+    touched_cells = [];
+    n_planted = 0;
+    graph = BaseGraph.empty;
+    src_sink = ({ col = -1; diag = 0 }, { col = 0; diag = -1 });
+  }
 
 let testing_init_board ruleset cells =
   let board = init_board ruleset in
@@ -109,16 +117,51 @@ let within_radius p_id coord board =
           else acc)
     false all_neighbors
 
+(** TODO *)
+let add_all seed cands graph (src, sink) =
+  let with_seed =
+    BaseGraph.add_edge (BaseGraph.add_vertex graph seed) src seed
+  in
+  List.fold_left
+    (fun acc cand ->
+      BaseGraph.add_edge
+        (BaseGraph.add_edge (BaseGraph.add_vertex acc cand) seed cand)
+        cand sink)
+    with_seed cands
+
+(** TODO *)
+let valid_plant seed cands board =
+  let g = board.graph in
+  let g_with = add_all seed cands g board.src_sink in
+  let src, sink = board.src_sink in
+  let _, n = MaxFlow.maxflow g_with src sink in
+  n = board.n_planted + 1
+
+(** TODO *)
+let get_usable_neighbors player_id coord board =
+  let neighbors = neighbors_in_radius board coord 3 in
+  List.filter
+    (fun c ->
+      match plant_at c board with
+      | None -> false
+      | Some p ->
+          Plant.player_id p = player_id
+          && (not (List.mem c board.touched_cells))
+          && HexMap.dist board.map c coord
+             <= plant_to_int (Plant.plant_stage p))
+    neighbors
+
 let can_plant_seed player_id coord board =
+  let usable_neighbors = get_usable_neighbors player_id coord board in
   (not (List.mem coord board.touched_cells))
+  && valid_plant coord usable_neighbors board
   && cell_if_empty board coord <> None
   && within_radius player_id coord board
 
 (** [can_plant_small coord board] is [true] if there is an empty cell at
-    [coord] in [board] and the cell has soil of type [1]. *)
+    [coord] in [board] and the cell has soil of type [1]. Should only be
+    called in setup phase. *)
 let can_plant_small coord board =
-  (not (List.mem coord board.touched_cells))
-  &&
   match cell_if_empty board coord with
   | None -> false
   | Some c -> Cell.soil c = 1
@@ -131,6 +174,12 @@ let place_plant can_place plant coord board =
     match cell_at coord board with
     | None -> failwith "Unreachable"
     | Some old_cell ->
+        let usable_neighbors =
+          get_usable_neighbors (Plant.player_id plant) coord board
+        in
+        let new_graph =
+          add_all coord usable_neighbors board.graph board.src_sink
+        in
         {
           board with
           map =
@@ -138,6 +187,8 @@ let place_plant can_place plant coord board =
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
           touched_cells = coord :: board.touched_cells;
+          graph = new_graph;
+          n_planted = board.n_planted + 1;
         }
   else raise IllegalPlacePlant
 
@@ -155,6 +206,15 @@ let plant_small player_id coord board =
 
 let can_grow_plant player_id coord board =
   (not (List.mem coord board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow
+         (BaseGraph.remove_vertex board.graph coord)
+         src sink
+     in
+     n = board.n_planted)
   &&
   match plant_at coord board with
   | None -> false
@@ -163,7 +223,7 @@ let can_grow_plant player_id coord board =
       let not_large = Plant.plant_stage old_plant <> Plant.Large in
       old_player_id = player_id && not_large
 
-let grow_plant coord player_id board =
+let grow_plant player_id coord board =
   if can_grow_plant player_id coord board then
     let old_cell =
       match cell_at coord board with
@@ -178,12 +238,9 @@ let grow_plant coord player_id board =
     let next_plant =
       Some
         (Plant.init_plant player_id
-           (match
-              old_plant |> Plant.plant_stage |> Plant.next_stage
-            with
-           | None -> failwith "Impossible"
-           | Some p -> p))
+           (old_plant |> Plant.plant_stage |> Plant.next_stage))
     in
+    let new_graph = BaseGraph.remove_vertex board.graph coord in
     {
       board with
       map =
@@ -191,6 +248,7 @@ let grow_plant coord player_id board =
           (Some (Cell.set_plant old_cell next_plant))
           coord;
       touched_cells = coord :: board.touched_cells;
+      graph = new_graph;
     }
   else raise IllegalGrowPlant
 
@@ -281,6 +339,13 @@ let get_photo_lp sun_dir players board =
 
 let can_harvest player c board =
   (not (List.mem c board.touched_cells))
+  && (board.n_planted = 0
+     ||
+     let src, sink = board.src_sink in
+     let _, n =
+       MaxFlow.maxflow (BaseGraph.remove_vertex board.graph c) src sink
+     in
+     n = board.n_planted)
   &&
   match cell_at c board with
   | None -> false
@@ -308,7 +373,13 @@ let harvest player_id coord board =
         }
   else raise IllegalHarvest
 
-let end_turn board = { board with touched_cells = [] }
+let end_turn board =
+  {
+    board with
+    touched_cells = [];
+    graph = BaseGraph.empty;
+    n_planted = 0;
+  }
 
 let actionable_cells board =
   List.filter

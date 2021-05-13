@@ -1,4 +1,4 @@
-MODULES=board cell hexMap plant player raster store plantInventory playerId game authors ui gui hexUtil
+MODULES=board cell hexMap plant player raster store plantInventory playerId game authors ui gui hexUtil testUtil
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
@@ -8,7 +8,7 @@ MAINTEST=test.byte
 MAIN=main.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind \
 	-plugin-tag 'package(bisect_ppx-ocamlbuild)'
-PKGS=unix,ounit2,str,qcheck,ansiterminal,graphics
+PKGS=unix,ounit2,str,qcheck,ansiterminal,graphics,ocamlgraph
 
 default: build
 	OCAMLRUNPARAM=b utop

@@ -122,7 +122,7 @@ let grow_test
     (board : t)
     (next : Plant.t option) : test =
   name >:: fun _ ->
-  assert_equal next (plant_at coord (grow_plant coord id board))
+  assert_equal next (plant_at coord (grow_plant id coord board))
 
 (** [grow_fail name coord id board] constructs an OUnit test named
     [name] that asserts that [IllegalGrowPlant] is raised at
@@ -133,7 +133,7 @@ let grow_fail
     (id : PlayerId.t)
     (board : t) : test =
   name >:: fun _ ->
-  assert_raises IllegalGrowPlant (fun _ -> grow_plant coord id board)
+  assert_raises IllegalGrowPlant (fun _ -> grow_plant id coord board)
 
 let getter_1arg_tests =
   [

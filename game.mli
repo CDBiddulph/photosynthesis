@@ -37,13 +37,13 @@ val _update_players_test : (PlayerId.t * Player.t) list -> t -> t
 
 val board : t -> Board.t
 
-(** [plant_seed coord player_id game] is game with a seed of [player]
+(** [plant_seed coord game] is game with a seed of the current player
     planted at [coord] and the available seeds of the player decremented
     by 1. Raises: [Board.IllegalPlacePlant] if planting a seed at
     [coord] is an illegal move; [PlantInventory.OutOfPlant Plant.Seed]
     if the player does not have any seeds in their available area. See
     [can_plant_seed] and [is_plant_available]. *)
-val plant_seed : PlayerId.t -> HexUtil.coord -> t -> t
+val plant_seed : HexUtil.coord -> t -> t
 
 (** [plant_small coord game] is game with a small tree of [player]
     planted at [coord] and the available seeds of the player decremented
@@ -62,9 +62,20 @@ val plant_small : HexUtil.coord -> t -> t
     thrown away). Raises: [Board.IllegalGrowPlant] if growing the plant
     at [coord] is an illegal or impossible move;
     [PlantInventory.OutOfPlant next_stage] if the player does not have
-    any of [next_stage] in their available area. See [can_grow_plant]
-    and [is_plant_available]. *)
+    any of [next_stage] in their available area;
+    [Player.InsufficientLightPoints cost] if the current player does not
+    have enough light points to grow the plant. See [can_grow_plant] and
+    [is_plant_available]. *)
 val grow_plant : HexUtil.coord -> t -> t
+
+(** [buy_and_grow_plant coord game] first checks to see if the available
+    area has any plants of the stage at [coord], called [stage]. If it
+    does not, a plant of [stage] is bought by the current player of
+    [game]. Then, if [stage = Seed], the player plants a seed at
+    [coord]. Otherwise, if [stage <> Seed], the plant at [coord] is
+    grown. Raises: [PlantInventory.OutOfPlant] or
+    [Player.InsufficientLightPoints]. *)
+val buy_and_grow_plant : HexUtil.coord -> t -> t
 
 (** [harvest coord game] is [game] with the plant at [coord] removed and
     the scoring points of player whose turn it is increased
@@ -75,10 +86,11 @@ val harvest : HexUtil.coord -> t -> t
 (** [buy_plant stage game] is [game] where the current player of [game]
     has one less plant of [stage] in their store and one more plant of
     [stage] in their available area. Raises:
-    [Store.InsufficientLightPoints] if Player does not have enough light
-    points to buy a plant of [stage];
-    [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if the player
-    does not have any of [Plant.plant_stage plant] in their store. *)
+    [Store.InsufficientLightPoints cost] if Player does not have enough
+    light points to buy a plant of [stage], with [cost] being the cost
+    to buy it; [PlantInventory.OutOfPlant (Plant.plant_stage plant)] if
+    the player does not have any of [Plant.plant_stage plant] in their
+    store. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
 (* In the future, we may want to alert the UI that photosynthesis is
@@ -97,11 +109,11 @@ val end_turn : t -> t
 
 (* Getter functions. *)
 
-(** [can_plant_seed coord player_id game] is true if planting a seed
-    with the player of [player_id] at [coord] is a legal move,
+(** [can_plant_seed coord game] is true if planting a seed with the
+    player of the current turn of [game] at [coord] is a legal move,
     disregarding whether the player actually has a seed in their
     available area. Will always be [false] if [game] is in setup mode. *)
-val can_plant_seed : HexUtil.coord -> PlayerId.t -> t -> bool
+val can_plant_seed : HexUtil.coord -> t -> bool
 
 (** [can_plant_small coord game] is true if planting a small tree at
     [coord] is a legal move. Will always be [false] if [game] is not in
