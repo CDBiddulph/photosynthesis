@@ -111,11 +111,12 @@ let plant_helper s f =
             Some (false, plnt_stg)
           else Some (true, plnt_stg)
   in
+  let new_state = { s with game = new_game } in
   let new_gui =
     let cells = Game.cells new_game in
-    Gui.update_cells cells s.gui
+    Gui.update_cells cells new_state.gui
     |> Gui.update_message
-         (update_message s s.current_position)
+         (update_message new_state new_state.current_position)
          ANSITerminal.White
     |> Gui.update_available num_available
     |> Gui.update_store_remaining num_store_remaining
@@ -123,8 +124,8 @@ let plant_helper s f =
     |> Gui.update_player_sp (Player.score_points pl)
     |> Gui.update_plant_highlight hlo
   in
-  let new_state = { s with gui = new_gui; game = new_game } in
-  new_state
+  let newer_state = { s with gui = new_gui; game = new_game } in
+  newer_state
 
 let plant_helper_exn (s : t) f plnt_stg =
   try
@@ -167,23 +168,15 @@ let plant_helper_exn (s : t) f plnt_stg =
       }
     in
     new_state
-  with
-  | Store.InsufficientLightPoints cost ->
-      let new_gui =
-        Gui.update_message
-          ("Action requires " ^ string_of_int cost ^ " light points")
-          ANSITerminal.Red s.gui
-      in
-      { s with gui = new_gui }
-  | PlantInventory.OutOfPlant plnt_stg ->
-      let new_gui =
-        Gui.update_message
-          ("Out of Plant "
-          ^ (plnt_stg |> Plant.string_of_plant_stage
-           |> String.capitalize_ascii))
-          ANSITerminal.Red s.gui
-      in
-      { s with gui = new_gui }
+  with PlantInventory.OutOfPlant plnt_stg ->
+    let new_gui =
+      Gui.update_message
+        ("Out of Plant "
+        ^ (plnt_stg |> Plant.string_of_plant_stage
+         |> String.capitalize_ascii))
+        ANSITerminal.Red s.gui
+    in
+    { s with gui = new_gui }
 
 let end_turn s =
   let new_game = Game.end_turn s.game in
@@ -213,6 +206,7 @@ let end_turn s =
       num_store_remaining num_available hlo s.gui
     |> Gui.update_sun sun_dir
   in
+  render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
   let new2_gui =
     Gui.update_message
@@ -222,22 +216,20 @@ let end_turn s =
   let new2_state = { s with game = new_game; gui = new2_gui } in
   new2_state
 
+let out_of_plant_exn s plnt_stg =
+  let str = "Out of " ^ Plant.string_of_plant_stage plnt_stg in
+  let new_gui = Gui.update_message str ANSITerminal.Red s.gui in
+  render new_gui;
+  { s with gui = new_gui }
+
 let plant s =
   try
     if Game.can_plant_seed s.current_position s.game then
-      plant_helper s Game.plant_seed
+      plant_helper s Game.buy_and_grow_plant
     else if Game.can_plant_small s.current_position s.game then
       plant_helper s Game.plant_small |> end_turn
     else if Game.can_grow_plant s.current_position s.game then
-      let plnt_stg =
-        Game.cell_at s.game s.current_position
-        |> Cell.plant |> extract_plant |> Plant.plant_stage
-      in
-      match plnt_stg with
-      | Seed -> plant_helper s Game.grow_plant
-      | Small -> plant_helper s Game.grow_plant
-      | Medium -> plant_helper s Game.grow_plant
-      | Large -> failwith "Should Not Happen"
+      plant_helper s Game.buy_and_grow_plant
     else if Game.can_harvest s.current_position s.game then
       plant_helper s Game.harvest
     else s
@@ -247,16 +239,75 @@ let plant s =
         Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
           s.gui
       in
+      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
-      plant_helper_exn s Game.plant_seed Plant.Seed
+      out_of_plant_exn s Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->
       if Game.is_setup s.game then end_turn s
-      else plant_helper_exn s Game.grow_plant Plant.Small
+      else out_of_plant_exn s Plant.Small
   | PlantInventory.OutOfPlant Plant.Medium ->
-      plant_helper_exn s Game.grow_plant Plant.Medium
+      out_of_plant_exn s Plant.Medium
   | PlantInventory.OutOfPlant Plant.Large ->
-      plant_helper_exn s Game.grow_plant Plant.Large
+      out_of_plant_exn s Plant.Large
+  | Store.InsufficientLightPoints cost ->
+      let new_gui =
+        Gui.update_message
+          ("Action requires " ^ string_of_int cost ^ " light points")
+          ANSITerminal.Red s.gui
+      in
+      render new_gui;
+      { s with gui = new_gui }
+
+let buy_helper s num =
+  match num with
+  | 1 -> Game.buy_plant Plant.Seed s.game
+  | 2 -> Game.buy_plant Plant.Small s.game
+  | 3 -> Game.buy_plant Plant.Medium s.game
+  | 4 -> Game.buy_plant Plant.Large s.game
+  | _ -> failwith "Should Not Happen"
+
+let buy s num =
+  try
+    let new_game = buy_helper s num in
+    let pl = Game.player_of_turn new_game in
+    let num_store_remaining = num_remaining_store pl in
+    let num_available = num_remaining_available pl in
+    let new_gui =
+      let cells = Game.cells new_game in
+      Gui.update_cells cells s.gui
+      |> Gui.update_message "" ANSITerminal.White
+      |> Gui.update_available num_available
+      |> Gui.update_store_remaining num_store_remaining
+      |> Gui.update_player_lp (Player.light_points pl)
+      |> Gui.update_player_sp (Player.score_points pl)
+    in
+    render new_gui;
+    let new_state =
+      {
+        current_position = s.current_position;
+        gui = new_gui;
+        game = new_game;
+      }
+    in
+    new_state
+  with
+  | Store.InsufficientLightPoints cost ->
+      let new_gui =
+        Gui.update_message
+          ("Action requires " ^ string_of_int cost ^ " light points")
+          ANSITerminal.Red s.gui
+      in
+      render new_gui;
+      { s with gui = new_gui }
+  | PlantInventory.OutOfPlant Plant.Seed ->
+      out_of_plant_exn s Plant.Seed
+  | PlantInventory.OutOfPlant Plant.Small ->
+      out_of_plant_exn s Plant.Small
+  | PlantInventory.OutOfPlant Plant.Medium ->
+      out_of_plant_exn s Plant.Medium
+  | PlantInventory.OutOfPlant Plant.Large ->
+      out_of_plant_exn s Plant.Large
 
 let handle_char s c =
   match c with
@@ -269,6 +320,10 @@ let handle_char s c =
   | 'p' -> plant s
   | 'f' -> end_turn s
   | 'x' -> raise End
+  | '1' -> buy s 1
+  | '2' -> buy s 2
+  | '3' -> buy s 3
+  | '4' -> buy s 4
   | _ -> s
 
 let rec read_char (s : t) =
