@@ -1,11 +1,12 @@
 open Renderer
 open Raster
 open HexUtil
+open ANSITerminal
 
 type t = {
   rend : Renderer.t;
   offsets : (string * point2d) list;
-  player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
+  player_params : (PlayerId.t * (char * color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
   num_store_remaining : int list;
@@ -41,7 +42,7 @@ let draw_hexes layer_name color points gui =
 let draw_soil layer_name soil point gui =
   let char_grid_name = "soil/" ^ string_of_int soil in
   let soil_graphic =
-    get_graphic_fill_color char_grid_name ANSITerminal.Green gui.rend
+    get_graphic_fill_color char_grid_name Green gui.rend
   in
   draw_at_point layer_name soil_graphic gui point
 
@@ -64,7 +65,7 @@ let plant_graphic plant gui =
   gui.rend
   |> get_graphic_with_color_grid char_name color_name
   |> replace_char 'x' (render_char player_id gui)
-  |> replace_color ANSITerminal.Default (render_color player_id gui)
+  |> replace_color Default (render_color player_id gui)
 
 (** [draw_plant layer_name plant point gui] returns [gui] with [plant]
     drawn in the position corresponding to [point] in the layer of
@@ -97,8 +98,7 @@ let draw_cursor layer_name color coord_opt gui =
 
 let update_cursor coord_opt gui =
   let layer_name = "cursor" in
-  gui |> set_blank layer_name
-  |> draw_cursor layer_name ANSITerminal.Red coord_opt
+  gui |> set_blank layer_name |> draw_cursor layer_name Red coord_opt
 
 let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
@@ -121,7 +121,7 @@ let update_sun dir gui =
   draw_at_point "sun"
     (get_graphic_fill_color
        ("sun/" ^ string_of_int dir)
-       ANSITerminal.Yellow gui'.rend)
+       Yellow gui'.rend)
     gui' (get_offset "sun" gui')
 
 let draw_plant_num layer_name point color num gui =
@@ -214,7 +214,7 @@ let update_store_remaining num_remaining gui =
   new_gui
   |> draw_bought "store_bought"
        (get_offset "store" new_gui)
-       ANSITerminal.Magenta num_remaining
+       Magenta num_remaining
 
 let update_available num_available gui =
   let new_gui = { gui with num_available } in
@@ -229,7 +229,7 @@ let draw_static_text layer_name gui =
     draw_text_lines layer_name
       (get_offset offset_name gui +: { x = 2; y = 1 })
       [ title; "------------------------------" ]
-      ANSITerminal.White
+      White
   in
   gui
   |> draw_plant_inventory_static_text "store" "Store"
@@ -272,12 +272,12 @@ let draw_plant_highlight layer_name color loc_opt gui =
 let update_plant_highlight loc_opt gui =
   let layer_name = "plant_highlight" in
   gui |> set_blank layer_name
-  |> draw_plant_highlight layer_name ANSITerminal.White loc_opt
+  |> draw_plant_highlight layer_name White loc_opt
 
 let update_cell_highlight coords gui =
   let layer_name = "cell_highlight" in
   gui |> set_blank layer_name
-  |> draw_hexes layer_name ANSITerminal.Green
+  |> draw_hexes layer_name Green
        (List.map (point2d_of_hex_coord gui) coords)
 
 let pad_to_length str length =
@@ -287,7 +287,7 @@ let draw_next_sp layer_name soil sp gui =
   draw_text layer_name
     (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
     (pad_to_length (string_of_int sp) 2)
-    ANSITerminal.Green gui
+    Green gui
 
 let draw_init_next_sp layer_name sps gui =
   let enumerate_sps = List.mapi (fun i sp -> (i + 1, sp)) sps in
@@ -297,7 +297,7 @@ let draw_init_next_sp layer_name sps gui =
   |> draw_text_lines layer_name
        (get_offset "next_sp" gui)
        [ "Next SP:"; "::"; ":."; ":"; "." ]
-       ANSITerminal.Green
+       Green
 
 let update_next_sp = draw_next_sp "overwrite_text"
 
@@ -305,13 +305,13 @@ let update_player_lp lp gui =
   draw_text "overwrite_text"
     (get_offset "player_lp" gui)
     ("LP: " ^ pad_to_length (string_of_int lp) 2)
-    ANSITerminal.Yellow gui
+    Yellow gui
 
 let update_player_sp sp gui =
   draw_text "overwrite_text"
     (get_offset "player_sp" gui)
     ("SP: " ^ pad_to_length (string_of_int sp) 3)
-    ANSITerminal.Green gui
+    Green gui
 
 let draw_player_sign layer_name player_id gui =
   draw_text layer_name
@@ -350,9 +350,12 @@ let update_end_screen players gui =
   match message with
   | None -> cleared
   | Some m ->
-      draw_text "end_screen"
+      let line_text = String.make (String.length m + 4) '-' in
+      let middle_text = "| " ^ m ^ " |" in
+      let boxed_message = [ line_text; middle_text; line_text ] in
+      draw_text_lines "end_screen"
         (get_offset "end_screen" cleared)
-        m ANSITerminal.White cleared
+        boxed_message White cleared
 
 let photosynthesis lp gui =
   List.fold_left
@@ -452,8 +455,8 @@ let init_gui
   in
   gui
   (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
-     ANSITerminal.Magenta)) *)
-  |> draw_hexes "hexes" ANSITerminal.White
+     Magenta)) *)
+  |> draw_hexes "hexes" White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
@@ -466,7 +469,7 @@ let init_gui
   |> update_cursor init_cursor
   |> fun g ->
   draw_at_point "instructions"
-    (get_graphic_fill_color "instructions" ANSITerminal.White gui.rend)
+    (get_graphic_fill_color "instructions" White gui.rend)
     g
     (get_offset "instructions" g)
   |> update_instructions init_instructions
