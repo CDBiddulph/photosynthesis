@@ -296,7 +296,8 @@ let handle_char s c =
     | 's' -> scroll s 1
     | 'd' -> scroll s 0
     | 'p' -> plant s
-    | 'f' -> end_turn s
+    | 'f' ->
+        if Game.is_setup s.game then raise Invalid_Key else end_turn s
     | 'x' -> raise End
     | 'i' -> toggle_instructions s
     | _ -> raise Invalid_Key
