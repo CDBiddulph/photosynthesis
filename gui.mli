@@ -127,6 +127,15 @@ val update_player_sp : int -> t -> t
     hidden. *)
 val update_instructions : bool -> t -> t
 
+(** [update_end_screen winners gui] is gui where the players with player
+    ids in [winners] have won. If [winners = \[\]], no end screen is
+    shown. If [winners = [winner]], then a message is shown saying
+    "Player {winner} wins!" Otherwise, a message is shown along the
+    lines of "Players {w1}, {w2}, and {w3} have won!" (different
+    depending on how many players have won, i.e. no commas if two
+    players have won). *)
+val update_end_screen : PlayerId.t list -> t -> t
+
 (** [photosynthesis lp gui] is [gui] with numbers under each of the
     trees at the coordinates in the color of the proper player id -
     these should be the number of light points each of these trees gains

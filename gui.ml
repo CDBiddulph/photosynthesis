@@ -326,6 +326,34 @@ let set_visible visible layer_name gui =
 let update_instructions to_show gui =
   set_visible to_show "instructions" gui
 
+let update_end_screen players gui =
+  let message =
+    match List.sort compare players with
+    | [] -> None
+    | [ p ] -> Some ("Player " ^ string_of_int p ^ " has won!")
+    | [ p1; p2 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ " and " ^ string_of_int p2
+         ^ " have won!")
+    | [ p1; p2; p3 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ ", " ^ string_of_int p2
+         ^ ", and " ^ string_of_int p3 ^ " have won!")
+    | [ p1; p2; p3; p4 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ ", " ^ string_of_int p2
+         ^ ", " ^ string_of_int p3 ^ ", and " ^ string_of_int p4
+         ^ " have won!")
+    | _ -> failwith "Too many players"
+  in
+  let cleared = gui |> set_blank "end_screen" in
+  match message with
+  | None -> cleared
+  | Some m ->
+      draw_text "end_screen"
+        (get_offset "end_screen" cleared)
+        m ANSITerminal.White cleared
+
 let photosynthesis lp gui =
   List.fold_left
     (fun g_o (p_id, coord_lps) ->
@@ -389,6 +417,7 @@ let init_gui
       "overwrite_text";
       "player_sign";
       "message";
+      "end_screen";
     ]
   in
   let invis_layer_names = [ "instructions" ] in
@@ -412,6 +441,7 @@ let init_gui
           ("player_sp", { x = 7; y = 3 });
           ("message", { x = 0; y = 43 });
           ("instructions", { x = 20; y = 10 });
+          ("end_screen", { x = 50; y = 20 });
         ];
       player_params;
       turn = PlayerId.first;
