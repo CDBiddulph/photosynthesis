@@ -26,13 +26,15 @@ val plant_stage : t -> plant_stage
     "medium", or "large", depending on [plant_stage]. *)
 val string_of_plant_stage : plant_stage -> string
 
-(** TODO *)
+(** [int_of_plant_stage stage] maps a plant stage to an int.
+    [Plant.Seed] maps to 0, [Plant.Small] maps to 1, and so on. *)
 val int_of_plant_stage : plant_stage -> int
 
-(** TODO *)
+(** [next_stage stage] is the plant stage following [stage]. If [stage]
+    is [Plant.Large], returns [None]. *)
 val next_stage : plant_stage -> plant_stage option
 
-(** TODO *)
+(** [all_stages] is the list of all possible plant stages. *)
 val all_stages : plant_stage list
 
 (** [last_stage stage] is the stage before [stage]. Raises:
