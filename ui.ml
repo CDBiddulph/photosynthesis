@@ -10,6 +10,8 @@ open Player
 
 exception End
 
+exception Invalid_Key
+
 exception Invalid_Direction
 
 exception Invalid_Cell
@@ -283,28 +285,31 @@ let toggle_instructions s =
   }
 
 let handle_char s c =
-  match c with
-  | 'q' -> scroll s 3
-  | 'e' -> scroll s 5
-  | 'w' -> scroll s 4
-  | 'a' -> scroll s 2
-  | 's' -> scroll s 1
-  | 'd' -> scroll s 0
-  | 'p' -> plant s
-  | 'f' -> end_turn s
-  | 'x' -> raise End
-  | 'i' -> toggle_instructions s
-  | _ -> s
+  if s.instr then
+    match c with 'i' -> toggle_instructions s | _ -> raise Invalid_Key
+  else
+    match c with
+    | 'q' -> scroll s 3
+    | 'e' -> scroll s 5
+    | 'w' -> scroll s 4
+    | 'a' -> scroll s 2
+    | 's' -> scroll s 1
+    | 'd' -> scroll s 0
+    | 'p' -> plant s
+    | 'f' -> end_turn s
+    | 'x' -> raise End
+    | 'i' -> toggle_instructions s
+    | _ -> raise Invalid_Key
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
   while true do
     try
       let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
-      if a.Graphics.keypressed then (
-        let new_state = handle_char s a.Graphics.key in
-        render new_state.gui;
-        read_char new_state)
-      else read_char s
-    with End -> Graphics.close_graph ()
+      let new_state = handle_char s a.Graphics.key in
+      render new_state.gui;
+      read_char new_state
+    with
+    | Invalid_Key -> read_char s
+    | End -> Graphics.close_graph ()
   done
