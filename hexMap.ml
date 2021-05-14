@@ -1,12 +1,12 @@
 (** The hexmap of the game, represented by a
     [Cell.t option array array]. *)
 
-(** A 2-dimensional [Cell.t option array] to represent a hexagonal board
+(** A 2-dimensional [Cell.t option list] to represent a hexagonal board
     with minimum width 4 and height 7. Lower indices (for purposes of
     representation and easier understanding) indicate closeness to the
     "top" and "left" side of of the board. "Columns" of [HexUtil.coord]
-    are the first index in the [Cell.t option array array], and the
-    "diagonals" are the second.*)
+    are the first second in the [Cell.t option list list], and the
+    "diagonals" are the first. *)
 type t = Cell.t option list list
 
 let init_map () : t =
