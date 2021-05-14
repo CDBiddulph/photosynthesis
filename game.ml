@@ -287,7 +287,7 @@ let cells game = Board.cells game.board
 
 let scoring_points game = game.scoring_points
 
-let winner game =
+let winners game =
   if game.num_rounds > rule_to_rounds game.rounds_rule then
     let ids, points =
       List.map

@@ -2,18 +2,6 @@ open ANSITerminal
 open Ui
 open Gui
 
-let basic_cell1 =
-  Cell.init_cell 1 (Some (Plant.init_plant 1 Plant.Seed))
-
-let basic_cell2 =
-  Cell.init_cell 2 (Some (Plant.init_plant 2 Plant.Small))
-
-let basic_cell3 =
-  Cell.init_cell 3 (Some (Plant.init_plant 3 Plant.Medium))
-
-let basic_cell4 =
-  Cell.init_cell 4 (Some (Plant.init_plant 4 Plant.Small))
-
 let player_params =
   [
     (1, ('s', ANSITerminal.Green));
@@ -21,14 +9,6 @@ let player_params =
     (3, ('x', ANSITerminal.Cyan));
     (4, ('o', ANSITerminal.Yellow));
   ]
-
-let soil_cell1 = Cell.init_cell 1 None
-
-let soil_cell2 = Cell.init_cell 2 None
-
-let soil_cell3 = Cell.init_cell 3 None
-
-let soil_cell4 = Cell.init_cell 4 None
 
 let rec get_num_players () =
   ANSITerminal.print_string [ ANSITerminal.red ]

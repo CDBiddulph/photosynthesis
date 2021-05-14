@@ -15,6 +15,7 @@ exception Invalid_Cell
 type t = {
   current_position : HexUtil.coord;
   instr : bool;
+  ended : bool;
   game : Game.t;
   gui : Gui.t;
 }
@@ -22,7 +23,7 @@ type t = {
 let init_cursor = { col = 0; diag = 0 }
 
 let init_state (instr : bool) (gui : Gui.t) (game : Game.t) : t =
-  { current_position = init_cursor; instr; game; gui }
+  { current_position = init_cursor; instr; ended = false; game; gui }
 
 let extract (c : HexUtil.coord option) : HexUtil.coord =
   match c with Some i -> i | None -> raise Invalid_Direction
@@ -130,40 +131,49 @@ let plant_helper s f =
 
 let end_turn s =
   let new_game = Game.end_turn s.game in
-  let pl = Game.player_of_turn new_game in
-  let pl_id = Player.player_id pl in
-  let num_store_remaining = num_remaining_store pl in
-  let num_available = num_remaining_available pl in
-  let sun_dir = Game.sun_dir new_game in
-  let hlo =
-    let plnt_opt =
-      s.current_position |> Game.cell_at new_game |> Cell.plant
-    in
-    match plnt_opt with
-    | None -> None
-    | Some plant ->
-        if Plant.player_id plant <> pl_id then None
-        else
-          let plnt_stg = plant |> Plant.plant_stage in
-          if Player.is_in_available plnt_stg pl then
-            Some (false, plnt_stg)
-          else Some (true, plnt_stg)
-  in
-  let new_gui =
-    Gui.update_turn pl_id
-      (Player.light_points pl)
-      (Player.score_points pl)
-      num_store_remaining num_available hlo s.gui
-    |> Gui.update_sun sun_dir
-  in
-  let new_state = { s with game = new_game; gui = new_gui } in
-  let new2_gui =
-    Gui.update_message
-      (update_message new_state new_state.current_position)
-      ANSITerminal.White new_gui
-  in
-  let new2_state = { s with game = new_game; gui = new2_gui } in
-  new2_state
+  match Game.winners new_game with
+  | Some ws ->
+      {
+        s with
+        game = new_game;
+        gui = s.gui |> update_end_screen ws;
+        ended = true;
+      }
+  | None ->
+      let pl = Game.player_of_turn new_game in
+      let pl_id = Player.player_id pl in
+      let num_store_remaining = num_remaining_store pl in
+      let num_available = num_remaining_available pl in
+      let sun_dir = Game.sun_dir new_game in
+      let hlo =
+        let plnt_opt =
+          s.current_position |> Game.cell_at new_game |> Cell.plant
+        in
+        match plnt_opt with
+        | None -> None
+        | Some plant ->
+            if Plant.player_id plant <> pl_id then None
+            else
+              let plnt_stg = plant |> Plant.plant_stage in
+              if Player.is_in_available plnt_stg pl then
+                Some (false, plnt_stg)
+              else Some (true, plnt_stg)
+      in
+      let new_gui =
+        Gui.update_turn pl_id
+          (Player.light_points pl)
+          (Player.score_points pl)
+          num_store_remaining num_available hlo s.gui
+        |> Gui.update_sun sun_dir
+      in
+      let new_state = { s with game = new_game; gui = new_gui } in
+      let new2_gui =
+        Gui.update_message
+          (update_message new_state new_state.current_position)
+          ANSITerminal.White new_gui
+      in
+      let new2_state = { s with game = new_game; gui = new2_gui } in
+      new2_state
 
 let out_of_plant_exn s plnt_stg =
   let str = "Out of " ^ Plant.string_of_plant_stage plnt_stg in
@@ -260,28 +270,30 @@ exception End
 exception Invalid_Key
 
 let handle_char s c =
-  match c with
-  | 'i' -> toggle_instructions s
-  | 'x' -> raise End
-  | _ -> (
-      if s.instr then raise Invalid_Key
-      else
-        match c with
-        | 'q' -> scroll s 3
-        | 'e' -> scroll s 5
-        | 'w' -> scroll s 4
-        | 'a' -> scroll s 2
-        | 's' -> scroll s 1
-        | 'd' -> scroll s 0
-        | 'p' -> plant s
-        | '1' -> buy s 1
-        | '2' -> buy s 2
-        | '3' -> buy s 3
-        | '4' -> buy s 4
-        | 'f' ->
-            if Game.is_setup s.game then raise Invalid_Key
-            else end_turn s
-        | _ -> raise Invalid_Key)
+  if s.ended then raise End
+  else
+    match c with
+    | 'i' -> toggle_instructions s
+    | 'x' -> raise End
+    | _ -> (
+        if s.instr then raise Invalid_Key
+        else
+          match c with
+          | 'q' -> scroll s 3
+          | 'e' -> scroll s 5
+          | 'w' -> scroll s 4
+          | 'a' -> scroll s 2
+          | 's' -> scroll s 1
+          | 'd' -> scroll s 0
+          | 'p' -> plant s
+          | '1' -> buy s 1
+          | '2' -> buy s 2
+          | '3' -> buy s 3
+          | '4' -> buy s 4
+          | 'f' ->
+              if Game.is_setup s.game then raise Invalid_Key
+              else end_turn s
+          | _ -> raise Invalid_Key)
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
