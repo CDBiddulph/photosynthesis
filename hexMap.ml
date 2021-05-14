@@ -58,12 +58,14 @@ let set_cell (map : t) cell coord : t =
 
 let dist (map : t) c1 c2 =
   let open HexUtil in
-  if
-    Int.abs (c1.col - c2.col) = Int.abs (c1.diag - c2.diag)
-    && ((c1.col > c2.col && c1.diag < c2.diag)
-       || (c1.col < c2.col && c1.diag > c2.diag))
-  then Int.abs (c1.col - c2.col) + Int.abs (c1.diag - c2.diag)
-  else max (Int.abs (c1.col - c2.col)) (Int.abs (c1.diag - c2.diag))
+  let lst =
+    [
+      Int.abs (c1.col - c2.col);
+      Int.abs (c1.diag - c2.diag);
+      Int.abs ((-1 * (c1.col - c1.diag)) - ((c2.col - c2.diag) * -1));
+    ]
+  in
+  List.fold_left (fun acc v -> if v > acc then v else acc) 0 lst
 
 let neighbor (map : t) c (d : HexUtil.dir) =
   let open HexUtil in
