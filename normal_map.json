@@ -1,0 +1,276 @@
+{
+    "map": [
+        [
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 0,
+                "diag": 0
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 0,
+                "diag": 1
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 0,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 0,
+                "diag": 3
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            }
+        ],
+        [
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 1,
+                "diag": 0
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 1,
+                "diag": 1
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 1,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 1,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 1,
+                "diag": 4
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            }
+        ],
+        [
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 2,
+                "diag": 0
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 2,
+                "diag": 1
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 2,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 2,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 2,
+                "diag": 4
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 2,
+                "diag": 5
+            },
+            {
+                "opt": false
+            }
+        ],
+        [
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 3,
+                "diag": 0
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 3,
+                "diag": 1
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 3,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 4,
+                "col": 3,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 3,
+                "diag": 4
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 3,
+                "diag": 5
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 3,
+                "diag": 6
+            }
+        ],
+        [
+            {
+                "opt": false
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 4,
+                "diag": 1
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 4,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 4,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 3,
+                "col": 4,
+                "diag": 4
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 4,
+                "diag": 5
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 4,
+                "diag": 6
+            }
+        ],
+        [
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 5,
+                "diag": 2
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 5,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 5,
+                "diag": 4
+            },
+            {
+                "opt": true,
+                "soil": 2,
+                "col": 5,
+                "diag": 5
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 5,
+                "diag": 6
+            }
+        ],
+        [
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": false
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 6,
+                "diag": 3
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 6,
+                "diag": 4
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 6,
+                "diag": 5
+            },
+            {
+                "opt": true,
+                "soil": 1,
+                "col": 6,
+                "diag": 6
+            }
+        ]
+    ]
+}

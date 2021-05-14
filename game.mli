@@ -35,6 +35,7 @@ val _init_game_test :
     Should only be used for testing. *)
 val _update_players_test : (PlayerId.t * Player.t) list -> t -> t
 
+(** [board game] is the game's board. *)
 val board : t -> Board.t
 
 (** [plant_seed coord game] is game with a seed of the current player
@@ -120,15 +121,14 @@ val can_plant_seed : HexUtil.coord -> t -> bool
     setup mode. *)
 val can_plant_small : HexUtil.coord -> t -> bool
 
-(** [can_grow_plant coord player_id game] is true iff growing the plant
-    at [coord] with the player of [player_id] at [coord] is a legal
-    move, disregarding whether the player actually has the plant in
-    their available area. *)
+(** [can_grow_plant coord game] is true iff growing the plant at [coord]
+    with the player of [player_id] at [coord] is a legal move,
+    disregarding whether the player actually has the plant in their
+    available area. *)
 val can_grow_plant : HexUtil.coord -> t -> bool
 
-(** [can_harvest coord player_id game] is true iff harvesting the plant
-    at [coord] with the player of [player_id] at [coord] is a legal
-    move. *)
+(** [can_harvest coord game] is true iff harvesting the plant at [coord]
+    with the player of [player_id] at [coord] is a legal move. *)
 val can_harvest : HexUtil.coord -> t -> bool
 
 (** [turn game] is the player_id of the player whose turn it is in
@@ -168,6 +168,6 @@ val scoring_points : t -> (Cell.soil * int list) list
 (** [is_setup game] is true if [game] is in setup mode. *)
 val is_setup : t -> bool
 
-(** [winner game] is the winner of the game. If the game isn't over,
-    then returns [None]. *)
-val winner : t -> PlayerId.t option
+(** [winner game] is the list of winners of the game. If the game isn't
+    over, then returns [None]. *)
+val winner : t -> PlayerId.t list option

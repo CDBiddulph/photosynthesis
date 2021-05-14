@@ -20,7 +20,17 @@ let set_cell_test
     (cell : Cell.t option)
     (coord : HexUtil.coord) =
   name >:: fun _ ->
-  assert_equal cell (cell_at (set_cell map cell coord) coord)
+  assert_equal cell
+    (cell_at (set_cell map cell coord) coord)
+    ~printer:(fun c_opt ->
+      match c_opt with
+      | None -> "None"
+      | Some c ->
+          let open HexUtil in
+          let coord = Cell.coord c in
+          let soil = Cell.soil c in
+          string_of_int soil ^ " " ^ string_of_int coord.col ^ " "
+          ^ string_of_int coord.diag)
 
 (** [set_cell_fail name map cell coord] constructs an OUnit test named
     [name] that asserts that [Failure "Invalid location"] is raised at

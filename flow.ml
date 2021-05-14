@@ -51,20 +51,3 @@ module FlowMin = struct
 end
 
 module MaxFlow = Ford_Fulkerson (BaseGraph) (FlowMin)
-
-(* let c00 : HexUtil.coord = { col = 0; diag = 0 }
-
-   let c10 : HexUtil.coord = { col = 1; diag = 0 }
-
-   let c01 : HexUtil.coord = { col = 0; diag = 1 }
-
-   let c11 : HexUtil.coord = { col = 1; diag = 1 }
-
-   let a = BaseGraph.add_vertex (BaseGraph.add_vertex BaseGraph.empty
-   c00) c11
-
-   let b = BaseGraph.add_vertex (BaseGraph.add_vertex a c01) c10
-
-   let c = BaseGraph.add_edge (BaseGraph.add_edge b c00 c01) c00 c10
-
-   let d = BaseGraph.add_edge (BaseGraph.add_edge c c10 c11) c01 c11 *)

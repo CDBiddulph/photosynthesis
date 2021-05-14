@@ -1,10 +1,11 @@
-(** TODO *)
+(** Utility module for player id type needed across other modules. *)
 
-(** TODO *)
+(** Type representing a player id. *)
 type t = int
 
-(** TODO *)
+(** Value of the first player's id. *)
 val first : t
 
-(** TODO *)
+(** [generate_player_ids num_players] is a list of [num_players] unique
+    ordered player ids. *)
 val generate_player_ids : int -> t list

@@ -29,10 +29,6 @@ type t = {
   src_sink : HexUtil.coord * HexUtil.coord;
 }
 
-(* TODO: map planted seeds to candidate plants; if single candidate,
-   move to touched and clean map; max flow; if max flow = planted seeds,
-   move to touched; max flow must always equal number of involved seeds *)
-
 exception IllegalPlacePlant
 
 exception IllegalGrowPlant
@@ -79,6 +75,15 @@ let plant_at board coord =
   match cell_at board coord with
   | None -> None
   | Some cell -> Cell.plant cell
+
+let get_all_trees board id =
+  List.filter
+    (fun cell ->
+      match Cell.plant cell with
+      | None -> false
+      | Some plant -> Plant.player_id plant = id)
+    (cells board)
+  |> List.map (fun cell -> Cell.coord cell)
 
 (** [cell_if_empty coord board] is the [Cell.t option] of the cell at
     [coord]. If the cell has a plant or is invalid, returns [None]. *)
