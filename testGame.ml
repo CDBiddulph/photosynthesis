@@ -150,7 +150,8 @@ let player_params =
 
 let gui =
   let render_game = iter_turns 8 game4 in
-  Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ]
+  Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ] None
+    false
     (Game.sun_dir render_game)
     (Game.cells render_game)
     player_params
