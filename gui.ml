@@ -1,11 +1,12 @@
 open Renderer
 open Raster
 open HexUtil
+open ANSITerminal
 
 type t = {
   rend : Renderer.t;
   offsets : (string * point2d) list;
-  player_params : (PlayerId.t * (char * ANSITerminal.color)) list;
+  player_params : (PlayerId.t * (char * color)) list;
   turn : PlayerId.t;
   store_costs : int list list;
   num_store_remaining : int list;
@@ -41,7 +42,7 @@ let draw_hexes layer_name color points gui =
 let draw_soil layer_name soil point gui =
   let char_grid_name = "soil/" ^ string_of_int soil in
   let soil_graphic =
-    get_graphic_fill_color char_grid_name ANSITerminal.Green gui.rend
+    get_graphic_fill_color char_grid_name Green gui.rend
   in
   draw_at_point layer_name soil_graphic gui point
 
@@ -64,7 +65,7 @@ let plant_graphic plant gui =
   gui.rend
   |> get_graphic_with_color_grid char_name color_name
   |> replace_char 'x' (render_char player_id gui)
-  |> replace_color ANSITerminal.Default (render_color player_id gui)
+  |> replace_color Default (render_color player_id gui)
 
 (** [draw_plant layer_name plant point gui] returns [gui] with [plant]
     drawn in the position corresponding to [point] in the layer of
@@ -97,8 +98,7 @@ let draw_cursor layer_name color coord_opt gui =
 
 let update_cursor coord_opt gui =
   let layer_name = "cursor" in
-  gui |> set_blank layer_name
-  |> draw_cursor layer_name ANSITerminal.Red coord_opt
+  gui |> set_blank layer_name |> draw_cursor layer_name Red coord_opt
 
 let draw_text layer_name point text color gui =
   let text_graphic = text_raster text color in
@@ -114,14 +114,14 @@ let rec draw_text_lines layer_name point lines color gui =
 
 let update_message text color gui =
   gui |> set_blank "message"
-  |> draw_text "message" { x = 0; y = 0 } text color
+  |> draw_text "message" (get_offset "message" gui) text color
 
 let update_sun dir gui =
   let gui' = set_blank "sun" gui in
   draw_at_point "sun"
     (get_graphic_fill_color
        ("sun/" ^ string_of_int dir)
-       ANSITerminal.Yellow gui'.rend)
+       Yellow gui'.rend)
     gui' (get_offset "sun" gui')
 
 let draw_plant_num layer_name point color num gui =
@@ -214,7 +214,7 @@ let update_store_remaining num_remaining gui =
   new_gui
   |> draw_bought "store_bought"
        (get_offset "store" new_gui)
-       ANSITerminal.Magenta num_remaining
+       Magenta num_remaining
 
 let update_available num_available gui =
   let new_gui = { gui with num_available } in
@@ -229,7 +229,7 @@ let draw_static_text layer_name gui =
     draw_text_lines layer_name
       (get_offset offset_name gui +: { x = 2; y = 1 })
       [ title; "------------------------------" ]
-      ANSITerminal.White
+      White
   in
   gui
   |> draw_plant_inventory_static_text "store" "Store"
@@ -272,12 +272,12 @@ let draw_plant_highlight layer_name color loc_opt gui =
 let update_plant_highlight loc_opt gui =
   let layer_name = "plant_highlight" in
   gui |> set_blank layer_name
-  |> draw_plant_highlight layer_name ANSITerminal.White loc_opt
+  |> draw_plant_highlight layer_name White loc_opt
 
 let update_cell_highlight coords gui =
   let layer_name = "cell_highlight" in
   gui |> set_blank layer_name
-  |> draw_hexes layer_name ANSITerminal.Green
+  |> draw_hexes layer_name Green
        (List.map (point2d_of_hex_coord gui) coords)
 
 let pad_to_length str length =
@@ -287,7 +287,7 @@ let draw_next_sp layer_name soil sp gui =
   draw_text layer_name
     (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
     (pad_to_length (string_of_int sp) 2)
-    ANSITerminal.Green gui
+    Green gui
 
 let draw_init_next_sp layer_name sps gui =
   let enumerate_sps = List.mapi (fun i sp -> (i + 1, sp)) sps in
@@ -297,7 +297,7 @@ let draw_init_next_sp layer_name sps gui =
   |> draw_text_lines layer_name
        (get_offset "next_sp" gui)
        [ "Next SP:"; "::"; ":."; ":"; "." ]
-       ANSITerminal.Green
+       Green
 
 let update_next_sp = draw_next_sp "overwrite_text"
 
@@ -305,13 +305,13 @@ let update_player_lp lp gui =
   draw_text "overwrite_text"
     (get_offset "player_lp" gui)
     ("LP: " ^ pad_to_length (string_of_int lp) 2)
-    ANSITerminal.Yellow gui
+    Yellow gui
 
 let update_player_sp sp gui =
   draw_text "overwrite_text"
     (get_offset "player_sp" gui)
     ("SP: " ^ pad_to_length (string_of_int sp) 3)
-    ANSITerminal.Green gui
+    Green gui
 
 let draw_player_sign layer_name player_id gui =
   draw_text layer_name
@@ -319,6 +319,43 @@ let draw_player_sign layer_name player_id gui =
     ("Player " ^ string_of_int player_id)
     (render_color player_id gui)
     gui
+
+let set_visible visible layer_name gui =
+  { gui with rend = Renderer.set_visible visible layer_name gui.rend }
+
+let update_instructions to_show gui =
+  set_visible to_show "instructions" gui
+
+let update_end_screen players gui =
+  let message =
+    match List.sort compare players with
+    | [] -> None
+    | [ p ] -> Some ("Player " ^ string_of_int p ^ " has won!")
+    | [ p1; p2 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ " and " ^ string_of_int p2
+         ^ " have won!")
+    | [ p1; p2; p3 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ ", " ^ string_of_int p2
+         ^ ", and " ^ string_of_int p3 ^ " have won!")
+    | [ p1; p2; p3; p4 ] ->
+        Some
+          ("Players " ^ string_of_int p1 ^ ", " ^ string_of_int p2
+         ^ ", " ^ string_of_int p3 ^ ", and " ^ string_of_int p4
+         ^ " have won!")
+    | _ -> failwith "Too many players"
+  in
+  let cleared = gui |> set_blank "end_screen" in
+  match message with
+  | None -> cleared
+  | Some m ->
+      let line_text = String.make (String.length m + 4) '-' in
+      let middle_text = "| " ^ m ^ " |" in
+      let boxed_message = [ line_text; middle_text; line_text ] in
+      draw_text_lines "end_screen"
+        (get_offset "end_screen" cleared)
+        boxed_message White cleared
 
 let photosynthesis lp gui =
   List.fold_left
@@ -357,9 +394,16 @@ let update_turn
   |> update_plant_highlight highlight_loc_opt
   |> update_player_lp lp |> update_player_sp sp
 
-let init_gui store_costs init_available init_next_sp sun_dir cells player_params
-    =
-  let layer_names =
+let init_gui
+    store_costs
+    init_available
+    init_next_sp
+    init_cursor
+    init_instructions
+    sun_dir
+    cells
+    player_params =
+  let vis_layer_names =
     [
       "background";
       "sun";
@@ -376,22 +420,31 @@ let init_gui store_costs init_available init_next_sp sun_dir cells player_params
       "overwrite_text";
       "player_sign";
       "message";
+      "end_screen";
     ]
+  in
+  let invis_layer_names = [ "instructions" ] in
+  let layer_info =
+    List.map (fun n -> (n, true)) vis_layer_names
+    @ List.map (fun n -> (n, false)) invis_layer_names
   in
   let gui =
     {
-      rend = init_rend layer_names { x = 119; y = 44 };
+      rend = init_rend layer_info { x = 119; y = 44 };
       offsets =
         [
-          ("board", { x = 5; y = 2 });
-          ("store", { x = 85; y = 2 });
-          ("available", { x = 85; y = 23 });
+          ("board", { x = 5; y = 1 });
+          ("store", { x = 85; y = 1 });
+          ("available", { x = 85; y = 22 });
           ("plant_num", { x = 5; y = 5 });
-          ("player_sign", { x = 109; y = 1 });
-          ("sun", { x = 3; y = 1 });
-          ("next_sp", { x = 7; y = 38 });
-          ("player_lp", { x = 73; y = 4 });
-          ("player_sp", { x = 7; y = 4 });
+          ("player_sign", { x = 109; y = 0 });
+          ("sun", { x = 3; y = 0 });
+          ("next_sp", { x = 7; y = 37 });
+          ("player_lp", { x = 73; y = 3 });
+          ("player_sp", { x = 7; y = 3 });
+          ("message", { x = 0; y = 43 });
+          ("instructions", { x = 17; y = 9 });
+          ("end_screen", { x = 50; y = 20 });
         ];
       player_params;
       turn = PlayerId.first;
@@ -402,8 +455,8 @@ let init_gui store_costs init_available init_next_sp sun_dir cells player_params
   in
   gui
   (* |> set_layer "background" (fill_layer gui.rend (Some '.') (Some
-     ANSITerminal.Magenta)) *)
-  |> draw_hexes "hexes" ANSITerminal.White
+     Magenta)) *)
+  |> draw_hexes "hexes" White
        (List.map
           (fun c -> c |> Cell.coord |> point2d_of_hex_coord gui)
           cells)
@@ -413,5 +466,12 @@ let init_gui store_costs init_available init_next_sp sun_dir cells player_params
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
        None
   |> update_sun sun_dir
+  |> update_cursor init_cursor
+  |> fun g ->
+  draw_at_point "instructions"
+    (get_graphic_fill_color "instructions" White gui.rend)
+    g
+    (get_offset "instructions" g)
+  |> update_instructions init_instructions
 
 let render gui = render gui.rend

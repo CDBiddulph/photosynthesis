@@ -8,20 +8,21 @@ open Graphics
 open Game
 open Player
 
-exception End
-
 exception Invalid_Direction
 
 exception Invalid_Cell
 
 type t = {
   current_position : HexUtil.coord;
+  instr : bool;
   game : Game.t;
   gui : Gui.t;
 }
 
-let init_state (gui : Gui.t) (game : Game.t) : t =
-  { current_position = { col = 2; diag = 2 }; game; gui }
+let init_cursor = { col = 0; diag = 0 }
+
+let init_state (instr : bool) (gui : Gui.t) (game : Game.t) : t =
+  { current_position = init_cursor; instr; game; gui }
 
 let extract (c : HexUtil.coord option) : HexUtil.coord =
   match c with Some i -> i | None -> raise Invalid_Direction
@@ -155,7 +156,6 @@ let end_turn s =
       num_store_remaining num_available hlo s.gui
     |> Gui.update_sun sun_dir
   in
-  render new_gui;
   let new_state = { s with game = new_game; gui = new_gui } in
   let new2_gui =
     Gui.update_message
@@ -168,7 +168,6 @@ let end_turn s =
 let out_of_plant_exn s plnt_stg =
   let str = "Out of " ^ Plant.string_of_plant_stage plnt_stg in
   let new_gui = Gui.update_message str ANSITerminal.Red s.gui in
-  render new_gui;
   { s with gui = new_gui }
 
 let plant s =
@@ -188,7 +187,6 @@ let plant s =
         Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
           s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
       out_of_plant_exn s Plant.Seed
@@ -205,7 +203,6 @@ let plant s =
           ("Action requires " ^ string_of_int cost ^ " light points")
           ANSITerminal.Red s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
 
 let buy_helper s num =
@@ -231,14 +228,7 @@ let buy s num =
       |> Gui.update_player_lp (Player.light_points pl)
       |> Gui.update_player_sp (Player.score_points pl)
     in
-    render new_gui;
-    let new_state =
-      {
-        current_position = s.current_position;
-        gui = new_gui;
-        game = new_game;
-      }
-    in
+    let new_state = { s with gui = new_gui; game = new_game } in
     new_state
   with
   | Store.InsufficientLightPoints cost ->
@@ -247,7 +237,6 @@ let buy s num =
           ("Action requires " ^ string_of_int cost ^ " light points")
           ANSITerminal.Red s.gui
       in
-      render new_gui;
       { s with gui = new_gui }
   | PlantInventory.OutOfPlant Plant.Seed ->
       out_of_plant_exn s Plant.Seed
@@ -258,32 +247,51 @@ let buy s num =
   | PlantInventory.OutOfPlant Plant.Large ->
       out_of_plant_exn s Plant.Large
 
+let toggle_instructions s =
+  let new_instr = not s.instr in
+  {
+    s with
+    gui = update_instructions new_instr s.gui;
+    instr = new_instr;
+  }
+
+exception End
+
+exception Invalid_Key
+
 let handle_char s c =
   match c with
-  | 'q' -> scroll s 3
-  | 'e' -> scroll s 5
-  | 'w' -> scroll s 4
-  | 'a' -> scroll s 2
-  | 's' -> scroll s 1
-  | 'd' -> scroll s 0
-  | 'p' -> plant s
-  | 'f' -> end_turn s
+  | 'i' -> toggle_instructions s
   | 'x' -> raise End
-  | '1' -> buy s 1
-  | '2' -> buy s 2
-  | '3' -> buy s 3
-  | '4' -> buy s 4
-  | _ -> s
+  | _ -> (
+      if s.instr then raise Invalid_Key
+      else
+        match c with
+        | 'q' -> scroll s 3
+        | 'e' -> scroll s 5
+        | 'w' -> scroll s 4
+        | 'a' -> scroll s 2
+        | 's' -> scroll s 1
+        | 'd' -> scroll s 0
+        | 'p' -> plant s
+        | '1' -> buy s 1
+        | '2' -> buy s 2
+        | '3' -> buy s 3
+        | '4' -> buy s 4
+        | 'f' ->
+            if Game.is_setup s.game then raise Invalid_Key
+            else end_turn s
+        | _ -> raise Invalid_Key)
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
   while true do
     try
       let a = Graphics.wait_next_event [ Graphics.Key_pressed ] in
-      if a.Graphics.keypressed then (
-        let new_state = handle_char s a.Graphics.key in
-        render new_state.gui;
-        read_char new_state)
-      else read_char s
-    with End -> Graphics.close_graph ()
+      let new_state = handle_char s a.Graphics.key in
+      render new_state.gui;
+      read_char new_state
+    with
+    | Invalid_Key -> read_char s
+    | End -> Graphics.close_graph ()
   done
