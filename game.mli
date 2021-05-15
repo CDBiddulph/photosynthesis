@@ -94,11 +94,6 @@ val harvest : HexUtil.coord -> t -> t
     store. *)
 val buy_plant : Plant.plant_stage -> t -> t
 
-(* In the future, we may want to alert the UI that photosynthesis is
-   about to happen instead of just lumping photosynthesis in with
-   end_turn, so that we can have a screen on which numbers appear under
-   the trees that collect light points. *)
-
 (** [end_turn game] is [game] with control relinquished to the player
     who plays after the current player, and with photosynthesis
     performed if appropriate. If [game] is not in setup, photosynthesis
@@ -109,6 +104,19 @@ val buy_plant : Plant.plant_stage -> t -> t
 val end_turn : t -> t
 
 (* Getter functions. *)
+
+(** [will_photo] is true iff ending the current player's turn will cause
+    photosynthesis to occur. *)
+val will_photo : t -> bool
+
+(** [photo_preview game] is a pair, with the first being an association
+    list of player ids to the pairs of [HexUtil.coord]s that have plants
+    that the player owns and the light points gained by the plant in
+    that cell for the next photosynthesis, assuming the board stays in
+    its current state. The second in the pair is the direction of the
+    sun after the next photosynthesis. *)
+val photo_preview :
+  t -> (PlayerId.t * (HexUtil.coord * int) list) list * HexUtil.dir
 
 (** [can_plant_seed coord game] is true if planting a seed with the
     player of the current turn of [game] at [coord] is a legal move,

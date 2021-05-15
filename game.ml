@@ -146,6 +146,7 @@ let end_turn_normal natural_next_turn is_new_round game =
   let new_num_rounds =
     game.num_rounds + if is_new_round then 1 else 0
   in
+  if new_num_rounds
   let new_starting_turn =
     if is_new_round then turn_after game game.starting_turn
     else game.starting_turn
@@ -188,15 +189,33 @@ let end_turn_setup natural_next_turn is_new_round game =
 
 let rule_to_rounds = function Normal -> 18 | Extended -> 24
 
+let is_setup game = game.setup_rounds_left > 0
+
 let end_turn game =
   let turn_after_this = turn_after game game.turn in
   let is_new_round = turn_after_this = game.starting_turn in
-  if game.num_rounds > rule_to_rounds game.rounds_rule then game
-  else if game.setup_rounds_left = 0 then
-    end_turn_normal turn_after_this is_new_round game
-  else end_turn_setup turn_after_this is_new_round game
+  if is_setup game then
+    end_turn_setup turn_after_this is_new_round game
+  else end_turn_normal turn_after_this is_new_round game
 
-let is_setup game = game.setup_rounds_left > 0
+(* Note: there is dependency between rules here and rules in end_turn *)
+let will_photo game =
+  game.num_rounds < rule_to_rounds game.rounds_rule
+  && game.setup_rounds_left <= 1
+  && turn_after game game.turn = game.starting_turn
+
+(* Note: there is dependency between rules here and rules in end_turn *)
+let photo_preview game =
+  let next_sun_dir =
+    if is_setup game then sun_dir game
+    else sun_dir game |> HexUtil.move_cw
+  in
+  let lp =
+    Board.get_photo_lp next_sun_dir
+      (List.map fst game.players)
+      game.board
+  in
+  (lp, next_sun_dir)
 
 let can_plant_seed coord game =
   (not (is_setup game))
