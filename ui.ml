@@ -69,8 +69,6 @@ let update_message (s : t) (coord : HexUtil.coord) =
 let scroll s d =
   let map = Game.board s.game |> Board.map in
   let new_pos = HexMap.neighbor map s.current_position d in
-  let pl = Game.player_of_turn s.game in
-  let pl_id = Player.player_id pl in
   match new_pos with
   | None ->
       let new_gui =
@@ -79,22 +77,10 @@ let scroll s d =
       let new_state = { s with gui = new_gui } in
       new_state
   | Some pos ->
-      let hlo =
-        let plnt_opt = pos |> Game.cell_at s.game |> Cell.plant in
-        match plnt_opt with
-        | None -> None
-        | Some plant ->
-            if Plant.player_id plant <> pl_id then None
-            else
-              let plnt_stg = plant |> Plant.plant_stage in
-              if Player.is_in_available plnt_stg pl then
-                Some (false, plnt_stg)
-              else Some (true, plnt_stg)
-      in
       let new_gui =
         Gui.update_cursor new_pos s.gui
         |> Gui.update_message (update_message s pos) ANSITerminal.White
-        |> Gui.update_plant_highlight hlo
+        |> Gui.update_plant_highlight (Game.plant_hl_loc pos s.game)
       in
       let new_state =
         { s with current_position = pos; gui = new_gui }
@@ -104,23 +90,8 @@ let scroll s d =
 let plant_helper s f =
   let new_game = f s.current_position s.game in
   let pl = Game.player_of_turn new_game in
-  let pl_id = Player.player_id pl in
   let num_store_remaining = num_remaining_store pl in
   let num_available = num_remaining_available pl in
-  let hlo =
-    let plnt_opt =
-      s.current_position |> Game.cell_at new_game |> Cell.plant
-    in
-    match plnt_opt with
-    | None -> None
-    | Some plant ->
-        if Plant.player_id plant <> pl_id then None
-        else
-          let plnt_stg = plant |> Plant.plant_stage in
-          if Player.is_in_available plnt_stg pl then
-            Some (false, plnt_stg)
-          else Some (true, plnt_stg)
-  in
   let new_state = { s with game = new_game } in
   let new_gui =
     let cells = Game.cells new_game in
@@ -132,7 +103,8 @@ let plant_helper s f =
     |> Gui.update_store_remaining num_store_remaining
     |> Gui.update_player_lp (Player.light_points pl)
     |> Gui.update_player_sp (Player.score_points pl)
-    |> Gui.update_plant_highlight hlo
+    |> Gui.update_plant_highlight
+         (Game.plant_hl_loc new_state.current_position new_state.game)
   in
   let newer_state = { s with gui = new_gui; game = new_game } in
   newer_state
@@ -241,7 +213,7 @@ let plant s =
   | Store.InsufficientLightPoints cost ->
       let new_gui =
         Gui.update_message
-          ("Action requires " ^ string_of_int cost ^ " light points")
+          ("Action requires " ^ string_of_int cost ^ " LP")
           ANSITerminal.Red s.gui
       in
       { s with gui = new_gui }
@@ -268,7 +240,7 @@ let buy s stage =
   | Store.InsufficientLightPoints cost ->
       let new_gui =
         Gui.update_message
-          ("Action requires " ^ string_of_int cost ^ " light points")
+          ("Action requires " ^ string_of_int cost ^ " LP")
           ANSITerminal.Red s.gui
       in
       { s with gui = new_gui }

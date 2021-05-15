@@ -179,3 +179,17 @@ val is_setup : t -> bool
 (** [winners game] is the list of winners of the game. If the game isn't
     over, then returns [None]. *)
 val winners : t -> PlayerId.t list option
+
+(** [plant_hl_loc coord game] is the optional location of the plant
+    highlight, encoded in the form [Some (is_store, stage)] or [None].
+    If [None], it means there is no plant highlight. Otherwise, it means
+    that the first plant of [stage] in the store if [is_store], else the
+    first plant of [stage] in the available area should be highlighted.
+    The idea behind highlighting is that when there is a plant that can
+    be used to perform an action on the cell at [coord], it will be
+    highlighted. The function will not necessarily check whether the
+    store contains [stage] or not, so if both the available and store
+    are empty for [stage], it may return [Some (true, stage)] rather
+    than [None]. This is meant to be handled by the GUI. *)
+val plant_hl_loc :
+  HexUtil.coord -> t -> (bool * Plant.plant_stage) option

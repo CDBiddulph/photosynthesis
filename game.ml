@@ -342,3 +342,23 @@ let winners game =
             ([], 0) num_trees
         in
         Some winners
+
+let plant_hl_loc coord game =
+  let open Plant in
+  let plant = Board.plant_at coord game.board in
+  let next_stage_opt =
+    if can_plant_seed coord game then Some Seed
+    else if can_plant_small coord game then Some Small
+    else if can_grow_plant coord game then
+      match plant with
+      | None -> failwith "Unreachable"
+      | Some p -> Some (p |> Plant.plant_stage |> Plant.next_stage)
+    else None
+  in
+  match next_stage_opt with
+  | None -> None
+  | Some next_stage ->
+      let is_store =
+        Player.num_in_available next_stage (player_of_turn game) = 0
+      in
+      Some (is_store, next_stage)
