@@ -10,21 +10,12 @@ type t = {
   color_grid : ANSITerminal.color grid;
 }
 
-(** [p1 +: p2] is the result of elementwise addition of [p1] and [p2]. *)
 let ( +: ) p1 p2 = { x = p1.x + p2.x; y = p1.y + p2.y }
 
-(** [p1 *: p2] is the result of elementwise multiplication of [p1] and
-    [p2]. *)
 let ( *: ) p1 p2 = { x = p1.x * p2.x; y = p1.y * p2.y }
 
-(** [map_grid f grid] is a list of lists [result] with the dimensions of
-    [grid1], where [result.(i).(j) = f grid1.(i).(j)]. *)
 let map_grid f grid = List.map (fun row -> List.map f row) grid
 
-(** [map2_grid f grid1 grid2] is a list of lists [result] with the
-    dimensions of [grid1] and [grid2], where
-    [result.(i).(j) = f grid1.(i).(j) grid2.(i).(j)]. Requires: the
-    dimensions of grid1 are the same as the dimensions of grid2. *)
 let map2_grid f grid1 grid2 =
   List.map2 (fun row1 row2 -> List.map2 f row1 row2) grid1 grid2
 
@@ -117,8 +108,6 @@ let rec fill_grid elem size =
 let fill_raster size ch col =
   { char_grid = fill_grid ch size; color_grid = fill_grid col size }
 
-(** [blank_raster w h] is a raster with a rectangular grid of [None]
-    char options with width [w] and height [h]. *)
 let blank_raster size = fill_raster size None None
 
 let text_raster text color =
@@ -128,13 +117,6 @@ let text_raster text color =
     color_grid = fill_grid (Some color) { x = len; y = 1 };
   }
 
-(** [load_char_grid none_c filename] is a [char grid] representing the
-    file at [filename] relative to the working directory. Each line
-    ([char option list]) in the [grid] will contain a list of
-    [char option]s up to, but not including a ['\n'] or end of file. The
-    character [none_c] will be represented as [None], while all other
-    characters [c] will be represented as [Some c]. It is possible for
-    the grid to be represented by non-rectangular lists. *)
 let load_char_grid none_c filename =
   let rec load_char_grid_helper ic g_acc =
     (* [load_line ic l_acc] is None when [ic] is at EOF. Otherwise, it
