@@ -142,33 +142,37 @@ let photosynthesis game =
       (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
 
+let rule_to_rounds = function Normal -> 18 | Extended -> 24
+
 let end_turn_normal natural_next_turn is_new_round game =
-  let new_num_rounds =
-    game.num_rounds + if is_new_round then 1 else 0
-  in
-  if new_num_rounds
-  let new_starting_turn =
-    if is_new_round then turn_after game game.starting_turn
-    else game.starting_turn
-  in
-  let new_turn =
-    if is_new_round then new_starting_turn else natural_next_turn
-  in
-  (* Must change num_rounds first, because photosynthesis depends on the
-     direction of the sun in game, and that depends on num_rounds *)
-  let move_sun_game =
-    {
-      game with
-      board = Board.end_turn game.board;
-      num_rounds = new_num_rounds;
-      starting_turn = new_starting_turn;
-      turn = new_turn;
-    }
-  in
-  let new_players =
-    if is_new_round then photosynthesis move_sun_game else game.players
-  in
-  { move_sun_game with players = new_players }
+  if game.num_rounds = rule_to_rounds game.rounds_rule then game
+  else
+    let new_num_rounds =
+      game.num_rounds + if is_new_round then 1 else 0
+    in
+    let new_starting_turn =
+      if is_new_round then turn_after game game.starting_turn
+      else game.starting_turn
+    in
+    let new_turn =
+      if is_new_round then new_starting_turn else natural_next_turn
+    in
+    (* Must change num_rounds first, because photosynthesis depends on
+       the direction of the sun in game, and that depends on num_rounds *)
+    let move_sun_game =
+      {
+        game with
+        board = Board.end_turn game.board;
+        num_rounds = new_num_rounds;
+        starting_turn = new_starting_turn;
+        turn = new_turn;
+      }
+    in
+    let new_players =
+      if is_new_round then photosynthesis move_sun_game
+      else game.players
+    in
+    { move_sun_game with players = new_players }
 
 let end_turn_setup natural_next_turn is_new_round game =
   let new_setup_rounds_left =
@@ -187,20 +191,17 @@ let end_turn_setup natural_next_turn is_new_round game =
     setup_rounds_left = new_setup_rounds_left;
   }
 
-let rule_to_rounds = function Normal -> 18 | Extended -> 24
-
 let is_setup game = game.setup_rounds_left > 0
 
 let end_turn game =
   let turn_after_this = turn_after game game.turn in
   let is_new_round = turn_after_this = game.starting_turn in
-  if is_setup game then
-    end_turn_setup turn_after_this is_new_round game
+  if is_setup game then end_turn_setup turn_after_this is_new_round game
   else end_turn_normal turn_after_this is_new_round game
 
 (* Note: there is dependency between rules here and rules in end_turn *)
 let will_photo game =
-  game.num_rounds < rule_to_rounds game.rounds_rule
+  game.num_rounds + 1 < rule_to_rounds game.rounds_rule
   && game.setup_rounds_left <= 1
   && turn_after game game.turn = game.starting_turn
 
@@ -307,7 +308,8 @@ let cells game = Board.cells game.board
 let scoring_points game = game.scoring_points
 
 let winners game =
-  if game.num_rounds > rule_to_rounds game.rounds_rule then
+  if game.num_rounds < rule_to_rounds game.rounds_rule then None
+  else
     let ids, points =
       List.map
         (fun (id, player) ->
@@ -340,4 +342,3 @@ let winners game =
             ([], 0) num_trees
         in
         Some winners
-  else None

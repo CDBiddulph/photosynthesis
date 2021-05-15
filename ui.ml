@@ -140,8 +140,8 @@ let plant_helper s f =
 (** [end_turn s] will move the game to the next player's turn and set
     [photosynthesis = false], except when doing so will cause
     photosynthesis to occur and [s.photosynthesis] is already false. In
-    that case, it willjust change the GUI to display photosynthesis and
-    make [s.photosynthesis = true]. *)
+    that case, it will just change the GUI to display photosynthesis and
+    set [s.photosynthesis = true]. *)
 let end_turn s =
   if Game.will_photo s.game && not s.photosynthesis then
     let lp, sun_dir = Game.photo_preview s.game in
