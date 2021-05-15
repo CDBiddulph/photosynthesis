@@ -443,7 +443,7 @@ let init_gui
           ("player_lp", { x = 73; y = 3 });
           ("player_sp", { x = 7; y = 3 });
           ("message", { x = 0; y = 43 });
-          ("instructions", { x = 17; y = 9 });
+          ("instructions", { x = 17; y = 7 });
           ("end_screen", { x = 50; y = 20 });
         ];
       player_params;

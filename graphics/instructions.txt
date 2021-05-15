@@ -7,8 +7,10 @@
 | on which the trees grew. The sun will move around the board after every round,   |
 | and trees will gain light points according to how tall they are, if they are not |
 | blocked from the sun by any trees of equal or greater height. Light points can   |
-| be redeemed to buy, plant, and grow trees on a player's turn. The player or      |
-| players with the most scoring points at the end of the game win.                 |
+| be redeemed to buy, plant, and grow trees on a player's turn. when plants are    |
+| removed from the board, they are returned to the player's store, but if there is |
+| no more room, they are automatically thrown away. The player or players with the |
+| most scoring points at the end of the game win.                                  |
 |                                                                                  |
 | You can read the full rules at                                                   |
 | https://www.blueorangegames.com/index.php/games/photosynthesis.                  |
@@ -19,9 +21,9 @@
 |                                                                                  |
 | Key mappings:                                                                    |
 | QWEASD -> Move your cursor                                                       |
+| 1234 -> Buy a Seed, Small, Medium, or Large from the store, respectively         |
 | P -> Plant or grow a tree (automatically buys first, if necessary)               |
 | F -> End your turn                                                               |
 | X -> Quit the game                                                               |
 | I -> Show/hide these instructions                                                |
-| 1234 -> Buy a Seed, Small, Medium, or Large from the store, respectively         |
 ------------------------------------------------------------------------------------
