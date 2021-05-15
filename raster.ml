@@ -117,6 +117,13 @@ let text_raster text color =
     color_grid = fill_grid (Some color) { x = len; y = 1 };
   }
 
+(** [load_char_grid none_c filename] is a [char grid] representing the
+    file at [filename] relative to the working directory. Each line
+    ([char option list]) in the [grid] will contain a list of
+    [char option]s up to, but not including a ['\n'] or end of file. The
+    character [none_c] will be represented as [None], while all other
+    characters [c] will be represented as [Some c]. It is possible for
+    the grid to be represented by non-rectangular lists. *)
 let load_char_grid none_c filename =
   let rec load_char_grid_helper ic g_acc =
     (* [load_line ic l_acc] is None when [ic] is at EOF. Otherwise, it
