@@ -66,7 +66,7 @@ let update_message (s : t) (coord : HexUtil.coord) =
   else if Game.can_harvest coord s.game then "(P) Harvest Tall Tree"
   else ""
 
-let scroll s d =
+let scroll d s =
   let map = Game.board s.game |> Board.map in
   let new_pos = HexMap.neighbor map s.current_position d in
   match new_pos with
@@ -183,29 +183,16 @@ let out_of_plant_exn s plnt_stg =
   let new_gui = Gui.update_message str ANSITerminal.Red s.gui in
   { s with gui = new_gui }
 
-let plant s =
-  try
-    if Game.can_plant_seed s.current_position s.game then
-      plant_helper s Game.buy_and_grow_plant
-    else if Game.can_plant_small s.current_position s.game then
-      plant_helper s Game.plant_small |> end_turn
-    else if Game.can_grow_plant s.current_position s.game then
-      plant_helper s Game.buy_and_grow_plant
-    else if Game.can_harvest s.current_position s.game then
-      plant_helper s Game.harvest
-    else s
-  with
+let try_action f s =
+  try f s with
   | Board.IllegalPlacePlant ->
-      let new_gui =
-        Gui.update_message "Illegal Placement of Plant" ANSITerminal.Red
-          s.gui
-      in
-      { s with gui = new_gui }
+      failwith "I don't think this should happen"
+      (* let new_gui = Gui.update_message "Illegal Placement of Plant"
+         ANSITerminal.Red s.gui in { s with gui = new_gui } *)
   | PlantInventory.OutOfPlant Plant.Seed ->
       out_of_plant_exn s Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->
-      if Game.is_setup s.game then end_turn s
-      else out_of_plant_exn s Plant.Small
+      out_of_plant_exn s Plant.Small
   | PlantInventory.OutOfPlant Plant.Medium ->
       out_of_plant_exn s Plant.Medium
   | PlantInventory.OutOfPlant Plant.Large ->
@@ -218,8 +205,22 @@ let plant s =
       in
       { s with gui = new_gui }
 
-let buy s stage =
-  try
+let plant state =
+  let plant_f s =
+    if Game.can_plant_seed s.current_position s.game then
+      plant_helper s Game.buy_and_grow_plant
+    else if Game.can_plant_small s.current_position s.game then
+      plant_helper s Game.plant_small |> end_turn
+    else if Game.can_grow_plant s.current_position s.game then
+      plant_helper s Game.buy_and_grow_plant
+    else if Game.can_harvest s.current_position s.game then
+      plant_helper s Game.harvest
+    else s
+  in
+  try_action plant_f state
+
+let buy stage state =
+  let buy_f s =
     let new_game = Game.buy_plant stage s.game in
     let pl = Game.player_of_turn new_game in
     let num_store_remaining = num_remaining_store pl in
@@ -234,24 +235,9 @@ let buy s stage =
       |> Gui.update_player_lp (Player.light_points pl)
       |> Gui.update_player_sp (Player.score_points pl)
     in
-    let new_state = { s with gui = new_gui; game = new_game } in
-    new_state
-  with
-  | Store.InsufficientLightPoints cost ->
-      let new_gui =
-        Gui.update_message
-          ("Action requires " ^ string_of_int cost ^ " LP")
-          ANSITerminal.Red s.gui
-      in
-      { s with gui = new_gui }
-  | PlantInventory.OutOfPlant Plant.Seed ->
-      out_of_plant_exn s Plant.Seed
-  | PlantInventory.OutOfPlant Plant.Small ->
-      out_of_plant_exn s Plant.Small
-  | PlantInventory.OutOfPlant Plant.Medium ->
-      out_of_plant_exn s Plant.Medium
-  | PlantInventory.OutOfPlant Plant.Large ->
-      out_of_plant_exn s Plant.Large
+    { s with gui = new_gui; game = new_game }
+  in
+  try_action buy_f state
 
 let toggle_instructions s =
   let new_instr = not s.instr in
@@ -276,17 +262,17 @@ let handle_char s c =
         if s.instr then raise Invalid_Key
         else
           match c with
-          | 'q' -> scroll s 3
-          | 'e' -> scroll s 5
-          | 'w' -> scroll s 4
-          | 'a' -> scroll s 2
-          | 's' -> scroll s 1
-          | 'd' -> scroll s 0
+          | 'q' -> scroll 3 s
+          | 'e' -> scroll 5 s
+          | 'w' -> scroll 4 s
+          | 'a' -> scroll 2 s
+          | 's' -> scroll 1 s
+          | 'd' -> scroll 0 s
           | 'p' -> plant s
-          | '1' -> buy s Seed
-          | '2' -> buy s Small
-          | '3' -> buy s Medium
-          | '4' -> buy s Large
+          | '1' -> buy Seed s
+          | '2' -> buy Small s
+          | '3' -> buy Medium s
+          | '4' -> buy Large s
           | 'f' ->
               if Game.is_setup s.game then raise Invalid_Key
               else end_turn s

@@ -11,9 +11,9 @@ val init_state : bool -> Gui.t -> Game.t -> t
     specifically [{ col = 0; diag = 0; }]. *)
 val init_cursor : HexUtil.coord
 
-(** [scroll] returns a new state of the neighbor of the original
-    current_postion in direction [d] *)
-val scroll : t -> HexUtil.dir -> t
+(** [scroll dir state] returns a new state like [state] but with the
+    current position moved one step in direction [dir] *)
+val scroll : HexUtil.dir -> t -> t
 
 (** [handle_char] updates the current state's current position based on
     the char inputed. [handle_char] uses the WASD keys to move the
