@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------------
 | Instructions for Photosynthesis                                                  |
 |                                                                                  |
-| Summary: Using your light points (LP), players take their trees through their    |
+| Summary: Using their light points (LP), players take their trees through their   |
 | life cycles, from seedlings to fully grown. Players harvest their large trees to |
 | collect scoring points (SP), which are proportional to the richness of the soil  |
 | on which the trees grew. The sun will move around the board after every round,   |
@@ -23,4 +23,5 @@
 | F -> End your turn                                                               |
 | X -> Quit the game                                                               |
 | I -> Show/hide these instructions                                                |
+| 1234 -> Buy a Seed, Small, Medium, or Large from the store, respectively         |
 ------------------------------------------------------------------------------------
