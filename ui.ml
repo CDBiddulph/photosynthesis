@@ -307,5 +307,5 @@ let rec read_char (s : t) =
       read_char new_state
     with
     | Invalid_Key -> read_char s
-    | End -> Graphics.close_graph ()
+    | End -> exit 0
   done
