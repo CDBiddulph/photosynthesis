@@ -247,7 +247,8 @@ let merge_rasters raster_order rasters =
     | [] -> acc
     | h :: t ->
         merge_rasters_helper t rasters
-          (merge_two_rasters acc (List.assoc h rasters))
+          (try merge_two_rasters acc (List.assoc h rasters)
+           with Not_found -> acc)
   in
   match raster_order with
   | [] -> blank_raster { x = 0; y = 0 }

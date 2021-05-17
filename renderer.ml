@@ -3,7 +3,7 @@ open Raster
 
 type t = {
   size : point2d;
-  layers : (string * Raster.t) list;
+  layers : (string * (Raster.t * bool)) list;
   layer_order : string list;
   char_graphics : (string * char grid) list;
   color_graphics : (string * ANSITerminal.color grid) list;
@@ -16,12 +16,14 @@ exception Char_grid_not_found of string
 exception Color_grid_not_found of string
 
 let set_layer layer_name new_layer rend =
-  if not (List.mem_assoc layer_name rend.layers) then
-    raise (Layer_not_found layer_name);
+  let _, old_vis =
+    try List.assoc layer_name rend.layers
+    with Not_found -> raise (Layer_not_found layer_name)
+  in
   {
     rend with
     layers =
-      (layer_name, new_layer)
+      (layer_name, (new_layer, old_vis))
       :: List.remove_assoc layer_name rend.layers;
   }
 
@@ -44,9 +46,19 @@ let get_graphic_fill_color char_name color rend =
   let color_grid = map_grid (fun _ -> Some color) char_grid in
   { char_grid; color_grid }
 
-let get_layer name gui = List.assoc name gui.layers
+let get_layer name rend = List.assoc name rend.layers |> fst
 
-let init_rend layer_names size =
+let set_visible visible layer_name rend : t =
+  {
+    rend with
+    layers =
+      List.map
+        (fun ((name, (l, _)) as layer) ->
+          if name = layer_name then (name, (l, visible)) else layer)
+        rend.layers;
+  }
+
+let init_rend layer_info size =
   (* layer_names must be in order from back to front, since it will be
      used to make layer_order *)
   let char_grid_names =
@@ -70,6 +82,7 @@ let init_rend layer_names size =
       "sun/3";
       "sun/4";
       "sun/5";
+      "instructions";
     ]
   in
   let color_grid_names =
@@ -84,11 +97,15 @@ let init_rend layer_names size =
       "soil/";
     ]
   in
-  let layers = List.map (fun n -> (n, blank_raster size)) layer_names in
+  let layers =
+    List.map
+      (fun (name, vis) -> (name, (blank_raster size, vis)))
+      layer_info
+  in
   {
     size;
     layers;
-    layer_order = layer_names;
+    layer_order = List.map fst layer_info;
     char_graphics = load_char_grids '`' char_grid_names;
     color_graphics = load_color_grids '`' color_grid_names;
   }
@@ -113,7 +130,13 @@ let render rend =
         print_newline ())
       raster.char_grid raster.color_grid
   in
-  let render_raster = merge_rasters rend.layer_order rend.layers in
+  let visible_layers =
+    List.filter_map
+      (fun (name, (layer, visible)) ->
+        if visible then Some (name, layer) else None)
+      rend.layers
+  in
+  let render_raster = merge_rasters rend.layer_order visible_layers in
   ignore (Sys.command "clear");
   print_raster render_raster
 

@@ -2,9 +2,14 @@
     interface. *)
 type t
 
-(** [init_state gui] is a state with a current_position at col = 0 and
-    diag = 0 and the starting map *)
-val init_state : Gui.t -> Game.t -> t
+(** [init_state instr gui game] is a state with its cursor at
+    init_cursor, the instructions displayed if [instr], [gui], and
+    [game]. *)
+val init_state : bool -> Gui.t -> Game.t -> t
+
+(** [init_cursor] is the starting location of the cursor in a new state,
+    specifically [{ col = 0; diag = 0; }]. *)
+val init_cursor : HexUtil.coord
 
 (** [scroll] returns a new state of the neighbor of the original
     current_postion in direction [d] *)
