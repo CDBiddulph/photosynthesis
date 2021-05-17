@@ -1,5 +1,6 @@
 (** Takes data for various rendered components and re-renders them on
     command. *)
+
 open ANSITerminal
 
 (** Type representing the GUI state *)
@@ -96,7 +97,7 @@ val update_available : int list -> t -> t
 
 (** [update_plant_highlight loc_opt gui] removes any plant highlights
     from gui if [loc_opt = None]. Otherwise, if [loc = is_store, stage]:
-    if [is_store = true], the first unbought plant of [stage] in the
+    j if [is_store = true], the first unbought plant of [stage] in the
     store from the left is highlighted in white; else, the first plant
     of [stage] in the available area from the left is highlighted in
     white. If the plant to highlight does not exist, removes any plant

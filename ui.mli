@@ -1,3 +1,9 @@
+(** The UI handles user input, updating the game and conveying changes
+    in the game to the GUI. It also handles the position of the player's
+    cursor, and independently keeps track of whether a winner has been
+    declared, whether photosynthesis is occurring, and whether the
+    instructions are being displayed. *)
+
 (** The abstract type representing the current state of the user
     interface. *)
 type t
