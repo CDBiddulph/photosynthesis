@@ -41,7 +41,11 @@ let num_remaining_store (p : Player.t) =
   List.map (fun stage -> Player.num_in_store stage p) Plant.all_stages
 
 let update_message (s : t) (coord : HexUtil.coord) =
-  if Game.can_plant_seed coord s.game then "(P) Plant Seed"
+  let pl = Game.player_of_turn s.game in
+  if Game.can_plant_seed coord s.game then
+    "(P) Plant Seed for "
+    ^ string_of_int (Player.cost_to_buy_and_grow Seed pl)
+    ^ " light point(s)"
   else if Game.can_plant_small coord s.game then "(P) Plant Small Tree"
   else if Game.can_grow_plant coord s.game then
     let plnt_stg =
@@ -49,11 +53,21 @@ let update_message (s : t) (coord : HexUtil.coord) =
       |> Cell.plant |> extract_plant |> Plant.plant_stage
     in
     match plnt_stg with
-    | Seed -> "(P) Grow Small Tree"
-    | Small -> "(P) Grow Medium Tree"
-    | Medium -> "(P) Grow Tall Tree"
+    | Seed ->
+        "(P) Grow Small Tree for "
+        ^ string_of_int (Player.cost_to_buy_and_grow Small pl)
+        ^ " light point(s)"
+    | Small ->
+        "(P) Grow Medium Tree for "
+        ^ string_of_int (Player.cost_to_buy_and_grow Medium pl)
+        ^ " light point(s)"
+    | Medium ->
+        "(P) Grow Tall Tree for "
+        ^ string_of_int (Player.cost_to_buy_and_grow Large pl)
+        ^ " light point(s)"
     | Large -> failwith "Should Not Happen"
-  else if Game.can_harvest coord s.game then "(P) Harvest Tall Tree"
+  else if Game.can_harvest coord s.game then
+    "(P) Harvest Tall Tree for 4 light points"
   else ""
 
 let scroll s d =
@@ -115,7 +129,7 @@ let plant_helper s f =
     let cells = Game.cells new_game in
     Gui.update_cells cells s.gui
     |> Gui.update_message
-         (update_message s s.current_position)
+         (update_message { s with game = new_game } s.current_position)
          ANSITerminal.White
     |> Gui.update_available num_available
     |> Gui.update_store_remaining num_store_remaining
