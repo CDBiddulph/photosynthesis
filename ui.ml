@@ -242,7 +242,6 @@ let buy stage state =
     let new_gui =
       let cells = Game.cells new_game in
       Gui.update_cells cells s.gui
-      (* TODO: This update_message seems wrong *)
       |> Gui.update_message
            (update_message
               { s with game = new_game }
