@@ -1,5 +1,6 @@
-Run the following commands to install the graphics package:
-opam install graphics
+Install the following OCaml packages using your package manager:
+graphics
+ocamlgraph
 
 You may need to run the following in order to install the graphics package:
 brew install pkg-config
