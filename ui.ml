@@ -55,29 +55,22 @@ let update_message (s : t) (coord : HexUtil.coord) =
   if Game.can_plant_seed coord s.game then
     "(P) Plant Seed for "
     ^ string_of_int (Player.cost_to_buy_and_grow Seed pl)
-    ^ " light point(s)"
-  else if Game.can_plant_small coord s.game then "(P) Plant Small Tree"
+    ^ " LP"
+  else if Game.can_plant_small coord s.game then "(P) Plant Small"
   else if Game.can_grow_plant coord s.game then
-    let plnt_stg =
+    let stage =
       Game.cell_at s.game coord
       |> Cell.plant |> extract_plant |> Plant.plant_stage
     in
-    match plnt_stg with
-    | Seed ->
-        "(P) Grow Small Tree for "
-        ^ string_of_int (Player.cost_to_buy_and_grow Small pl)
-        ^ " light point(s)"
-    | Small ->
-        "(P) Grow Medium Tree for "
-        ^ string_of_int (Player.cost_to_buy_and_grow Medium pl)
-        ^ " light point(s)"
-    | Medium ->
-        "(P) Grow Tall Tree for "
-        ^ string_of_int (Player.cost_to_buy_and_grow Large pl)
-        ^ " light point(s)"
-    | Large -> failwith "Should Not Happen"
+    let stage_str =
+      (stage |> string_of_plant_stage |> String.capitalize_ascii)
+      ^ if stage = Seed then "" else " Tree"
+    in
+    "(P) Grow " ^ stage_str ^ " for "
+    ^ string_of_int (Player.cost_to_buy_and_grow (next_stage stage) pl)
+    ^ " LP"
   else if Game.can_harvest coord s.game then
-    "(P) Harvest Tall Tree for 4 light points"
+    "(P) Harvest Large Tree for 4 LP"
   else ""
 
 let scroll d s =
@@ -199,10 +192,7 @@ let out_of_plant_exn s plnt_stg =
 
 let try_action f s =
   try f s with
-  | Board.IllegalPlacePlant ->
-      failwith "I don't think this should happen"
-      (* let new_gui = Gui.update_message "Illegal Placement of Plant"
-         ANSITerminal.Red s.gui in { s with gui = new_gui } *)
+  | Board.IllegalPlacePlant -> failwith "Illegal Place Plant"
   | PlantInventory.OutOfPlant Plant.Seed ->
       out_of_plant_exn s Plant.Seed
   | PlantInventory.OutOfPlant Plant.Small ->

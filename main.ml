@@ -70,6 +70,8 @@ let main () =
         (3, ('c', Red));
         (4, ('x', Blue));
       ]
+    |> Gui.update_message "Press (I) to open instructions"
+         ANSITerminal.White
   in
   gui |> render;
   let state = Ui.init_state init_instr gui game in
