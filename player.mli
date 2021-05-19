@@ -11,6 +11,10 @@ val init_player : PlayerId.t -> t
     costs to buy a plant of [stage] with [player]. *)
 val cost_to_buy : Plant.plant_stage -> t -> int
 
+(** [cost_to_plant_seed] is the amount of light points it costs to plant
+    a seed. *)
+val cost_to_plant_seed : int
+
 (** [cost_to_grow stage] is the number of light points that it costs to
     grow a plant of stage one below [stage] into [stage] by moving it
     from the available area to the board. Raises:

@@ -50,27 +50,59 @@ let num_remaining_available (p : Player.t) =
 let num_remaining_store (p : Player.t) =
   List.map (fun stage -> Player.num_in_store stage p) Plant.all_stages
 
-let update_message (s : t) (coord : HexUtil.coord) =
+(** [buy_grow_cost_strs to_stage player] is a pair
+    [(actions_str, sum_str)]. [actions_str] is in \["Buy and Grow"; "Buy
+    and Plant"; "Buy"; "Plant"\] and reflects the single set of actions
+    [player] could take to result in putting [to_stage] on the board.
+    [sum_str] is either in the form ["{int}"] or
+    ["{int} + {int} = {int}"] and reflects the light points that would
+    be used for the actions in [actions_str] in order, and their sum if
+    the number of actions > 1. *)
+let buy_grow_cost_strs to_stage player =
+  let buy_cost = Player.cost_to_buy to_stage player in
+  let buy_grow_cost = Player.cost_to_buy_and_grow to_stage player in
+  let grow_cost, action2_str =
+    if to_stage = Seed then (Player.cost_to_plant_seed, "Plant")
+    else (Player.cost_to_grow to_stage, "Grow")
+  in
+  (* under the assumption that buying never costs 0 LP, if we wish to
+     show that buying was not performed, it should be sufficient to show
+     that grow_cost = buy_grow_cost *)
+  let actions_str, sum_str =
+    if grow_cost = buy_grow_cost then (
+      assert (grow_cost = buy_grow_cost);
+      (action2_str, string_of_int grow_cost))
+    else (
+      assert (buy_cost + grow_cost = buy_grow_cost);
+      ( "Buy and " ^ action2_str,
+        string_of_int buy_cost ^ " + " ^ string_of_int grow_cost ^ " = "
+        ^ string_of_int buy_grow_cost ))
+  in
+  (actions_str, sum_str)
+
+let message_at_current_pos s =
   let pl = Game.player_of_turn s.game in
+  let coord = s.current_position in
   if Game.can_plant_seed coord s.game then
-    "(P) Plant Seed for "
-    ^ string_of_int (Player.cost_to_buy_and_grow Seed pl)
-    ^ " LP"
+    let actions_str, sum_str = buy_grow_cost_strs Seed pl in
+    "(P) " ^ actions_str ^ " Seed for " ^ sum_str ^ " LP"
   else if Game.can_plant_small coord s.game then "(P) Plant Small"
   else if Game.can_grow_plant coord s.game then
     let stage =
       Game.cell_at s.game coord
-      |> Cell.plant |> extract_plant |> Plant.plant_stage
+      |> Cell.plant |> extract_plant |> Plant.plant_stage |> next_stage
     in
     let stage_str =
       (stage |> string_of_plant_stage |> String.capitalize_ascii)
       ^ if stage = Seed then "" else " Tree"
     in
-    "(P) Grow " ^ stage_str ^ " for "
-    ^ string_of_int (Player.cost_to_buy_and_grow (next_stage stage) pl)
+    let actions_str, sum_str = buy_grow_cost_strs stage pl in
+    "(P) " ^ actions_str ^ " to " ^ stage_str ^ " for " ^ sum_str
     ^ " LP"
   else if Game.can_harvest coord s.game then
-    "(P) Harvest Large Tree for 4 LP"
+    "(P) Harvest Large Tree for "
+    ^ string_of_int cost_to_harvest
+    ^ " LP"
   else ""
 
 let scroll d s =
@@ -86,13 +118,12 @@ let scroll d s =
   | Some pos ->
       let new_gui =
         Gui.update_cursor new_pos s.gui
-        |> Gui.update_message (update_message s pos) ANSITerminal.White
+        |> Gui.update_message
+             (message_at_current_pos { s with current_position = pos })
+             ANSITerminal.White
         |> Gui.update_plant_highlight (Game.plant_hl_loc pos s.game)
       in
-      let new_state =
-        { s with current_position = pos; gui = new_gui }
-      in
-      new_state
+      { s with current_position = pos; gui = new_gui }
 
 let plant_helper s f =
   let new_game = f s.current_position s.game in
@@ -104,7 +135,7 @@ let plant_helper s f =
     let cells = Game.cells new_game in
     Gui.update_cells cells new_state.gui
     |> Gui.update_message
-         (update_message { s with game = new_game } s.current_position)
+         (message_at_current_pos { s with game = new_game })
          ANSITerminal.White
     |> Gui.update_available num_available
     |> Gui.update_store_remaining num_store_remaining
@@ -115,6 +146,25 @@ let plant_helper s f =
   in
   let newer_state = { s with gui = new_gui; game = new_game } in
   newer_state
+
+let end_turn_no_winners_or_photo s =
+  let pl = Game.player_of_turn s.game in
+  let pl_id = Player.player_id pl in
+  let num_store_remaining = num_remaining_store pl in
+  let num_available = num_remaining_available pl in
+  let sun_dir = Game.sun_dir s.game in
+  let new_gui =
+    s.gui
+    |> Gui.update_turn pl_id
+         (Player.light_points pl)
+         (Player.score_points pl)
+         num_store_remaining num_available
+         (Game.plant_hl_loc s.current_position s.game)
+    |> Gui.update_sun sun_dir
+    |> Gui.update_message (message_at_current_pos s) ANSITerminal.White
+    |> if s.photosynthesis then Gui.clear_photosynthesis else Fun.id
+  in
+  { s with gui = new_gui; photosynthesis = false }
 
 (** [end_turn s] will move the game to the next player's turn and set
     [photosynthesis = false], except when doing so will cause
@@ -141,49 +191,7 @@ let end_turn s =
           ended = true;
           photosynthesis = false;
         }
-    | None ->
-        let pl = Game.player_of_turn new_game in
-        let pl_id = Player.player_id pl in
-        let num_store_remaining = num_remaining_store pl in
-        let num_available = num_remaining_available pl in
-        let sun_dir = Game.sun_dir new_game in
-        let hlo =
-          let plnt_opt =
-            s.current_position |> Game.cell_at new_game |> Cell.plant
-          in
-          match plnt_opt with
-          | None -> None
-          | Some plant ->
-              if Plant.player_id plant <> pl_id then None
-              else
-                let plnt_stg = plant |> Plant.plant_stage in
-                if Player.is_in_available plnt_stg pl then
-                  Some (false, plnt_stg)
-                else Some (true, plnt_stg)
-        in
-        let new_gui =
-          Gui.update_turn pl_id
-            (Player.light_points pl)
-            (Player.score_points pl)
-            num_store_remaining num_available hlo s.gui
-          |> Gui.update_sun sun_dir
-          |>
-          if s.photosynthesis then Gui.clear_photosynthesis else Fun.id
-        in
-        let new_state =
-          {
-            s with
-            game = new_game;
-            gui = new_gui;
-            photosynthesis = false;
-          }
-        in
-        let new_gui' =
-          Gui.update_message
-            (update_message new_state new_state.current_position)
-            ANSITerminal.White new_gui
-        in
-        { new_state with gui = new_gui' }
+    | None -> end_turn_no_winners_or_photo { s with game = new_game }
 
 let out_of_plant_exn s plnt_stg =
   let str = "Out of " ^ Plant.string_of_plant_stage plnt_stg in
@@ -233,9 +241,7 @@ let buy stage state =
       let cells = Game.cells new_game in
       Gui.update_cells cells s.gui
       |> Gui.update_message
-           (update_message
-              { s with game = new_game }
-              s.current_position)
+           (message_at_current_pos { s with game = new_game })
            ANSITerminal.White
       |> Gui.update_available num_available
       |> Gui.update_store_remaining num_store_remaining
@@ -258,32 +264,38 @@ exception End
 
 exception Invalid_Key
 
+let handle_char_no_setup s c =
+  match c with
+  | '1' -> buy Seed s
+  | '2' -> buy Small s
+  | '3' -> buy Medium s
+  | '4' -> buy Large s
+  | 'f' -> end_turn s
+  | _ -> raise Invalid_Key
+
+let handle_char_no_instr s c =
+  match c with
+  | 'q' -> scroll 3 s
+  | 'e' -> scroll 5 s
+  | 'w' -> scroll 4 s
+  | 'a' -> scroll 2 s
+  | 's' -> scroll 1 s
+  | 'd' -> scroll 0 s
+  | 'p' -> plant s
+  | _ ->
+      if Game.is_setup s.game then raise Invalid_Key
+      else handle_char_no_setup s c
+
+let handle_char_no_end_or_photo s c =
+  match c with
+  | 'i' -> toggle_instructions s
+  | 'x' -> raise End
+  | _ -> if s.instr then raise Invalid_Key else handle_char_no_instr s c
+
 let handle_char s c =
   if s.ended then raise End
   else if s.photosynthesis then end_turn s
-  else
-    match c with
-    | 'i' -> toggle_instructions s
-    | 'x' -> raise End
-    | _ -> (
-        if s.instr then raise Invalid_Key
-        else
-          match c with
-          | 'q' -> scroll 3 s
-          | 'e' -> scroll 5 s
-          | 'w' -> scroll 4 s
-          | 'a' -> scroll 2 s
-          | 's' -> scroll 1 s
-          | 'd' -> scroll 0 s
-          | 'p' -> plant s
-          | '1' -> buy Seed s
-          | '2' -> buy Small s
-          | '3' -> buy Medium s
-          | '4' -> buy Large s
-          | 'f' ->
-              if Game.is_setup s.game then raise Invalid_Key
-              else end_turn s
-          | _ -> raise Invalid_Key)
+  else handle_char_no_end_or_photo s c
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
