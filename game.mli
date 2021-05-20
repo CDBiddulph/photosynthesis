@@ -109,14 +109,16 @@ val end_turn : t -> t
     photosynthesis to occur. *)
 val will_photo : t -> bool
 
-(** [photo_preview game] is a pair, with the first being an association
-    list of player ids to the pairs of [HexUtil.coord]s that have plants
-    that the player owns and the light points gained by the plant in
-    that cell for the next photosynthesis, assuming the board stays in
-    its current state. The second in the pair is the direction of the
-    sun after the next photosynthesis. *)
+(** [photo_preview game] is a tuple (lp, sun_dir, sun_rev), with [lp]
+    being an association list of player ids to the pairs of
+    [HexUtil.coord]s that have plants that the player owns and the light
+    points gained by the plant in that cell for the next photosynthesis,
+    assuming the board stays in its current state. [sun_dir] is the
+    direction of the sun after the next photosynthesis. [sun_rev] is the
+    number of revolutions left after the next photosynthesis. *)
 val photo_preview :
-  t -> (PlayerId.t * (HexUtil.coord * int) list) list * HexUtil.dir
+  t ->
+  (PlayerId.t * (HexUtil.coord * int) list) list * HexUtil.dir * int
 
 (** [can_plant_seed coord game] is true if planting a seed with the
     player of the current turn of [game] at [coord] is a legal move,

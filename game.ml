@@ -115,7 +115,12 @@ let next_in_wraparound_lst lst elem =
   in
   next_in_wraparound_lst_helper (List.nth lst 0) lst elem
 
+let rule_to_rounds = function Normal -> 18 | Extended -> 24
+
 let sun_dir game = HexUtil.dir_of_int game.num_rounds
+
+let sun_rev game =
+  ((rule_to_rounds game.rounds_rule - game.num_rounds - 1) / 6) + 1
 
 let turn_after game player =
   next_in_wraparound_lst game.player_order player
@@ -141,8 +146,6 @@ let photosynthesis game =
     (fun (player_id, lp) ->
       (player_id, Player.add_lp lp (player_of game player_id)))
     lp_per_player
-
-let rule_to_rounds = function Normal -> 18 | Extended -> 24
 
 let end_turn_normal natural_next_turn is_new_round game =
   if game.num_rounds = rule_to_rounds game.rounds_rule then game
@@ -207,16 +210,19 @@ let will_photo game =
 
 (* Note: there is dependency between rules here and rules in end_turn *)
 let photo_preview game =
-  let next_sun_dir =
-    if is_setup game then sun_dir game
-    else sun_dir game |> HexUtil.move_cw
+  let next_sun_dir, next_sun_rev =
+    let temp_game =
+      if is_setup game then game
+      else { game with num_rounds = game.num_rounds + 1 }
+    in
+    (sun_dir temp_game, sun_rev temp_game)
   in
   let lp =
     Board.get_photo_lp next_sun_dir
       (List.map fst game.players)
       game.board
   in
-  (lp, next_sun_dir)
+  (lp, next_sun_dir, next_sun_rev)
 
 let can_plant_seed coord game =
   (not (is_setup game))

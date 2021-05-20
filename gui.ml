@@ -234,6 +234,7 @@ let draw_static_text layer_name gui =
   gui
   |> draw_plant_inventory_static_text "store" "Store"
   |> draw_plant_inventory_static_text "available" "Available"
+  |> draw_text layer_name (get_offset "sun_marker" gui) "o" Yellow
 
 let draw_plant_highlight layer_name color loc_opt gui =
   match loc_opt with
@@ -299,6 +300,13 @@ let draw_init_next_sp layer_name sps gui =
        [ "Next SP:"; "::"; ":."; ":"; "." ]
        Green
 
+let draw_init_sun_revolution layer_name total_revs gui =
+  let revs_str = string_of_int total_revs in
+  draw_text layer_name
+    (get_offset "sun_revolution" gui)
+    (revs_str ^ "/" ^ revs_str ^ " revs left")
+    Yellow gui
+
 let update_next_sp = draw_next_sp "overwrite_text"
 
 let update_player_lp lp gui =
@@ -312,6 +320,11 @@ let update_player_sp sp gui =
     (get_offset "player_sp" gui)
     ("SP: " ^ pad_to_length (string_of_int sp) 3)
     Green gui
+
+let update_sun_revolution rev gui =
+  draw_text "overwrite_text"
+    (get_offset "sun_revolution" gui)
+    (string_of_int rev) Yellow gui
 
 let draw_player_sign layer_name player_id gui =
   draw_text layer_name
@@ -401,6 +414,7 @@ let init_gui
     init_cursor
     init_instructions
     sun_dir
+    sun_revs
     cells
     player_params =
   let vis_layer_names =
@@ -439,9 +453,11 @@ let init_gui
           ("plant_num", { x = 5; y = 5 });
           ("player_sign", { x = 109; y = 0 });
           ("sun", { x = 3; y = 0 });
+          ("sun_marker", { x = 3; y = 11 });
           ("next_sp", { x = 7; y = 37 });
           ("player_lp", { x = 73; y = 3 });
           ("player_sp", { x = 7; y = 3 });
+          ("sun_revolution", { x = 65; y = 39 });
           ("message", { x = 0; y = 43 });
           ("instructions", { x = 17; y = 7 });
           ("end_screen", { x = 50; y = 20 });
@@ -462,6 +478,7 @@ let init_gui
           cells)
   |> update_cells cells
   |> draw_init_next_sp "overwrite_text" init_next_sp
+  |> draw_init_sun_revolution "overwrite_text" sun_revs
   |> draw_static_text "static_text"
   |> update_turn gui.turn 0 0 gui.num_store_remaining gui.num_available
        None

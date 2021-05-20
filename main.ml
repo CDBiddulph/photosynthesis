@@ -56,13 +56,14 @@ let main () =
   let num_players = get_num_players () in
   let ruleset = get_ruleset () in
   let game = Game.init_game num_players Board.Normal ruleset in
+  let sun_revs = match ruleset with Normal -> 3 | Extended -> 4 in
   let hex_map = HexMap.init_map () in
   let init_instr = false in
   let gui =
     init_gui
       [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
       [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ] (Some Ui.init_cursor) init_instr
-      (Game.sun_dir game)
+      (Game.sun_dir game) sun_revs
       (HexMap.flatten hex_map)
       [
         (1, ('o', Green));

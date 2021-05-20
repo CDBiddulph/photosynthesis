@@ -152,7 +152,6 @@ let end_turn_no_winners_or_photo s =
   let pl_id = Player.player_id pl in
   let num_store_remaining = num_remaining_store pl in
   let num_available = num_remaining_available pl in
-  let sun_dir = Game.sun_dir s.game in
   let new_gui =
     s.gui
     |> Gui.update_turn pl_id
@@ -160,7 +159,6 @@ let end_turn_no_winners_or_photo s =
          (Player.score_points pl)
          num_store_remaining num_available
          (Game.plant_hl_loc s.current_position s.game)
-    |> Gui.update_sun sun_dir
     |> Gui.update_message (message_at_current_pos s) ANSITerminal.White
     |> if s.photosynthesis then Gui.clear_photosynthesis else Fun.id
   in
@@ -173,9 +171,10 @@ let end_turn_no_winners_or_photo s =
     set [s.photosynthesis = true]. *)
 let end_turn s =
   if Game.will_photo s.game && not s.photosynthesis then
-    let lp, sun_dir = Game.photo_preview s.game in
+    let lp, sun_dir, sun_rev = Game.photo_preview s.game in
     let new_gui =
       s.gui |> Gui.photosynthesis lp |> Gui.update_sun sun_dir
+      |> Gui.update_sun_revolution sun_rev
       |> Gui.update_message "PHOTOSYNTHESIS - press any key to continue"
            Yellow
     in
