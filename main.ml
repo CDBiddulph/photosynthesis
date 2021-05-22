@@ -10,7 +10,22 @@ let player_params =
     (4, ('o', ANSITerminal.Yellow));
   ]
 
-let rec get_num_players () =
+let rec num_players_of_string str =
+  if str = "" then 4
+  else
+    match int_of_string_opt str with
+    | None ->
+        ANSITerminal.print_string [ ANSITerminal.red ]
+          "Invalid Input. Must be a number between 2 and 4 \n> ";
+        get_num_players ()
+    | Some n ->
+        if n = 2 || n = 3 || n = 4 then n
+        else (
+          ANSITerminal.print_string [ ANSITerminal.red ]
+            "Invalid Input. Must be a number between 2 and 4 \n> ";
+          get_num_players ())
+
+and get_num_players () =
   ANSITerminal.print_string [ ANSITerminal.red ]
     "Please enter the number of players\n> ";
   match read_line () with
@@ -18,20 +33,7 @@ let rec get_num_players () =
       ANSITerminal.print_string [ ANSITerminal.red ]
         "Invalid Input. Must be a number between 2 and 4 \n> ";
       get_num_players ()
-  | str -> (
-      if str = "" then 4
-      else
-        match int_of_string_opt str with
-        | None ->
-            ANSITerminal.print_string [ ANSITerminal.red ]
-              "Invalid Input. Must be a number between 2 and 4 \n> ";
-            get_num_players ()
-        | Some n ->
-            if n = 2 || n = 3 || n = 4 then n
-            else (
-              ANSITerminal.print_string [ ANSITerminal.red ]
-                "Invalid Input. Must be a number between 2 and 4 \n> ";
-              get_num_players ()))
+  | str -> num_players_of_string str
 
 let rec get_ruleset () =
   ANSITerminal.print_string [ ANSITerminal.red ]

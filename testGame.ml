@@ -153,6 +153,7 @@ let gui =
   Gui.init_gui [ []; []; []; [] ] [ 0; 0; 0; 0 ] [ 0; 0; 0; 0 ] None
     false
     (Game.sun_dir render_game)
+    0
     (Game.cells render_game)
     player_params
 
