@@ -313,19 +313,22 @@ let cells game = Board.cells game.board
 
 let scoring_points game = game.scoring_points
 
-let player_ids_and_lp game =
-  List.map
-    (fun (id, player) ->
-      (id, Player.score_points player, Player.light_points player))
-    game.players
-  |> List.fold_left
-       (fun (max_ids, max_points) (id, points, light_points) ->
-         if points + (light_points / 3) > max_points then
-           ([ id ], points + (light_points / 3))
-         else if points + (light_points / 3) = max_points then
-           (id :: max_ids, points + (light_points / 3))
-         else (max_ids, max_points))
-       ([], 0)
+let winners_from_points game =
+  let winners, _ =
+    List.map
+      (fun (id, player) ->
+        (id, Player.score_points player, Player.light_points player))
+      game.players
+    |> List.fold_left
+         (fun (max_ids, max_points) (id, points, light_points) ->
+           if points + (light_points / 3) > max_points then
+             ([ id ], points + (light_points / 3))
+           else if points + (light_points / 3) = max_points then
+             (id :: max_ids, points + (light_points / 3))
+           else (max_ids, max_points))
+         ([], 0)
+  in
+  winners
 
 let winners_from_ids_and_lp ids game =
   match ids with
@@ -348,7 +351,7 @@ let winners_from_ids_and_lp ids game =
 let winners game =
   if game.num_rounds < rule_to_rounds game.rounds_rule then None
   else
-    let ids, points = player_ids_and_lp game in
+    let ids = winners_from_points game in
     winners_from_ids_and_lp ids game
 
 let plant_hl_loc coord game =
