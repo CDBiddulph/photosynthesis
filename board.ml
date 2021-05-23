@@ -292,29 +292,20 @@ let rec neighbors_in_dir_r board coord dir dist =
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
-let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
-    (HexUtil.coord * int) list =
+let player_lp_helper sun_dir player_cells board =
   let single_cell_shadowed coord =
-    let neighbors =
-      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
-    in
     let shadowed =
-      List.fold_left
-        (fun acc neighbors_coord ->
-          shadows board neighbors_coord coord || acc)
-        false neighbors
+      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
+      |> List.fold_left
+           (fun acc neighbors_coord ->
+             shadows board neighbors_coord coord || acc)
+           false
     in
     if shadowed then None
     else
-      let plt_stage =
-        match cell_at coord board with
-        | None -> failwith "should be impossible"
-        | Some cell -> (
-            match Cell.plant cell with
-            | None -> failwith "should be impossible"
-            | Some plant -> Plant.plant_stage plant)
-      in
-      Some (plant_to_int plt_stage)
+      match plant_at coord board with
+      | None -> failwith "should be impossible"
+      | Some plant -> Some (plant_to_int (Plant.plant_stage plant))
   in
   List.fold_left
     (fun acc player_cell_coord ->
