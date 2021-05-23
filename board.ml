@@ -182,9 +182,6 @@ let place_plant can_place plant coord board =
         let usable_neighbors =
           get_usable_neighbors (Plant.player_id plant) coord board
         in
-        let new_graph =
-          add_all coord usable_neighbors board.graph board.src_sink
-        in
         {
           board with
           map =
@@ -192,7 +189,8 @@ let place_plant can_place plant coord board =
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
           touched_cells = coord :: board.touched_cells;
-          graph = new_graph;
+          graph =
+            add_all coord usable_neighbors board.graph board.src_sink;
           n_planted = board.n_planted + 1;
         }
   else raise IllegalPlacePlant
@@ -235,25 +233,20 @@ let grow_plant player_id coord board =
       | None -> failwith "should not happen"
       | Some c -> c
     in
-    let old_plant =
+    let new_cell =
       match plant_at coord board with
       | None -> failwith "Impossible"
-      | Some p -> p
+      | Some p ->
+          Cell.set_plant old_cell
+            (Some
+               (Plant.init_plant player_id
+                  (p |> Plant.plant_stage |> Plant.next_stage)))
     in
-    let next_plant =
-      Some
-        (Plant.init_plant player_id
-           (old_plant |> Plant.plant_stage |> Plant.next_stage))
-    in
-    let new_graph = BaseGraph.remove_vertex board.graph coord in
     {
       board with
-      map =
-        HexMap.set_cell board.map
-          (Some (Cell.set_plant old_cell next_plant))
-          coord;
+      map = HexMap.set_cell board.map (Some new_cell) coord;
       touched_cells = coord :: board.touched_cells;
-      graph = new_graph;
+      graph = BaseGraph.remove_vertex board.graph coord;
     }
   else raise IllegalGrowPlant
 
