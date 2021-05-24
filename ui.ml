@@ -33,15 +33,6 @@ let init_state (instr : bool) (gui : Gui.t) (game : Game.t) : t =
     gui;
   }
 
-let extract (c : HexUtil.coord option) : HexUtil.coord =
-  match c with Some i -> i | None -> raise Invalid_Direction
-
-let extract_cell (c : Cell.t option) : Cell.t =
-  match c with Some i -> i | None -> raise Invalid_Cell
-
-let extract_plant (p : Plant.t option) =
-  match p with Some i -> i | None -> failwith "Should Not Happen"
-
 let num_remaining_available (p : Player.t) =
   List.map
     (fun stage -> Player.num_in_available stage p)
@@ -90,7 +81,7 @@ let message_at_current_pos s =
   else if Game.can_grow_plant coord s.game then
     let stage =
       Game.cell_at s.game coord
-      |> Cell.plant |> extract_plant |> Plant.plant_stage |> next_stage
+      |> Cell.plant |> Option.get |> Plant.plant_stage |> next_stage
     in
     let stage_str =
       (stage |> string_of_plant_stage |> String.capitalize_ascii)
