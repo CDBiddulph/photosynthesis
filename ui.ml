@@ -125,28 +125,6 @@ let scroll d s =
       in
       { s with current_position = pos; gui = new_gui }
 
-let plant_helper s f =
-  let new_game = f s.current_position s.game in
-  let pl = Game.player_of_turn new_game in
-  let num_store_remaining = num_remaining_store pl in
-  let num_available = num_remaining_available pl in
-  let new_state = { s with game = new_game } in
-  let new_gui =
-    let cells = Game.cells new_game in
-    Gui.update_cells cells new_state.gui
-    |> Gui.update_message
-         (message_at_current_pos { s with game = new_game })
-         ANSITerminal.White
-    |> Gui.update_available num_available
-    |> Gui.update_store_remaining num_store_remaining
-    |> Gui.update_player_lp (Player.light_points pl)
-    |> Gui.update_player_sp (Player.score_points pl)
-    |> Gui.update_plant_highlight
-         (Game.plant_hl_loc new_state.current_position new_state.game)
-  in
-  let newer_state = { s with gui = new_gui; game = new_game } in
-  newer_state
-
 let end_turn_no_winners_or_photo s =
   let pl = Game.player_of_turn s.game in
   let pl_id = Player.player_id pl in
@@ -216,16 +194,46 @@ let try_action f s =
       in
       { s with gui = new_gui }
 
+let plant_helper f s =
+  let new_game = f s.current_position s.game in
+  let pl = Game.player_of_turn new_game in
+  let num_store_remaining = num_remaining_store pl in
+  let num_available = num_remaining_available pl in
+  let new_gui =
+    let cells = Game.cells new_game in
+    s.gui |> Gui.update_cells cells
+    |> Gui.update_message
+         (message_at_current_pos { s with game = new_game })
+         ANSITerminal.White
+    |> Gui.update_available num_available
+    |> Gui.update_store_remaining num_store_remaining
+    |> Gui.update_player_lp (Player.light_points pl)
+    |> Gui.update_player_sp (Player.score_points pl)
+    |> Gui.update_plant_highlight
+         (Game.plant_hl_loc s.current_position new_game)
+  in
+  { s with gui = new_gui; game = new_game }
+
+let harvest_gui s =
+  let gui =
+    List.fold_right
+      (fun soil g ->
+        let new_sp = next_scoring_points_strict s.game soil in
+        update_next_sp soil new_sp g)
+      [ 1; 2; 3; 4 ] s.gui
+  in
+  { s with gui }
+
 let plant state =
   let plant_f s =
     if Game.can_plant_seed s.current_position s.game then
-      plant_helper s Game.buy_and_grow_plant
+      s |> plant_helper Game.buy_and_grow_plant
     else if Game.can_plant_small s.current_position s.game then
-      plant_helper s Game.plant_small |> end_turn
+      s |> plant_helper Game.plant_small |> end_turn
     else if Game.can_grow_plant s.current_position s.game then
-      plant_helper s Game.buy_and_grow_plant
+      s |> plant_helper Game.buy_and_grow_plant
     else if Game.can_harvest s.current_position s.game then
-      plant_helper s Game.harvest
+      s |> plant_helper Game.harvest |> harvest_gui
     else s
   in
   try_action plant_f state
