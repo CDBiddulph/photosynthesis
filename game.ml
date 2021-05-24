@@ -98,6 +98,13 @@ let rec get_scoring_points game soil =
           } )
   with Not_found -> (0, game)
 
+let next_scoring_points game soil = get_scoring_points game soil |> fst
+
+let next_scoring_points_strict game soil =
+  match List.assoc soil game.scoring_points with
+  | [] -> None
+  | h :: _ -> Some h
+
 let cell_at game coord =
   match Board.cell_at coord game.board with
   | None -> failwith "invalid cell"
@@ -306,8 +313,6 @@ let buy_and_grow_plant coord game =
     | _ -> game.board |> Board.grow_plant player_id coord
   in
   game |> update_player player_id player |> update_board board
-
-let next_scoring_points game soil = fst (get_scoring_points game soil)
 
 let cells game = Board.cells game.board
 

@@ -163,12 +163,19 @@ val cell_at : t -> HexUtil.coord -> Cell.t
     [soil]. *)
 val next_scoring_points : t -> Cell.soil -> int
 
+(** [next_scoring_points_strict game soil] is the number on the top
+    scoring token of [soil] if such a token exists, else None. *)
+val next_scoring_points_strict : t -> Cell.soil -> int option
+
 (** [cells game] is a list of the Cells in the board of game, in any
     order. *)
 val cells : t -> Cell.t list
 
 (** [sun_dir game] is the direction the sun is facing in [game]. *)
 val sun_dir : t -> HexUtil.dir
+
+(** [sun_rev game] is the number of sun revolutions remaining in [game]. *)
+val sun_rev : t -> int
 
 (** [scoring_points game] is an association list of the list of
     remaining scoring points for each soil type, in order from the next

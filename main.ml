@@ -52,10 +52,17 @@ let rec get_ruleset () =
           get_ruleset ())
 
 let main_init_gui init_instr game sun_revs hex_map =
-  init_gui
-    [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-    [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ] (Some Ui.init_cursor) init_instr
-    (Game.sun_dir game) sun_revs
+  let num_availables =
+    List.map
+      (fun stage ->
+        game |> Game.player_of_turn |> Player.num_in_available stage)
+      Plant.all_stages
+  in
+  let next_sp =
+    List.map (Game.next_scoring_points game) [ 1; 2; 3; 4 ]
+  in
+  init_gui Store.costs num_availables next_sp (Some Ui.init_cursor)
+    init_instr (Game.sun_dir game) (Game.sun_rev game)
     (HexMap.flatten hex_map)
     [
       (1, ('o', Green));
