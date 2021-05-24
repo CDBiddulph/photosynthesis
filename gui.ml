@@ -285,9 +285,12 @@ let pad_to_length str length =
   str ^ String.make (max 0 (length - String.length str)) ' '
 
 let draw_next_sp layer_name soil sp gui =
+  let sp_str =
+    match sp with None -> "X" | Some i -> string_of_int i
+  in
   draw_text layer_name
     (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
-    (pad_to_length (string_of_int sp) 2)
+    (pad_to_length sp_str 2)
     Green gui
 
 let draw_init_next_sp layer_name sps gui =
@@ -336,6 +339,11 @@ let draw_player_sign layer_name player_id gui =
 let set_visible visible layer_name gui =
   { gui with rend = Renderer.set_visible visible layer_name gui.rend }
 
+let set_visible_many visible layer_names gui =
+  List.fold_right
+    (fun layer_name g -> set_visible visible layer_name g)
+    layer_names gui
+
 let update_instructions to_show gui =
   set_visible to_show "instructions" gui
 
@@ -370,6 +378,19 @@ let update_end_screen players gui =
         (get_offset "end_screen" cleared)
         boxed_message White cleared
 
+let photo_hidden_layers =
+  [
+    "cell_highlight";
+    "cursor";
+    "store_plants";
+    "store_bought";
+    "plant_highlight";
+    "static_text";
+    "overwrite_text";
+    "player_sign";
+    "available";
+  ]
+
 let photosynthesis lp gui =
   List.fold_left
     (fun g_o (p_id, coord_lps) ->
@@ -381,8 +402,12 @@ let photosynthesis lp gui =
             color lp_int g_i)
         g_o coord_lps)
     gui lp
+  |> set_visible_many false photo_hidden_layers
 
-let clear_photosynthesis gui = set_blank "photosynthesis" gui
+let clear_photosynthesis gui =
+  gui
+  |> set_blank "photosynthesis"
+  |> set_visible_many true photo_hidden_layers
 
 let update_turn
     player_id

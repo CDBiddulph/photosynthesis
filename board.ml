@@ -182,9 +182,6 @@ let place_plant can_place plant coord board =
         let usable_neighbors =
           get_usable_neighbors (Plant.player_id plant) coord board
         in
-        let new_graph =
-          add_all coord usable_neighbors board.graph board.src_sink
-        in
         {
           board with
           map =
@@ -192,7 +189,8 @@ let place_plant can_place plant coord board =
               (Some (Cell.set_plant old_cell (Some plant)))
               coord;
           touched_cells = coord :: board.touched_cells;
-          graph = new_graph;
+          graph =
+            add_all coord usable_neighbors board.graph board.src_sink;
           n_planted = board.n_planted + 1;
         }
   else raise IllegalPlacePlant
@@ -235,25 +233,20 @@ let grow_plant player_id coord board =
       | None -> failwith "should not happen"
       | Some c -> c
     in
-    let old_plant =
+    let new_cell =
       match plant_at coord board with
       | None -> failwith "Impossible"
-      | Some p -> p
+      | Some p ->
+          Cell.set_plant old_cell
+            (Some
+               (Plant.init_plant player_id
+                  (p |> Plant.plant_stage |> Plant.next_stage)))
     in
-    let next_plant =
-      Some
-        (Plant.init_plant player_id
-           (old_plant |> Plant.plant_stage |> Plant.next_stage))
-    in
-    let new_graph = BaseGraph.remove_vertex board.graph coord in
     {
       board with
-      map =
-        HexMap.set_cell board.map
-          (Some (Cell.set_plant old_cell next_plant))
-          coord;
+      map = HexMap.set_cell board.map (Some new_cell) coord;
       touched_cells = coord :: board.touched_cells;
-      graph = new_graph;
+      graph = BaseGraph.remove_vertex board.graph coord;
     }
   else raise IllegalGrowPlant
 
@@ -292,29 +285,20 @@ let rec neighbors_in_dir_r board coord dir dist =
 (** [player_lp_helper board player_cells] returns an association list of
     [HexUtil.coord]s where the player's plants are and their respective
     light point values based on [board]'s sun direction.*)
-let player_lp_helper sun_dir (player_cells : HexUtil.coord list) board :
-    (HexUtil.coord * int) list =
+let player_lp_helper sun_dir player_cells board =
   let single_cell_shadowed coord =
-    let neighbors =
-      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
-    in
     let shadowed =
-      List.fold_left
-        (fun acc neighbors_coord ->
-          shadows board neighbors_coord coord || acc)
-        false neighbors
+      neighbors_in_dir_r board coord (HexUtil.reverse_dir sun_dir) 3
+      |> List.fold_left
+           (fun acc neighbors_coord ->
+             shadows board neighbors_coord coord || acc)
+           false
     in
     if shadowed then None
     else
-      let plt_stage =
-        match cell_at coord board with
-        | None -> failwith "should be impossible"
-        | Some cell -> (
-            match Cell.plant cell with
-            | None -> failwith "should be impossible"
-            | Some plant -> Plant.plant_stage plant)
-      in
-      Some (plant_to_int plt_stage)
+      match plant_at coord board with
+      | None -> failwith "should be impossible"
+      | Some plant -> Some (plant_to_int (Plant.plant_stage plant))
   in
   List.fold_left
     (fun acc player_cell_coord ->

@@ -51,6 +51,28 @@ let rec get_ruleset () =
             "Invalid Input. Must be Normal or Extended \n> ";
           get_ruleset ())
 
+let main_init_gui init_instr game sun_revs hex_map =
+  let num_availables =
+    List.map
+      (fun stage ->
+        game |> Game.player_of_turn |> Player.num_in_available stage)
+      Plant.all_stages
+  in
+  let next_sp =
+    List.map (Game.next_scoring_points_strict game) [ 1; 2; 3; 4 ]
+  in
+  init_gui Store.costs num_availables next_sp (Some Ui.init_cursor)
+    init_instr (Game.sun_dir game) (Game.sun_rev game)
+    (HexMap.flatten hex_map)
+    [
+      (1, ('o', Green));
+      (2, ('s', Yellow));
+      (3, ('c', Red));
+      (4, ('x', Blue));
+    ]
+  |> Gui.update_message "Press (I) to open instructions"
+       ANSITerminal.White
+
 let main () =
   ANSITerminal.print_string [ ANSITerminal.red ]
     "\n\nWelcome to Photosynthesis\n";
@@ -60,21 +82,7 @@ let main () =
   let sun_revs = match ruleset with Normal -> 3 | Extended -> 4 in
   let hex_map = HexMap.init_map () in
   let init_instr = false in
-  let gui =
-    init_gui
-      [ [ 1; 1; 2; 2 ]; [ 2; 2; 3; 3 ]; [ 3; 3; 4 ]; [ 4; 5 ] ]
-      [ 2; 4; 1; 0 ] [ 14; 17; 19; 22 ] (Some Ui.init_cursor) init_instr
-      (Game.sun_dir game) sun_revs
-      (HexMap.flatten hex_map)
-      [
-        (1, ('o', Green));
-        (2, ('s', Yellow));
-        (3, ('c', Red));
-        (4, ('x', Blue));
-      ]
-    |> Gui.update_message "Press (I) to open instructions"
-         ANSITerminal.White
-  in
+  let gui = main_init_gui init_instr game sun_revs hex_map in
   gui |> render;
   let state = Ui.init_state init_instr gui game in
   Ui.read_char state
