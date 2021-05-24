@@ -285,9 +285,12 @@ let pad_to_length str length =
   str ^ String.make (max 0 (length - String.length str)) ' '
 
 let draw_next_sp layer_name soil sp gui =
+  let sp_str =
+    match sp with None -> "X" | Some i -> string_of_int i
+  in
   draw_text layer_name
     (get_offset "next_sp" gui +: { x = 4; y = 5 - soil })
-    (pad_to_length (string_of_int sp) 2)
+    (pad_to_length sp_str 2)
     Green gui
 
 let draw_init_next_sp layer_name sps gui =

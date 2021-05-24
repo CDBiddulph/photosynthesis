@@ -23,14 +23,15 @@ type t
     each row, in order of [Plant.all_stages]. The displayed scoring
     points will be initialized to [init_next_sp], which should be given
     in the order of the soil types 1, 2, 3, 4, but will be displayed in
-    the order of 4, 3, 2, 1. [update_cursor init_cursor] and
+    the order of 4, 3, 2, 1. If an element in [init_next_sp] is None, it
+    will be displayed as ["X"]. [update_cursor init_cursor] and
     [update_instructions init_instructions] will also be called.
     Precondition: for all values [sp] in [init_next_sp],
     [sp >= 0 && sp < 100] *)
 val init_gui :
   int list list ->
   int list ->
-  int list ->
+  int option list ->
   HexUtil.coord option ->
   bool ->
   HexUtil.dir ->
@@ -114,9 +115,11 @@ val update_plant_highlight : (bool * Plant.plant_stage) option -> t -> t
 val update_cell_highlight : HexUtil.coord list -> t -> t
 
 (** [update_next_sp soil sp gui] is [gui] with the scoring points
-    displayed next to [soil] overwritten by [sp]. Precondition:
+    displayed next to [soil] overwritten by [sp]. The text to overwrite
+    the scoring points with will be ["X"] if [sp = None]. If
+    [sp = Some i], it will be [string_of_int i]. Precondition:
     [sp >= 0 && sp < 100]*)
-val update_next_sp : Cell.soil -> int -> t -> t
+val update_next_sp : Cell.soil -> int option -> t -> t
 
 (** [update_player_lp lp gui] is [gui] with the light points of the
     current player overwritten with [lp]. *)

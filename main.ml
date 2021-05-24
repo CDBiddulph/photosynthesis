@@ -59,7 +59,7 @@ let main_init_gui init_instr game sun_revs hex_map =
       Plant.all_stages
   in
   let next_sp =
-    List.map (Game.next_scoring_points game) [ 1; 2; 3; 4 ]
+    List.map (Game.next_scoring_points_strict game) [ 1; 2; 3; 4 ]
   in
   init_gui Store.costs num_availables next_sp (Some Ui.init_cursor)
     init_instr (Game.sun_dir game) (Game.sun_rev game)
