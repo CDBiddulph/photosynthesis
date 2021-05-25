@@ -309,14 +309,16 @@ let player_lp_helper sun_dir player_cells board =
 
 let get_photo_lp sun_dir players board =
   let get_player_cell_coords player_id =
-    List.map
-      (fun cell -> Cell.coord cell)
-      (List.filter
-         (fun cell ->
-           match Cell.plant cell with
-           | None -> false
-           | Some plant -> Plant.player_id plant = player_id)
-         (HexMap.flatten board.map))
+    let coord_if_valid cell =
+      match Cell.plant cell with
+      | None -> None
+      | Some plant ->
+          if Plant.plant_stage plant = Seed then None
+          else if Plant.player_id plant = player_id then
+            Some (Cell.coord cell)
+          else None
+    in
+    board.map |> HexMap.flatten |> List.filter_map coord_if_valid
   in
   List.map
     (fun player_id ->

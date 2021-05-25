@@ -12,11 +12,16 @@ exception Invalid_Direction
 
 exception Invalid_Cell
 
+type mode =
+  | Normal
+  | Instr
+  | Ended
+  | Photo
+  | ExitConfirm
+
 type t = {
   current_position : HexUtil.coord;
-  instr : bool;
-  ended : bool;
-  photosynthesis : bool;
+  mode : mode;
   game : Game.t;
   gui : Gui.t;
 }
@@ -26,9 +31,7 @@ let init_cursor = { col = 0; diag = 0 }
 let init_state (instr : bool) (gui : Gui.t) (game : Game.t) : t =
   {
     current_position = init_cursor;
-    instr;
-    ended = false;
-    photosynthesis = false;
+    mode = (if instr then Instr else Normal);
     game;
     gui;
   }
@@ -138,9 +141,9 @@ let end_turn_no_winners_or_photo s =
          num_store_remaining num_available
          (Game.plant_hl_loc s.current_position s.game)
     |> Gui.update_message (message_at_current_pos s) ANSITerminal.White
-    |> if s.photosynthesis then Gui.clear_photosynthesis else Fun.id
+    |> if s.mode = Photo then Gui.clear_photosynthesis else Fun.id
   in
-  { s with gui = new_gui; photosynthesis = false }
+  { s with gui = new_gui; mode = Normal }
 
 (** [end_turn s] will move the game to the next player's turn and set
     [photosynthesis = false], except when doing so will cause
@@ -148,7 +151,7 @@ let end_turn_no_winners_or_photo s =
     that case, it will just change the GUI to display photosynthesis and
     set [s.photosynthesis = true]. *)
 let end_turn s =
-  if Game.will_photo s.game && not s.photosynthesis then
+  if Game.will_photo s.game && not (s.mode = Photo) then
     let lp, sun_dir, sun_rev = Game.photo_preview s.game in
     let new_gui =
       s.gui |> Gui.photosynthesis lp |> Gui.update_sun sun_dir
@@ -156,7 +159,7 @@ let end_turn s =
       |> Gui.update_message "PHOTOSYNTHESIS - press any key to continue"
            Yellow
     in
-    { s with gui = new_gui; photosynthesis = true }
+    { s with gui = new_gui; mode = Photo }
   else
     let new_game = Game.end_turn s.game in
     match Game.winners new_game with
@@ -165,8 +168,7 @@ let end_turn s =
           s with
           game = new_game;
           gui = s.gui |> update_end_screen ws;
-          ended = true;
-          photosynthesis = false;
+          mode = Ended;
         }
     | None -> end_turn_no_winners_or_photo { s with game = new_game }
 
@@ -260,12 +262,10 @@ let buy stage state =
   try_action buy_f state
 
 let toggle_instructions s =
-  let new_instr = not s.instr in
-  {
-    s with
-    gui = update_instructions new_instr s.gui;
-    instr = new_instr;
-  }
+  let mode =
+    match s.mode with Instr -> Normal | Normal -> Instr | m -> m
+  in
+  { s with gui = update_instructions (mode = Instr) s.gui; mode }
 
 exception End
 
@@ -280,8 +280,10 @@ let handle_char_no_setup s c =
   | 'f' -> end_turn s
   | _ -> raise Invalid_Key
 
-let handle_char_no_instr s c =
+let handle_char_normal s c =
   match c with
+  | 'i' -> toggle_instructions s
+  | 'x' -> raise End
   | 'q' -> scroll 3 s
   | 'e' -> scroll 5 s
   | 'w' -> scroll 4 s
@@ -293,16 +295,19 @@ let handle_char_no_instr s c =
       if Game.is_setup s.game then raise Invalid_Key
       else handle_char_no_setup s c
 
-let handle_char_no_end_or_photo s c =
+let handle_char_instr s c =
   match c with
   | 'i' -> toggle_instructions s
   | 'x' -> raise End
-  | _ -> if s.instr then raise Invalid_Key else handle_char_no_instr s c
+  | _ -> raise Invalid_Key
 
 let handle_char s c =
-  if s.ended then raise End
-  else if s.photosynthesis then end_turn s
-  else handle_char_no_end_or_photo s c
+  match s.mode with
+  | Ended -> raise End
+  | Photo -> end_turn s
+  | Instr -> handle_char_instr s c
+  | ExitConfirm -> failwith "Unimplemented"
+  | Normal -> handle_char_normal s c
 
 let rec read_char (s : t) =
   Graphics.open_graph " 100x100+900+0";
