@@ -17,7 +17,7 @@ type mode =
   | Instr
   | Ended
   | Photo
-  | ExitConfirm
+  | ExitConfirm of mode
 
 type t = {
   current_position : HexUtil.coord;
@@ -271,16 +271,12 @@ let toggle_instructions s =
   { s with gui = update_instructions (mode = Instr) s.gui; mode }
 
 let toggle_exit_confirm s =
-  let mode =
+  let mode, message =
     match s.mode with
-    | ExitConfirm -> Normal
-    | Normal -> ExitConfirm
-    | _ -> failwith "Toggled exit confirm in an invalid mode"
-  in
-  let message =
-    if mode = ExitConfirm then
-      "Exit? Press X again to confirm, any other key to continue"
-    else message_at_current_pos s
+    | ExitConfirm old_mode -> (old_mode, message_at_current_pos s)
+    | current_mode ->
+        ( ExitConfirm current_mode,
+          "Exit? Press X again to confirm, any other key to continue" )
   in
   { s with gui = update_message message White s.gui; mode }
 
@@ -326,7 +322,7 @@ let handle_char s c =
   | Ended -> raise End
   | Photo -> end_turn s
   | Instr -> handle_char_instr s c
-  | ExitConfirm -> handle_char_exit_confirm s c
+  | ExitConfirm _ -> handle_char_exit_confirm s c
   | Normal -> handle_char_normal s c
 
 let rec read_char (s : t) =
