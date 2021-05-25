@@ -263,9 +263,26 @@ let buy stage state =
 
 let toggle_instructions s =
   let mode =
-    match s.mode with Instr -> Normal | Normal -> Instr | m -> m
+    match s.mode with
+    | Instr -> Normal
+    | Normal -> Instr
+    | _ -> failwith "Toggled instructions in an invalid mode"
   in
   { s with gui = update_instructions (mode = Instr) s.gui; mode }
+
+let toggle_exit_confirm s =
+  let mode =
+    match s.mode with
+    | ExitConfirm -> Normal
+    | Normal -> ExitConfirm
+    | _ -> failwith "Toggled exit confirm in an invalid mode"
+  in
+  let message =
+    if mode = ExitConfirm then
+      "Exit? Press X again to confirm, any other key to continue"
+    else message_at_current_pos s
+  in
+  { s with gui = update_message message White s.gui; mode }
 
 exception End
 
@@ -283,7 +300,7 @@ let handle_char_no_setup s c =
 let handle_char_normal s c =
   match c with
   | 'i' -> toggle_instructions s
-  | 'x' -> raise End
+  | 'x' -> toggle_exit_confirm s
   | 'q' -> scroll 3 s
   | 'e' -> scroll 5 s
   | 'w' -> scroll 4 s
@@ -298,15 +315,18 @@ let handle_char_normal s c =
 let handle_char_instr s c =
   match c with
   | 'i' -> toggle_instructions s
-  | 'x' -> raise End
+  | 'x' -> toggle_exit_confirm s
   | _ -> raise Invalid_Key
+
+let handle_char_exit_confirm s c =
+  match c with 'x' -> raise End | _ -> toggle_exit_confirm s
 
 let handle_char s c =
   match s.mode with
   | Ended -> raise End
   | Photo -> end_turn s
   | Instr -> handle_char_instr s c
-  | ExitConfirm -> failwith "Unimplemented"
+  | ExitConfirm -> handle_char_exit_confirm s c
   | Normal -> handle_char_normal s c
 
 let rec read_char (s : t) =
